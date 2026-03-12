@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alt1 Tech | AI Native Operating Systems for Business Transformation</title>
+    <meta name="description" content="Transform business processes with AI native operating systems. Alt1 Tech builds enterprise-grade platforms for marketing, research, accounting, and audit workflows. Move faster, cost less, execute better.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg-deep: #0D0D0D;
+            --color-bg-dark: #1A1A1A;
+            --color-bg-card: #1E1E1E;
+            --color-text-white: #FAFAFA;
+            --color-text-muted: #A0A0A0;
+            --color-text-subtle: #8A8A8A;
+            --color-accent-blue: #3B82F6;
+            --color-accent-purple: #6366F1;
+            --color-accent-cyan: #06B6D4;
+            --color-border: rgba(255,255,255,0.1);
+            --color-border-hover: rgba(255,255,255,0.2);
+            --gradient-hero: linear-gradient(135deg, #0D0D0D 0%, #1A1A2E 50%, #0D0D0D 100%);
+            --gradient-accent: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+            --gradient-glow: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --transition-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-bg-deep);
+            color: var(--color-text-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        p {
+            font-size: 1.125rem;
+            color: var(--color-text-muted);
+            max-width: 65ch;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 0;
+            transition: all 0.3s var(--transition-smooth);
+        }
+
+        header.scrolled {
+            background: rgba(13, 13, 13, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text-white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-text-white);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--color-text-white);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text-white);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--color-border-hover);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: var(--gradient-hero);
+            padding-top: 100px;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: heroPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes heroPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 900px;
+            padding: 60px 0;
+        }
+
+        .hero-eyebrow {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--color-accent-cyan);
+            margin-bottom: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s var(--transition-smooth) forwards;
+        }
+
+        .hero h1 {
+            margin-bottom: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s 0.1s var(--transition-smooth) forwards;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.125rem, 2vw, 1.375rem);
+            color: var(--color-text-muted);
+            margin-bottom: 40px;
+            line-height: 1.7;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s 0.2s var(--transition-smooth) forwards;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s 0.3s var(--transition-smooth) forwards;
+        }
+
+        .hero-trust {
+            margin-top: 60px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s 0.4s var(--transition-smooth) forwards;
+        }
+
+        .hero-trust-text {
+            font-size: 0.875rem;
+            color: var(--color-text-subtle);
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Trust Strip */
+        .trust-strip {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            text-align: center;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .trust-icon {
+            color: var(--color-accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            margin: 0 auto;
+        }
+
+        /* What Alt1 Does */
+        .what-we-do {
+            background: var(--color-bg-dark);
+        }
+
+        .what-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .what-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .what-content > p {
+            margin-bottom: 40px;
+            font-size: 1.125rem;
+        }
+
+        .what-points {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .what-point {
+            display: flex;
+            gap: 16px;
+        }
+
+        .point-number {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .point-content h3 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .point-content p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+        }
+
+        .what-visual {
+            position: relative;
+        }
+
+        .system-diagram {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .diagram-layer {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .diagram-layer:last-child {
+            margin-bottom: 0;
+        }
+
+        .layer-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .layer-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Solutions */
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .solution-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-border-hover);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .solution-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+        }
+
+        .solution-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .solution-card p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+            margin-bottom: 16px;
+        }
+
+        .solution-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .solution-tag {
+            font-size: 0.8rem;
+            color: var(--color-accent-cyan);
+            font-weight: 500;
+        }
+
+        .solution-link {
+            color: var(--color-text-white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Outcomes */
+        .outcomes {
+            background: var(--color-bg-dark);
+        }
+
+        .outcomes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .outcome-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .outcome-card:hover {
+            border-color: var(--color-accent-blue);
+        }
+
+        .outcome-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-accent);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.75rem;
+        }
+
+        .outcome-card h3 {
+            margin-bottom: 12px;
+        }
+
+        .outcome-card p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* How It Works */
+        .steps-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 64px;
+            width: 2px;
+            height: calc(100% - 24px);
+            background: var(--gradient-accent);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-content h3 {
+            margin-bottom: 8px;
+        }
+
+        .step-content p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+            margin-bottom: 8px;
+        }
+
+        .step-get {
+            font-size: 0.85rem;
+            color: var(--color-accent-cyan);
+            font-weight: 500;
+        }
+
+        /* Why Alt1 */
+        .why-alt1 {
+            background: var(--color-bg-dark);
+        }
+
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .why-card {
+            padding: 32px;
+            border-left: 3px solid var(--color-accent-blue);
+        }
+
+        .why-card h3 {
+            margin-bottom: 12px;
+            color: var(--color-text-white);
+        }
+
+        .why-card p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* Featured Solution */
+        .featured {
+            background: linear-gradient(135deg, #1A1A2E 0%, #0D0D0D 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: var(--gradient-glow);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .featured-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .featured-content > p {
+            margin-bottom: 30px;
+            font-size: 1.125rem;
+        }
+
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .ba-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .ba-card.negative {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .ba-card.positive {
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .ba-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .ba-card.negative .ba-label {
+            color: #EF4444;
+        }
+
+        .ba-card.positive .ba-label {
+            color: var(--color-accent-cyan);
+        }
+
+        .ba-list {
+            list-style: none;
+        }
+
+        .ba-list li {
+            font-size: 0.9rem;
+            color: var(--color-text-subtle);
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .ba-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+        }
+
+        .capabilities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .capability-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+
+        .capability-check {
+            width: 24px;
+            height: 24px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-accent-cyan);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Enterprise Readiness */
+        .enterprise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .enterprise-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .enterprise-card:hover {
+            border-color: var(--color-accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .enterprise-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.25rem;
+        }
+
+        .enterprise-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .enterprise-card p {
+            font-size: 0.85rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* FAQ */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 0;
+        }
+
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--color-text-white);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            padding: 24px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .faq-question:hover {
+            color: var(--color-accent-cyan);
+        }
+
+        .faq-icon {
+            font-size: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-answer p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+            padding-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            background: var(--color-bg-dark);
+            text-align: center;
+            padding: 120px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-glow);
+            opacity: 0.3;
+        }
+
+        .final-cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta h2 {
+            margin-bottom: 16px;
+        }
+
+        .final-cta > p {
+            margin: 0 auto 40px;
+            font-size: 1.25rem;
+        }
+
+        .final-cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .final-cta-trust {
+            margin-top: 40px;
+            font-size: 0.875rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--color-bg-deep);
+            border-top: 1px solid var(--color-border);
+            padding: 60px 0 40px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand p {
+            font-size: 0.95rem;
+            color: var(--color-text-subtle);
+            margin-top: 16px;
+        }
+
+        .footer-column h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--color-text-white);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-text-white);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 40px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .footer-copyright {
+            font-size: 0.875rem;
+            color: var(--color-text-subtle);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .what-grid,
+            .featured-grid {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .before-after {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            section {
+                padding: 60px 0;
+            }
+        }
+
+        /* Scroll Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s var(--transition-smooth), transform 0.6s var(--transition-smooth);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <div class="logo-icon">A1</div>
+                    Alt1 Tech
+                </a>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="#solutions">Solutions</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#why-alt1">Why Alt1</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                    <a href="#contact" class="btn btn-primary">Book a Strategy Call</a>
+                    <button class="mobile-menu-btn">☰</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-eyebrow">AI Native Operating Systems</div>
+                <h1>The intelligent alternative to operational drag</h1>
+                <p class="hero-subtitle">Alt1 Tech builds AI native operating systems that transform fragmented processes into orchestrated workflows—so your teams move faster, cost less, and execute better.</p>
+                <div class="hero-cta">
+                    <a href="#contact" class="btn btn-primary">Book a Strategy Call</a>
+                    <a href="#solutions" class="btn btn-secondary">Explore Solutions</a>
+                </div>
+                <div class="hero-trust">
+                    <p class="hero-trust-text">Trusted by businesses transforming marketing, research, accounting, and audit operations</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Strip -->
+    <section class="trust-strip">
+        <div class="container">
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Built for complex workflows</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Enterprise-grade architecture</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Human oversight built in</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Integration ready</span>
+                </div>
+                <div class="trust-item">
+                    <span class="trust-icon">✓</span>
+                    <span>Operational control</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What Alt1 Does -->
+    <section class="what-we-do" id="about">
+        <div class="container">
+            <div class="what-grid">
+                <div class="what-content">
+                    <h2>We build AI native operating systems</h2>
+                    <p>Not chatbots. Not isolated automations. Complete platforms that transform how your business operates.</p>
+                    <p>Most businesses run on fragmented processes—manual handoffs, expensive coordination, inconsistent execution. Alt1 combines intelligent agents, automated workflows, system integrations, and operational oversight into unified operating environments designed around real business workflows.</p>
+                    <div class="what-points">
+                        <div class="what-point">
+                            <div class="point-number">1</div>
+                            <div class="point-content">
+                                <h3>Orchestrated, not fragmented</h3>
+                                <p>Complete operating systems that connect workflows, not disconnected tools that create more work.</p>
+                            </div>
+                        </div>
+                        <div class="what-point">
+                            <div class="point-number">2</div>
+                            <div class="point-content">
+                                <h3>Built for outcomes</h3>
+                                <p>Every design decision tied to business results: speed, efficiency, accuracy, cost reduction.</p>
+                            </div>
+                        </div>
+                        <div class="what-point">
+                            <div class="point-number">3</div>
+                            <div class="point-content">
+                                <h3>Enterprise-ready</h3>
+                                <p>Scalable, secure, and suitable for complex operations with oversight and control built in.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="what-visual">
+                    <div class="system-diagram">
+                        <div class="diagram-layer">
+                            <div class="layer-icon">→</div>
+                            <div class="layer-text">Input Layer</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">⚡</div>
+                            <div class="layer-text">Agent Intelligence</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">⚙</div>
+                            <div class="layer-text">Workflow Orchestration</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">🔗</div>
+                            <div class="layer-text">System Integration</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">📊</div>
+                            <div class="layer-text">Oversight & Control</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solutions -->
+    <section id="solutions">
+        <div class="container">
+            <div class="section-header">
+                <h2>Operating systems for complex workflows</h2>
+                <p>Pre-built and custom solutions designed for the business functions that matter most.</p>
+            </div>
+            <div class="solutions-grid">
+                <div class="solution-card">
+                    <div class="solution-icon">📈</div>
+                    <h3>Marketing OS</h3>
+                    <p>Orchestrate campaigns, content, and growth operations in one AI native platform.</p>
+                    <div class="solution-meta">
+                        <span class="solution-tag">Growth Teams</span>
+                        <a href="#" class="solution-link">Learn more →</a>
+                    </div>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">🔬</div>
+                    <h3>Medical Research OS</h3>
+                    <p>Accelerate patient recruitment and study operations with intelligent workflows.</p>
+                    <div class="solution-meta">
+                        <span class="solution-tag">Research Orgs</span>
+                        <a href="#" class="solution-link">Learn more →</a>
+                    </div>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">📊</div>
+                    <h3>Accounting OS</h3>
+                    <p>Scale accounting workflows without proportional headcount growth.</p>
+                    <div class="solution-meta">
+                        <span class="solution-tag">Finance Teams</span>
+                        <a href="#" class="solution-link">Learn more →</a>
+                    </div>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">✓</div>
+                    <h3>Audit OS</h3>
+                    <p>Deliver audit quality with greater efficiency through intelligent workflows.</p>
+                    <div class="solution-meta">
+                        <span class="solution-tag">Audit Practices</span>
+                        <a href="#" class="solution-link">Learn more →</a>
+                    </div>
+                </div>
+                <div class="solution-card">
+                    <div class="solution-icon">⚙</div>
+                    <h3>Custom Enterprise OS</h3>
+                    <p>Tailored operating systems for unique workflows and complex requirements.</p>
+                    <div class="solution-meta">
+                        <span class="solution-tag">Enterprise</span>
+                        <a href="#" class="solution-link">Learn more →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Outcomes -->
+    <section class="outcomes">
+        <div class="container">
+            <div class="section-header">
+                <h2>Built for business outcomes</h2>
+                <p>Every Alt1 operating system is designed to deliver measurable commercial results.</p>
+            </div>
+            <div class="outcomes-grid">
+                <div class="outcome-card">
+                    <div class="outcome-icon">⚡</div>
+                    <h3>Faster Execution</h3>
+                    <p>Replace manual handoffs with orchestrated workflows that move at machine speed while maintaining quality.</p>
+                </div>
+                <div class="outcome-card">
+                    <div class="outcome-icon">💰</div>
+                    <h3>Lower Operating Cost</h3>
+                    <p>Automate repetitive tasks and minimize expensive coordination—freeing your team for higher-value work.</p>
+                </div>
+                <div class="outcome-card">
+                    <div class="outcome-icon">✓</div>
+                    <h3>Improved Quality</h3>
+                    <p>Built-in business rules and standardized processes ensure every execution meets your standards.</p>
+                </div>
+                <div class="outcome-card">
+                    <div class="outcome-card">
+                        <div class="outcome-icon">📈</div>
+                        <h3>Scalable Operations</h3>
+                        <p>Handle increased volume without linear staffing increases. Your operating system scales with your business.</p>
+                    </div>
+                </div>
+                <div class="outcome-card">
+                    <div class="outcome-icon">🎯</div>
+                    <h3>Better Control</h3>
+                    <p>See what's happening, where bottlenecks form, and how performance trends—without micromanaging.</p>
+                </div>
+                <div class="outcome-card">
+                    <div class="outcome-icon">📊</div>
+                    <h3>Measurable ROI</h3>
+                    <p>Track time saved, costs reduced, quality improved, and capacity gained—quantified and reported.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>From discovery to deployed system</h2>
+                <p>A proven approach to building operating systems that deliver real business value.</p>
+            </div>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Discover</h3>
+                        <p>We map your current workflows, identify pain points and bottlenecks, and define what success looks like. This isn't generic consulting—it's operational archaeology.</p>
+                        <div class="step-get">What you get: Workflow documentation, friction analysis, outcome definition</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Design</h3>
+                        <p>We architect your AI native operating system—defining the agent architecture, workflow orchestration, integration points, and oversight controls.</p>
+                        <div class="step-get">What you get: System architecture, agent design, integration plan</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Integrate</h3>
+                        <p>We connect with your existing infrastructure—CRMs, ERPs, databases, and proprietary systems. Your operating system orchestrates what you have.</p>
+                        <div class="step-get">What you get: Connected systems, data flows, API integrations</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Deploy</h3>
+                        <p>We launch with the right controls—human oversight where decisions matter, audit trails, monitoring, and safeguards for sensitive operations.</p>
+                        <div class="step-get">What you get: Live system, user training, control dashboards</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Optimize</h3>
+                        <p>We continuously optimize—analyzing performance, refining agent behavior, expanding workflow coverage, and improving outcomes over time.</p>
+                        <div class="step-get">What you get: Performance analytics, optimization recommendations, expansion roadmap</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Alt1 -->
+    <section class="why-alt1" id="why-alt1">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why businesses choose Alt1</h2>
+            </div>
+            <div class="why-grid">
+                <div class="why-card">
+                    <h3>Systems, not tools</h3>
+                    <p>We don't sell features or isolated automations. We build complete operating systems that orchestrate your workflows end-to-end. One platform, one logic, one outcome.</p>
+                </div>
+                <div class="why-card">
+                    <h3>Workflow-first design</h3>
+                    <p>We don't force your processes into a template. We design systems around your specific workflows—your handoffs, your rules, your exceptions, your outcomes.</p>
+                </div>
+                <div class="why-card">
+                    <h3>Commercial focus</h3>
+                    <p>Speed, efficiency, cost reduction—we measure success by commercial outcomes, not feature checklists. If it doesn't improve your business, we don't build it.</p>
+                </div>
+                <div class="why-card">
+                    <h3>Serious implementation</h3>
+                    <p>Security, oversight, audit trails, integration, scalability—we build for real operations in complex organizations. This isn't experimentation; this is transformation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Solution -->
+    <section class="featured">
+        <div class="container">
+            <div class="featured-grid">
+                <div class="featured-content">
+                    <div class="hero-eyebrow">Featured Solution</div>
+                    <h2>Transform medical research operations</h2>
+                    <p>From fragmented patient recruitment and study management to an intelligent, orchestrated operating system.</p>
+                    
+                    <div class="before-after">
+                        <div class="ba-card negative">
+                            <div class="ba-label">Before Alt1</div>
+                            <ul class="ba-list">
+                                <li>Manual patient identification</li>
+                                <li>Fragmented coordination</li>
+                                <li>Document chaos</li>
+                                <li>Limited visibility</li>
+                            </ul>
+                        </div>
+                        <div class="ba-card positive">
+                            <div class="ba-label">After Alt1</div>
+                            <ul class="ba-list">
+                                <li>Intelligent patient ID</li>
+                                <li>Orchestrated workflows</li>
+                                <li>Controlled documents</li>
+                                <li>Real-time dashboards</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="capabilities-list">
+                        <div class="capability-item">
+                            <div class="capability-check">✓</div>
+                            <span>Intelligent patient identification and screening</span>
+                        </div>
+                        <div class="capability-item">
+                            <div class="capability-check">✓</div>
+                            <span>Automated recruitment workflows</span>
+                        </div>
+                        <div class="capability-item">
+                            <div class="capability-check">✓</div>
+                            <span>Study coordination and task management</span>
+                        </div>
+                        <div class="capability-item">
+                            <div class="capability-check">✓</div>
+                            <span>Document handling with version control</span>
+                        </div>
+                    </div>
+
+                    <a href="#" class="btn btn-primary">Explore Medical Research OS</a>
+                </div>
+                <div class="featured-visual">
+                    <div class="system-diagram">
+                        <div class="diagram-layer">
+                            <div class="layer-icon">👤</div>
+                            <div class="layer-text">Patient Recruitment</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">📋</div>
+                            <div class="layer-text">Study Management</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">📄</div>
+                            <div class="layer-text">Document Control</div>
+                        </div>
+                        <div class="diagram-layer">
+                            <div class="layer-icon">📊</div>
+                            <div class="layer-text">Compliance & Reporting</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enterprise Readiness -->
+    <section>
+        <div class="container">
+            <div class="section-header">
+                <h2>Built for serious operations</h2>
+                <p>Designed with the security, control, and oversight principles that complex organizations require.</p>
+            </div>
+            <div class="enterprise-grid">
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">🔒</div>
+                    <h3>Security</h3>
+                    <p>Designed with enterprise-grade security principles including data encryption and access controls.</p>
+                </div>
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">🎛</div>
+                    <h3>Control</h3>
+                    <p>Human oversight where decisions matter, with clear escalation paths and approval workflows.</p>
+                </div>
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">📋</div>
+                    <h3>Auditability</h3>
+                    <p>Complete audit trails for workflow execution, decision points, and system changes.</p>
+                </div>
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">🔗</div>
+                    <h3>Integration</h3>
+                    <p>Built to connect with your existing infrastructure through secure APIs.</p>
+                </div>
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">📈</div>
+                    <h3>Scalability</h3>
+                    <p>Architecture designed to handle growing transaction volumes without performance degradation.</p>
+                </div>
+                <div class="enterprise-card">
+                    <div class="enterprise-icon">⚡</div>
+                    <h3>Reliability</h3>
+                    <p>Built for continuous operation with redundancy and monitoring for business-critical workflows.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section>
+        <div class="container">
+            <div class="section-header">
+                <h2>Questions serious buyers ask</h2>
+            </div>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        What exactly is an AI native operating system?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>An AI native operating system is a unified platform that combines intelligent agents, automated workflows, system integrations, business rules, and oversight controls to orchestrate complex business processes. Unlike isolated automation tools, it's a complete operating environment designed around your specific workflows.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        How is Alt1 different from RPA or basic automation tools?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Traditional automation handles simple, repetitive tasks. Alt1 builds complete operating systems that orchestrate complex, multi-step workflows requiring judgment, coordination, and oversight. We don't just automate tasks—we transform how entire functions operate.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        How long does implementation typically take?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Timeline depends on complexity. A focused workflow transformation might take 8-12 weeks. A comprehensive operating system for an entire function could take 3-6 months. We always start with discovery to scope accurately and identify the highest-impact starting points.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        Can Alt1 integrate with our existing systems?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. Alt1 is designed to integrate with your current infrastructure—CRMs, ERPs, databases, communication tools, and proprietary systems. We connect to what you have and fill gaps with AI native capabilities.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        Can Alt1 start with one workflow and expand later?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Absolutely. We often start with a high-impact workflow area, prove value, and then expand to adjacent processes. The operating system architecture is designed to grow with your needs.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        What kind of ROI should we expect?
+                        <span class="faq-icon">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Typical outcomes include 40-70% reduction in process time, 30-50% decrease in manual effort, 20-40% lower operating costs in the transformed area, and capacity to handle 2-5x volume without proportional staffing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta" id="contact">
+        <div class="container">
+            <div class="final-cta-content">
+                <h2>Transform your operations</h2>
+                <p>Book a strategy call. We'll explore your workflows and identify where an AI native operating system can deliver the most value.</p>
+                <div class="final-cta-buttons">
+                    <a href="#" class="btn btn-primary">Book a Strategy Call</a>
+                    <a href="#" class="btn btn-secondary">Contact Us</a>
+                </div>
+                <p class="final-cta-trust">No commitment required. We'll explore your challenges and outline a path to transformation.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <div class="logo-icon">A1</div>
+                        Alt1 Tech
+                    </a>
+                    <p>Alt1 Tech builds AI native operating systems that transform business processes into intelligent, orchestrated workflows.</p>
+                </div>
+                <div class="footer-column">
+                    <h4>Solutions</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Marketing OS</a></li>
+                        <li><a href="#">Medical Research OS</a></li>
+                        <li><a href="#">Accounting OS</a></li>
+                        <li><a href="#">Audit OS</a></li>
+                        <li><a href="#">Custom Enterprise OS</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">How It Works</a></li>
+                        <li><a href="#">Why Alt1</a></li>
+                        <li><a href="#">Insights</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">© 2026 Alt1 Tech. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const faqItem = button.parentElement;
+                const isActive = faqItem.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Open clicked if wasn't active
+                if (!isActive) {
+                    faqItem.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>
