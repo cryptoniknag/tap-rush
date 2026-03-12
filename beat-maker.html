@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quick Beat Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #ff6b6b;
+        }
+        .beat-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 3px;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .cell.active {
+            background: #e94560;
+            box-shadow: 0 0 10px #e94560;
+        }
+        .cell:hover {
+            background: #555;
+        }
+        .info {
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Quick Beat Maker</h1>
+    <p>Click cells to create a beat, then press Play</p>
+    
+    <div class="beat-grid" id="grid"></div>
+    
+    <div>
+        <button onclick="playBeat()">▶️ Play</button>
+        <button onclick="clearGrid()">🗑️ Clear</button>
+        <button onclick="generateRandom()">🎲 Random Beat</button>
+    </div>
+    
+    <div class="info">
+        <p>Tempo: 140 BPM | Duration: ~7 seconds</p>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const grid = document.getElementById('grid');
+        const rows = 8;
+        const cols = 16;
+        let pattern = [];
+
+        // Create grid
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                cell.onclick = () => toggleCell(r, c, cell);
+                grid.appendChild(cell);
+            }
+        }
+
+        function toggleCell(row, col, cell) {
+            const index = pattern.findIndex(p => p.row === row && p.col === col);
+            if (index > -1) {
+                pattern.splice(index, 1);
+                cell.classList.remove('active');
+            } else {
+                pattern.push({row, col});
+                cell.classList.add('active');
+            }
+        }
+
+        function playSound(freq, time, duration) {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.frequency.value = freq;
+            osc.type = row < 2 ? 'sine' : row < 4 ? 'square' : 'triangle';
+            
+            gain.gain.setValueAtTime(0.3, time);
+            gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+            
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        function getFreq(row) {
+            const freqs = [65, 98, 130, 196, 262, 330, 392, 523];
+            return freqs[row] || 200;
+        }
+
+        async function playBeat() {
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            const bpm = 140;
+            const beatTime = 60 / bpm / 4; // 16th notes
+            
+            pattern.forEach(note => {
+                const time = audioContext.currentTime + note.col * beatTime;
+                playSound(getFreq(note.row), time, 0.1);
+            });
+        }
+
+        function clearGrid() {
+            pattern = [];
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+        }
+
+        function generateRandom() {
+            clearGrid();
+            const cells = document.querySelectorAll('.cell');
+            
+            // Generate a house beat pattern
+            const beats = [
+                // Kick on 1, 5, 9, 13
+                {r: 1, c: 0}, {r: 1, c: 4}, {r: 1, c: 8}, {r: 1, c: 12},
+                // Snare on 5, 13
+                {r: 3, c: 4}, {r: 3, c: 12},
+                // Hi-hats on off-beats
+                {r: 5, c: 2}, {r: 5, c: 6}, {r: 5, c: 10}, {r: 5, c: 14},
+                // Random melody notes
+                {r: 7, c: 0}, {r: 6, c: 4}, {r: 7, c: 8}, {r: 6, c: 12}
+            ];
+            
+            beats.forEach(b => {
+                const index = b.r * 16 + b.c;
+                if (cells[index]) {
+                    cells[index].click();
+                }
+            });
+        }
+
+        // Generate a beat on load
+        generateRandom();
+    </script>
+</body>
+</html>
