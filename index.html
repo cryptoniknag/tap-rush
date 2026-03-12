@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Tap Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #gameContainer {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        #score {
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        #tapButton {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            border: none;
+            box-shadow: 0 10px 30px rgba(238, 90, 90, 0.4), 
+                        inset 0 -5px 20px rgba(0,0,0,0.2),
+                        inset 0 5px 20px rgba(255,255,255,0.3);
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #tapButton:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(238, 90, 90, 0.4),
+                        inset 0 -3px 10px rgba(0,0,0,0.2);
+        }
+        #timer {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #highScore {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+        }
+        #startScreen, #gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        #gameOverScreen {
+            display: none;
+        }
+        .screen h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .screen p {
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .btn {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+            transition: transform 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .hidden {
+            display: none !important;
+        }
+        #combo {
+            text-align: center;
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #combo.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen" class="screen">
+        <h1>🔥 Tap Rush</h1>
+        <p>Tap as fast as you can in 30 seconds!<br>Build combos for bonus points!</p>
+        <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="gameOverScreen" class="screen">
+        <h1>Game Over!</h1>
+        <p id="finalScore">Score: 0</p>
+        <p id="finalHighScore">High Score: 0</p>
+        <button class="btn" onclick="restartGame()">Play Again</button>
+    </div>
+
+    <div id="gameContainer">
+        <div id="score">0</div>
+        <div id="combo"></div>
+        <div id="timer">30s</div>
+        <button id="tapButton" onclick="tap()">TAP!</button>
+        <div id="highScore">High Score: 0</div>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameActive = false;
+        let combo = 0;
+        let lastTapTime = 0;
+        let highScore = localStorage.getItem('tapRushHighScore') || 0;
+        let timerInterval;
+
+        document.getElementById('highScore').textContent = 'High Score: ' + highScore;
+
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            score = 0;
+            timeLeft = 30;
+            combo = 0;
+            gameActive = true;
+            updateDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft + 's';
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function tap() {
+            if (!gameActive) return;
+            
+            const now = Date.now();
+            const timeDiff = now - lastTapTime;
+            
+            // Combo system: taps within 500ms build combo
+            if (timeDiff < 500) {
+                combo++;
+            } else {
+                combo = 1;
+            }
+            
+            lastTapTime = now;
+            
+            // Base points + combo bonus
+            let points = 1;
+            if (combo > 5) points = 2;
+            if (combo > 10) points = 3;
+            if (combo > 20) points = 5;
+            
+            score += points;
+            
+            // Show combo
+            const comboEl = document.getElementById('combo');
+            if (combo > 1) {
+                comboEl.textContent = '🔥 Combo x' + combo + ' (+' + points + ')';
+                comboEl.classList.add('show');
+                setTimeout(() => comboEl.classList.remove('show'), 1000);
+            }
+            
+            updateDisplay();
+            
+            // Visual feedback
+            const btn = document.getElementById('tapButton');
+            btn.style.transform = 'scale(0.9)';
+            setTimeout(() => btn.style.transform = '', 100);
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('tapRushHighScore', highScore);
+            }
+            
+            document.getElementById('finalScore').textContent = 'Score: ' + score;
+            document.getElementById('finalHighScore').textContent = 'High Score: ' + highScore;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Prevent double-tap zoom on mobile
+        document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>

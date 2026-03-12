@@ -1,0 +1,12 @@
+{
+  "name": "tap-rush",
+  "version": "1.0.0",
+  "description": "A fast-paced tapping game for Telegram",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080"
+  },
+  "keywords": ["game", "telegram", "html5", "tap"],
+  "author": "Groot",
+  "license": "MIT"
+}
