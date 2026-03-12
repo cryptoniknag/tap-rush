@@ -135,21 +135,21 @@
     <div id="startScreen" class="screen">
         <h1>🔥 Tap Rush</h1>
         <p>Tap as fast as you can in 30 seconds!<br>Build combos for bonus points!</p>
-        <button class="btn" onclick="startGame()">Start Game</button>
+        <button class="btn" id="startBtn">Start Game</button>
     </div>
 
     <div id="gameOverScreen" class="screen">
         <h1>Game Over!</h1>
         <p id="finalScore">Score: 0</p>
         <p id="finalHighScore">High Score: 0</p>
-        <button class="btn" onclick="restartGame()">Play Again</button>
+        <button class="btn" id="restartBtn">Play Again</button>
     </div>
 
     <div id="gameContainer">
         <div id="score">0</div>
         <div id="combo"></div>
         <div id="timer">30s</div>
-        <button id="tapButton" onclick="tap()">TAP!</button>
+        <button id="tapButton">TAP!</button>
         <div id="highScore">High Score: 0</div>
     </div>
 
@@ -244,8 +244,33 @@
             startGame();
         }
 
+        // Setup button event listeners for both click and touch
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('startBtn').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            startGame();
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('restartBtn').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            restartGame();
+        });
+        
+        const tapBtn = document.getElementById('tapButton');
+        tapBtn.addEventListener('click', tap);
+        tapBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            tap();
+        });
+        
         // Prevent double-tap zoom on mobile
         document.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Prevent default touch actions
+        document.addEventListener('touchmove', function(e) {
             e.preventDefault();
         }, { passive: false });
     </script>
