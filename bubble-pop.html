@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🫧 Bubble Pop Rush - Betty's Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8E8 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 100px;
+            animation: float linear infinite;
+        }
+        
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 100px;
+        }
+        
+        .cloud:nth-child(1) {
+            width: 100px;
+            height: 40px;
+            top: 10%;
+            animation-duration: 20s;
+        }
+        
+        .cloud:nth-child(1)::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+        
+        .cloud:nth-child(2) {
+            width: 80px;
+            height: 35px;
+            top: 20%;
+            animation-duration: 25s;
+            animation-delay: -5s;
+        }
+        
+        .cloud:nth-child(2)::before {
+            width: 60px;
+            height: 40px;
+            top: -20px;
+            right: 15px;
+        }
+        
+        @keyframes float {
+            from { transform: translateX(-150px); }
+            to { transform: translateX(calc(100vw + 150px)); }
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .score-board {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .score-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .score-item span {
+            color: #FF6B6B;
+            font-size: 1.2em;
+        }
+        
+        .timer {
+            background: #FFD93D;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .game-area {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+            animation: floatUp linear;
+            box-shadow: 
+                inset -5px -5px 10px rgba(0,0,0,0.1),
+                inset 5px 5px 10px rgba(255,255,255,0.5),
+                0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .bubble::before {
+            content: '';
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent);
+            border-radius: 50%;
+            top: 15%;
+            left: 15%;
+        }
+        
+        .bubble:active {
+            transform: scale(0.9);
+        }
+        
+        .bubble.pop {
+            animation: pop 0.3s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            from {
+                transform: translateY(100vh) rotate(0deg);
+            }
+            to {
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+        
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .start-screen, .game-over-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(135, 206, 235, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .start-screen h1, .game-over-screen h1 {
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 3px 3px 0 #FF6B6B;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .start-screen p, .game-over-screen p {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 30px;
+            max-width: 400px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .final-score {
+            font-size: 4em;
+            color: #FF6B6B;
+            margin: 20px 0;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle-fade 0.6s ease-out forwards;
+        }
+        
+        @keyframes particle-fade {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .combo-text {
+            position: absolute;
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD93D;
+            text-shadow: 2px 2px 0 #FF6B6B;
+            pointer-events: none;
+            animation: combo-float 1s ease-out forwards;
+        }
+        
+        @keyframes combo-float {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(1.2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clouds">
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud" style="top: 40%; animation-duration: 30s; animation-delay: -10s;"></div>
+    </div>
+    
+    <div class="game-container">
+        <div class="header">
+            <div class="score-board">
+                <div class="score-item">⭐ Score: <span id="score">0</span></div>
+                <div class="score-item">🔥 Best: <span id="best">0</span></div>
+            </div>
+            <div class="timer">⏱️ <span id="time">30</span>s</div>
+        </div>
+        
+        <div class="game-area" id="gameArea"></div>
+        
+        <div class="start-screen" id="startScreen">
+            <h1>🫧 Bubble Pop Rush</h1>
+            <p>Pop as many colorful bubbles as you can before time runs out!<br>Tap the bubbles to pop them. Don't let them float away!</p>
+            <button class="btn" onclick="startGame()">▶️ Play</button>
+        </div>
+        
+        <div class="game-over-screen hidden" id="gameOverScreen">
+            <h1>🎉 Great Job!</h1>
+            <div class="final-score" id="finalScore">0</div>
+            <p>bubbles popped!</p>
+            <button class="btn" onclick="startGame()">🔄 Play Again</button>
+        </div>
+    </div>
+    
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let spawnInterval;
+        let timerInterval;
+        let gameActive = false;
+        let combo = 0;
+        let lastPopTime = 0;
+        
+        const colors = [
+            { bg: '#FF6B6B', border: '#EE5A5A' },
+            { bg: '#4ECDC4', border: '#3DBBB3' },
+            { bg: '#FFE66D', border: '#FFD93D' },
+            { bg: '#A8E6CF', border: '#7DD8B6' },
+            { bg: '#FF8B94', border: '#FF6B76' },
+            { bg: '#C7CEEA', border: '#A8B0D8' },
+            { bg: '#FFD3B6', border: '#FFC4A3' },
+            { bg: '#DCEDC1', border: '#C5E0A5' }
+        ];
+        
+        function getHighScore() {
+            return localStorage.getItem('bubblePopHighScore') || 0;
+        }
+        
+        function saveHighScore(newScore) {
+            const current = parseInt(getHighScore());
+            if (newScore > current) {
+                localStorage.setItem('bubblePopHighScore', newScore);
+                return true;
+            }
+            return false;
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('best').textContent = getHighScore();
+            document.getElementById('time').textContent = timeLeft;
+        }
+        
+        function createBubble() {
+            if (!gameActive) return;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const size = Math.random() * 40 + 50;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const left = Math.random() * (window.innerWidth - size - 20);
+            const duration = Math.random() * 3 + 4;
+            
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = left + 'px';
+            bubble.style.background = `radial-gradient(circle at 30% 30%, ${color.bg}, ${color.border})`;
+            bubble.style.animationDuration = duration + 's';
+            
+            bubble.addEventListener('click', (e) => {
+                popBubble(bubble, e.clientX, e.clientY);
+            });
+            
+            bubble.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                popBubble(bubble, touch.clientX, touch.clientY);
+            });
+            
+            document.getElementById('gameArea').appendChild(bubble);
+            
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.remove();
+                }
+            }, duration * 1000);
+        }
+        
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = '10px';
+                particle.style.height = '10px';
+                particle.style.borderRadius = '50%';
+                particle.style.background = color;
+                
+                const angle = (i / 6) * Math.PI * 2;
+                const distance = 50 + Math.random() * 30;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+        
+        function showCombo(x, y) {
+            if (combo < 3) return;
+            
+            const comboText = document.createElement('div');
+            comboText.className = 'combo-text';
+            comboText.textContent = `${combo}x COMBO!`;
+            comboText.style.left = x + 'px';
+            comboText.style.top = y + 'px';
+            document.body.appendChild(comboText);
+            
+            setTimeout(() => comboText.remove(), 1000);
+        }
+        
+        function popBubble(bubble, x, y) {
+            if (bubble.classList.contains('pop')) return;
+            
+            bubble.classList.add('pop');
+            
+            const now = Date.now();
+            if (now - lastPopTime < 1000) {
+                combo++;
+            } else {
+                combo = 1;
+            }
+            lastPopTime = now;
+            
+            const basePoints = 10;
+            const points = basePoints * combo;
+            score += points;
+            
+            saveHighScore(score);
+            updateDisplay();
+            
+            const color = bubble.style.background;
+            createParticles(x, y, color);
+            showCombo(x, y);
+            
+            setTimeout(() => bubble.remove(), 300);
+        }
+        
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            combo = 0;
+            gameActive = true;
+            
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('gameArea').innerHTML = '';
+            
+            updateDisplay();
+            
+            // Spawn bubbles
+            spawnInterval = setInterval(createBubble, 600);
+            
+            // Timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+        
+        function endGame() {
+            gameActive = false;
+            
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            
+            if (saveHighScore(score)) {
+                document.querySelector('#gameOverScreen h1').textContent = '🏆 New Record!';
+            }
+        }
+        
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>
