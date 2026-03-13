@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Team - Organization Chart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --groot-primary: #2D5016;
+            --groot-accent: #4A7C23;
+            --fin-primary: #1E3A5F;
+            --fin-accent: #3B82F6;
+            --betty-primary: #FF6B9D;
+            --betty-accent: #FFE66D;
+            --bg-dark: #0D0D0D;
+            --bg-card: #1A1A1A;
+            --text-white: #FAFAFA;
+            --text-muted: #A0A0A0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-white);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .org-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .level {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            width: 320px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card.groot {
+            border-top: 4px solid var(--groot-accent);
+            width: 380px;
+        }
+
+        .card.fin {
+            border-top: 4px solid var(--fin-accent);
+        }
+
+        .card.betty {
+            border-top: 4px solid var(--betty-primary);
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .status-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid var(--bg-card);
+        }
+
+        .status-badge.active {
+            background: #22C55E;
+            box-shadow: 0 0 10px #22C55E;
+        }
+
+        .status-badge.on-call {
+            background: #EAB308;
+            box-shadow: 0 0 10px #EAB308;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .card.groot h2 {
+            color: var(--groot-accent);
+        }
+
+        .card.fin h2 {
+            color: var(--fin-accent);
+        }
+
+        .card.betty h2 {
+            color: var(--betty-primary);
+        }
+
+        .role {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .description {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .skill-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .card.groot .skill-tag {
+            border: 1px solid rgba(74, 124, 35, 0.3);
+        }
+
+        .card.fin .skill-tag {
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .card.betty .skill-tag {
+            border: 1px solid rgba(255, 107, 157, 0.3);
+        }
+
+        .activation {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .activation-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .activation-command {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-white);
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+        }
+
+        .connection-line {
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent);
+            margin: 0 auto;
+        }
+
+        .connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .connector-line {
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .team-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-white);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                width: 100%;
+                max-width: 340px;
+            }
+            
+            .card.groot {
+                width: 100%;
+                max-width: 340px;
+            }
+            
+            .level {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 OpenClaw Agent Team</h1>
+            <p>Managed by Groot | Last Updated: March 13, 2026</p>
+        </header>
+
+        <div class="org-chart">
+            <!-- Level 1: Groot -->
+            <div class="level">
+                <div class="card groot">
+                    <div class="avatar">
+                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background -->
+                            <circle cx="60" cy="60" r="58" fill="#2D5016" stroke="#4A7C23" stroke-width="3"/>
+                            <!-- Tree texture lines -->
+                            <path d="M30 60 Q40 50 50 60 T70 60" stroke="#4A7C23" stroke-width="2" fill="none" opacity="0.5"/>
+                            <path d="M50 80 Q60 70 70 80" stroke="#4A7C23" stroke-width="2" fill="none" opacity="0.5"/>
+                            
+                            <!-- Face -->
+                            <circle cx="45" cy="50" r="5" fill="#1a1a1a"/>
+                            <circle cx="75" cy="50" r="5" fill="#1a1a1a"/>
+                            <!-- Gentle smile -->
+                            <path d="M45 70 Q60 80 75 70" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            
+                            <!-- Leaf on head -->
+                            <ellipse cx="60" cy="25" rx="12" ry="8" fill="#4A7C23"/>
+                            <path d="M60 25 Q55 15 50 20" stroke="#4A7C23" stroke-width="2" fill="none"/>
+                            <path d="M60 25 Q65 15 70 20" stroke="#4A7C23" stroke-width="2" fill="none"/>
+                        </svg>
+                        <div class="status-badge active"></div>
+                    </div>
+                    <h2>🌳 Groot</h2>
+                    <div class="role">Program Director</div>
+                    <p class="description">Main assistant and team coordinator. Routes tasks to specialists, manages quality control, and serves as the primary point of contact for all requests.</p>
+                    
+                    <div class="skills">
+                        <span class="skill-tag">Task Management</span>
+                        <span class="skill-tag">Coordination</span>
+                        <span class="skill-tag">Quality Control</span>
+                        <span class="skill-tag">Cross-Functional</span>
+                        <span class="skill-tag">Memory Management</span>
+                    </div>
+                    
+                    <div class="activation">
+                        <div class="activation-label">Status</div>
+                        <div class="activation-command">🟢 Always Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connection-line"></div>
+
+            <!-- Level 2: Fin and Betty -->
+            <div class="level">
+                <!-- Fin -->
+                <div class="card fin">
+                    <div class="avatar">
+                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background -->
+                            <circle cx="60" cy="60" r="58" fill="#1E3A5F" stroke="#3B82F6" stroke-width="3"/>
+                            
+                            <!-- Glasses -->
+                            <circle cx="42" cy="50" r="12" fill="none" stroke="#60A5FA" stroke-width="3"/>
+                            <circle cx="78" cy="50" r="12" fill="none" stroke="#60A5FA" stroke-width="3"/>
+                            <line x1="54" y1="50" x2="66" y2="50" stroke="#60A5FA" stroke-width="3"/>
+                            
+                            <!-- Eyes behind glasses -->
+                            <circle cx="42" cy="50" r="4" fill="#1a1a1a"/>
+                            <circle cx="78" cy="50" r="4" fill="#1a1a1a"/>
+                            
+                            <!-- Professional smile -->
+                            <path d="M45 72 Q60 78 75 72" stroke="#60A5FA" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            
+                            <!-- Hair/head detail -->
+                            <path d="M30 40 Q60 20 90 40" fill="none" stroke="#3B82F6" stroke-width="2" opacity="0.5"/>
+                            
+                            <!-- Tie -->
+                            <path d="M55 85 L60 95 L65 85 Z" fill="#3B82F6"/>
+                        </svg>
+                        <div class="status-badge on-call"></div>
+                    </div>
+                    <h2>📊 Fin</h2>
+                    <div class="role">Financial Analyst</div>
+                    <p class="description">Deep research specialist for stocks, crypto, and markets. Tracks live prices, analyzes fundamentals, monitors news sentiment, and provides portfolio insights.</p>
+                    
+                    <div class="skills">
+                        <span class="skill-tag">Stock Analysis</span>
+                        <span class="skill-tag">Crypto Research</span>
+                        <span class="skill-tag">Fundamentals</span>
+                        <span class="skill-tag">Portfolio Tracking</span>
+                        <span class="skill-tag">News Analysis</span>
+                    </div>
+                    
+                    <div class="activation">
+                        <div class="activation-label">Activate With</div>
+                        <div class="activation-command">"Fin, check TSLA"</div>
+                    </div>
+                </div>
+
+                <!-- Betty -->
+                <div class="card betty">
+                    <div class="avatar">
+                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background -->
+                            <circle cx="60" cy="60" r="58" fill="#FFE66D" stroke="#FF6B9D" stroke-width="3"/>
+                            
+                            <!-- Hair/Bow -->
+                            <path d="M35 35 L25 25 L35 30" fill="#FF6B9D"/>
+                            <path d="M85 35 L95 25 L85 30" fill="#FF6B9D"/>
+                            <circle cx="60" cy="30" r="8" fill="#FF6B9D"/>
+                            
+                            <!-- Excited eyes -->
+                            <circle cx="40" cy="50" r="6" fill="#1a1a1a"/>
+                            <circle cx="80" cy="50" r="6" fill="#1a1a1a"/>
+                            
+                            <!-- Sparkles in eyes -->
+                            <circle cx="42" cy="48" r="2" fill="white"/>
+                            <circle cx="82" cy="48" r="2" fill="white"/>
+                            
+                            <!-- Big smile -->
+                            <path d="M35 65 Q60 90 85 65" stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+                            
+                            <!-- Cheeks -->
+                            <circle cx="30" cy="65" r="8" fill="#FFB6C1" opacity="0.6"/>
+                            <circle cx="90" cy="65" r="8" fill="#FFB6C1" opacity="0.6"/>
+                            
+                            <!-- Game controller hint -->
+                            <rect x="45" y="80" width="30" height="15" rx="5" fill="#FF6B9D" opacity="0.8"/>
+                            <circle cx="50" cy="87" r="3" fill="white"/>
+                            <circle cx="70" cy="87" r="3" fill="white"/>
+                        </svg>
+                        <div class="status-badge on-call"></div>
+                    </div>
+                    <h2>🎮 Betty</h2>
+                    <div class="role">Game Developer</div>
+                    <p class="description">Creative game designer specializing in kid-friendly Telegram games. Builds colorful, mobile-optimized games with fun animations and engaging gameplay.</p>
+                    
+                    <div class="skills">
+                        <span class="skill-tag">HTML5 Games</span>
+                        <span class="skill-tag">Mobile Design</span>
+                        <span class="skill-tag">Animations</span>
+                        <span class="skill-tag">Sound Design</span>
+                        <span class="skill-tag">GitHub Deployment</span>
+                    </div>
+                    
+                    <div class="activation">
+                        <div class="activation-label">Activate With</div>
+                        <div class="activation-command">"Betty, build a game"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="team-stats">
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Active Agents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Program Director</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">Specialists</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">∞</div>
+                <div class="stat-label">Possibilities</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>🤖 OpenClaw Agent Team | Managed by Groot</p>
+            <p><a href="https://github.com/cryptoniknag" style="color: #3B82F6;">GitHub</a> | <a href="https://cryptoniknag.github.io/tap-rush/" style="color: #3B82F6;">Games Portal</a></p>
+        </footer>
+    </div>
+</body>
+</html>
