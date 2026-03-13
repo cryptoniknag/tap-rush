@@ -103,6 +103,68 @@
             border-top: 4px solid var(--betty-primary);
         }
 
+        .card.reports-to {
+            position: relative;
+        }
+
+        .card.reports-to::before {
+            content: '';
+            position: absolute;
+            top: -42px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+        }
+
+        .hierarchy-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .connector-vertical {
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+        }
+
+        .connector-horizontal {
+            width: 300px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        .connector-horizontal::before,
+        .connector-horizontal::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            top: 0;
+        }
+
+        .connector-horizontal::before {
+            left: 25%;
+        }
+
+        .connector-horizontal::after {
+            right: 25%;
+        }
+
+        .reports-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
         .avatar {
             width: 120px;
             height: 120px;
@@ -355,12 +417,17 @@
                 </div>
             </div>
 
-            <div class="connection-line"></div>
+            <!-- Hierarchy Connector -->
+            <div class="hierarchy-connector">
+                <div class="connector-vertical"></div>
+                <div class="reports-label">Reports To</div>
+                <div class="connector-horizontal"></div>
+            </div>
 
-            <!-- Level 2: Fin and Betty -->
+            <!-- Level 2: Fin and Betty (Report to Groot) -->
             <div class="level">
                 <!-- Fin -->
-                <div class="card fin">
+                <div class="card fin reports-to">
                     <div class="avatar">
                         <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                             <!-- Background -->
@@ -405,7 +472,7 @@
                 </div>
 
                 <!-- Betty -->
-                <div class="card betty">
+                <div class="card betty reports-to">
                     <div class="avatar">
                         <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                             <!-- Background -->
