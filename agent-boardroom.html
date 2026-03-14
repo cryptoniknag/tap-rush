@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Agent Boardroom</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .header {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        h1 {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(59,130,246,0.5);
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #888;
+            margin-top: 10px;
+        }
+        .labels {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 200px;
+        }
+        .label {
+            text-align: center;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .role {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            color: #3B82F6;
+            z-index: 100;
+            text-align: center;
+        }
+        .loading span {
+            display: inline-block;
+            animation: dots 1.4s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading Agent Avatars...</div>
+    
+    <div id="canvas-container"></div>
+    
+    <div class="ui">
+        <div class="header">
+            <h1>OPENCLAW BOARDROOM</h1>
+            <div class="subtitle">Agent Meeting in Progress</div>
+        </div>
+        
+        <div class="labels">
+            <div class="label">
+                <div class="name" style="color: #4A7C23;">GROOT</div>
+                <div class="role">Program Director</div>
+            </div>
+            <div class="label">
+                <div class="name" style="color: #FF6B9D;">BETTY</div>
+                <div class="role">Game Developer</div>
+            </div>
+            <div class="label">
+                <div class="name" style="color: #3B82F6;">FIN</div>
+                <div class="role">Financial Analyst</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Avatar images from your uploads
+        const avatarImages = {
+            groot: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/groot.jpg',
+            betty: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/betty.jpg',
+            fin: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/fin.jpg'
+        };
+
+        let scene, camera, renderer;
+        let avatarPlanes = [];
+        let loadedCount = 0;
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0f);
+            scene.fog = new THREE.FogExp2(0x0a0a0f, 0.015);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 6, 12);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+            mainLight.position.set(5, 10, 5);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 2048;
+            mainLight.shadow.mapSize.height = 2048;
+            scene.add(mainLight);
+
+            // Colored rim lights
+            const greenLight = new THREE.PointLight(0x4A7C23, 0.8, 20);
+            greenLight.position.set(-8, 4, 2);
+            scene.add(greenLight);
+
+            const pinkLight = new THREE.PointLight(0xFF6B9D, 0.8, 20);
+            pinkLight.position.set(0, 4, -6);
+            scene.add(pinkLight);
+
+            const blueLight = new THREE.PointLight(0x3B82F6, 0.8, 20);
+            blueLight.position.set(8, 4, 2);
+            scene.add(blueLight);
+
+            // Create room
+            createRoom();
+
+            // Create table
+            createTable();
+
+            // Load avatar images onto table
+            loadAvatars();
+
+            // Create particles
+            createParticles();
+
+            // Handle resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function createRoom() {
+            // Floor
+            const floorGeo = new THREE.PlaneGeometry(60, 60);
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x151520,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -3;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Grid
+            const grid = new THREE.GridHelper(60, 60, 0x2a2a3a, 0x1a1a2a);
+            grid.position.y = -2.99;
+            scene.add(grid);
+
+            // Walls
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x0f0f15 });
+            
+            const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), wallMat);
+            backWall.position.set(0, 12, -20);
+            backWall.receiveShadow = true;
+            scene.add(backWall);
+
+            const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), wallMat);
+            leftWall.rotation.y = Math.PI / 2;
+            leftWall.position.set(-30, 12, 0);
+            scene.add(leftWall);
+
+            const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), wallMat);
+            rightWall.rotation.y = -Math.PI / 2;
+            rightWall.position.set(30, 12, 0);
+            scene.add(rightWall);
+        }
+
+        function createTable() {
+            // Table top - glass-like
+            const tableGeo = new THREE.CylinderGeometry(7, 7, 0.2, 64);
+            const tableMat = new THREE.MeshPhysicalMaterial({
+                color: 0x1a1a2a,
+                metalness: 0.9,
+                roughness: 0.1,
+                clearcoat: 1,
+                clearcoatRoughness: 0.1,
+                transparent: true,
+                opacity: 0.95
+            });
+            const table = new THREE.Mesh(tableGeo, tableMat);
+            table.position.y = 0;
+            table.receiveShadow = true;
+            table.castShadow = true;
+            scene.add(table);
+
+            // Table edge glow
+            const edgeGeo = new THREE.TorusGeometry(7, 0.15, 16, 100);
+            const edgeMat = new THREE.MeshBasicMaterial({ 
+                color: 0x3B82F6,
+                transparent: true,
+                opacity: 0.6
+            });
+            const edge = new THREE.Mesh(edgeGeo, edgeMat);
+            edge.rotation.x = Math.PI / 2;
+            edge.position.y = 0.1;
+            scene.add(edge);
+
+            // Table legs
+            const legGeo = new THREE.CylinderGeometry(0.4, 0.4, 4, 16);
+            const legMat = new THREE.MeshStandardMaterial({ 
+                color: 0x0a0a0f,
+                metalness: 0.8,
+                roughness: 0.3
+            });
+            
+            for (let i = 0; i < 4; i++) {
+                const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+                const leg = new THREE.Mesh(legGeo, legMat);
+                leg.position.set(
+                    Math.cos(angle) * 4.5,
+                    -2,
+                    Math.sin(angle) * 4.5
+                );
+                leg.castShadow = true;
+                scene.add(leg);
+            }
+        }
+
+        function loadAvatars() {
+            const loader = new THREE.TextureLoader();
+            const positions = [
+                { x: -4.5, z: 2, name: 'groot', color: 0x4A7C23 },
+                { x: 0, z: -4.5, name: 'betty', color: 0xFF6B9D },
+                { x: 4.5, z: 2, name: 'fin', color: 0x3B82F6 }
+            ];
+
+            positions.forEach((pos, index) => {
+                loader.load(
+                    avatarImages[pos.name],
+                    (texture) => {
+                        // Create photo frame
+                        const frameWidth = 2.5;
+                        const frameHeight = 2.5;
+                        
+                        // Frame backing
+                        const frameGeo = new THREE.BoxGeometry(frameWidth + 0.2, frameHeight + 0.2, 0.1);
+                        const frameMat = new THREE.MeshStandardMaterial({ 
+                            color: pos.color,
+                            metalness: 0.8,
+                            roughness: 0.2
+                        });
+                        const frame = new THREE.Mesh(frameGeo, frameMat);
+                        frame.position.set(pos.x, 0.5, pos.z);
+                        frame.rotation.x = -Math.PI / 6;
+                        frame.lookAt(0, 0.5, 0);
+                        scene.add(frame);
+
+                        // Avatar image plane
+                        const photoGeo = new THREE.PlaneGeometry(frameWidth, frameHeight);
+                        const photoMat = new THREE.MeshBasicMaterial({ 
+                            map: texture,
+                            side: THREE.DoubleSide
+                        });
+                        const photo = new THREE.Mesh(photoGeo, photoMat);
+                        photo.position.set(0, 0, 0.06);
+                        frame.add(photo);
+
+                        // Stand
+                        const standGeo = new THREE.CylinderGeometry(0.1, 0.3, 1.5, 16);
+                        const standMat = new THREE.MeshStandardMaterial({ color: 0x333 });
+                        const stand = new THREE.Mesh(standGeo, standMat);
+                        stand.position.set(pos.x, -0.75, pos.z);
+                        scene.add(stand);
+
+                        // Glow effect
+                        const glowGeo = new THREE.SphereGeometry(2, 32, 32);
+                        const glowMat = new THREE.MeshBasicMaterial({
+                            color: pos.color,
+                            transparent: true,
+                            opacity: 0.15
+                        });
+                        const glow = new THREE.Mesh(glowGeo, glowMat);
+                        glow.position.set(pos.x, 1, pos.z);
+                        scene.add(glow);
+
+                        avatarPlanes.push({ frame, photo, glow, index });
+                        
+                        loadedCount++;
+                        if (loadedCount === 3) {
+                            document.getElementById('loading').style.display = 'none';
+                        }
+                    },
+                    undefined,
+                    (error) => {
+                        console.error('Error loading avatar:', error);
+                        // Create placeholder
+                        createPlaceholderAvatar(pos, index);
+                    }
+                );
+            });
+        }
+
+        function createPlaceholderAvatar(pos, index) {
+            const colors = [0x4A7C23, 0xFF6B9D, 0x3B82F6];
+            const emojis = ['🌳', '🎮', '📊'];
+            
+            // Create canvas texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#' + colors[index].toString(16).padStart(6, '0');
+            ctx.fillRect(0, 0, 256, 256);
+            
+            // Emoji
+            ctx.font = '120px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(emojis[index], 128, 128);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            
+            // Frame
+            const frameGeo = new THREE.BoxGeometry(2.5, 2.5, 0.1);
+            const frameMat = new THREE.MeshStandardMaterial({ color: colors[index] });
+            const frame = new THREE.Mesh(frameGeo, frameMat);
+            frame.position.set(pos.x, 0.5, pos.z);
+            frame.rotation.x = -Math.PI / 6;
+            frame.lookAt(0, 0.5, 0);
+            scene.add(frame);
+            
+            // Photo
+            const photoGeo = new THREE.PlaneGeometry(2.3, 2.3);
+            const photoMat = new THREE.MeshBasicMaterial({ map: texture });
+            const photo = new THREE.Mesh(photoGeo, photoMat);
+            photo.position.set(0, 0, 0.06);
+            frame.add(photo);
+            
+            loadedCount++;
+            if (loadedCount === 3) {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function createParticles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            
+            for (let i = 0; i < 800; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 50,
+                    Math.random() * 25,
+                    (Math.random() - 0.5) * 50
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.5
+            });
+            
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            // Animate
+            setInterval(() => {
+                particles.rotation.y += 0.0003;
+                particles.rotation.x += 0.0001;
+            }, 16);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Gentle camera orbit
+            const time = Date.now() * 0.0002;
+            camera.position.x = Math.sin(time) * 3;
+            camera.position.z = 12 + Math.cos(time) * 2;
+            camera.lookAt(0, 0, 0);
+
+            // Animate avatars
+            avatarPlanes.forEach((avatar, i) => {
+                if (avatar.frame) {
+                    avatar.frame.position.y = 0.5 + Math.sin(Date.now() * 0.001 + i) * 0.05;
+                    if (avatar.glow) {
+                        avatar.glow.scale.setScalar(1 + Math.sin(Date.now() * 0.002 + i) * 0.1);
+                    }
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Start
+        init();
+        animate();
+    </script>
+</body>
+</html>
