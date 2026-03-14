@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #0d0d0d; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+        .phone {
+            width: 400px;
+            height: 800px;
+            background: linear-gradient(180deg, #1a1a2e, #0d0d0d);
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 8px solid #2a2a4a;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            animation: scene 30s infinite;
+        }
+        @keyframes scene {
+            0%, 10% { opacity: 1; }
+            15%, 100% { opacity: 0; }
+        }
+        .scene1 { animation-delay: 0s; }
+        .scene2 { animation-delay: 5s; }
+        .scene3 { animation-delay: 10s; }
+        .scene4 { animation-delay: 15s; }
+        .scene5 { animation-delay: 20s; }
+        .scene6 { animation-delay: 25s; }
+        
+        .title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 20px rgba(59,130,246,0.5);
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #a0a0a0;
+            margin-bottom: 40px;
+        }
+        .stock-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            width: 85%;
+            text-align: center;
+            border: 2px solid;
+        }
+        .ticker {
+            font-size: 48px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 36px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .change {
+            font-size: 32px;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .positive {
+            background: rgba(34,197,94,0.2);
+            color: #22C55E;
+            border-color: #22C55E;
+        }
+        .negative {
+            background: rgba(239,68,68,0.2);
+            color: #EF4444;
+            border-color: #EF4444;
+        }
+        .warning {
+            background: rgba(234,179,8,0.2);
+            color: #EAB308;
+            border-color: #EAB308;
+            animation: flash 1s infinite;
+        }
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .cta {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="screen">
+            <!-- Scene 1: Title -->
+            <div class="scene scene1">
+                <div class="title">MARKET UPDATE</div>
+                <div class="subtitle">March 13, 2026</div>
+                <div style="font-size: 60px; margin-top: 20px;">📈</div>
+            </div>
+            
+            <!-- Scene 2: TSLA -->
+            <div class="scene scene2">
+                <div class="stock-card" style="border-color: #22C55E">
+                    <div class="ticker">TSLA</div>
+                    <div class="price">$395.01</div>
+                    <div class="change positive">+3.14% 🟢</div>
+                </div>
+            </div>
+            
+            <!-- Scene 3: NVDA -->
+            <div class="scene scene3">
+                <div class="stock-card" style="border-color: #EF4444">
+                    <div class="ticker">NVDA</div>
+                    <div class="price">$183.14</div>
+                    <div class="change negative">-1.54% 🔴</div>
+                </div>
+            </div>
+            
+            <!-- Scene 4: AMZN -->
+            <div class="scene scene4">
+                <div class="stock-card" style="border-color: #EF4444">
+                    <div class="ticker">AMZN</div>
+                    <div class="price">$209.53</div>
+                    <div class="change negative">-1.47% 🔴</div>
+                </div>
+            </div>
+            
+            <!-- Scene 5: VIX -->
+            <div class="scene scene5">
+                <div class="stock-card" style="border-color: #EAB308">
+                    <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
+                    <div class="ticker" style="color: #EAB308;">VIX ALERT</div>
+                    <div class="change warning">+12.63%</div>
+                    <div style="font-size: 14px; color: #a0a0a0; margin-top: 10px;">Market Volatility Up</div>
+                </div>
+            </div>
+            
+            <!-- Scene 6: Outro -->
+            <div class="scene scene6">
+                <div class="cta">OpenClaw Finance</div>
+                <div style="font-size: 18px; color: #a0a0a0;">Follow for daily updates</div>
+                <div style="font-size: 50px; margin-top: 20px;">📊</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

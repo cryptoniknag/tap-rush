@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Scrum Board</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #0d0d0d; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .scene { width: 1000px; height: 700px; background: linear-gradient(135deg, #1a1a2e, #0d0d0d); border-radius: 20px; position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+        .header { background: linear-gradient(90deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2)); padding: 20px 40px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #3B82F6, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .room { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+        .scrum-board { background: #151520; border: 2px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; height: 280px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3); }
+        .board-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .column { flex: 1; text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; margin: 0 5px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #fff; }
+        .column.todo { border-top: 3px solid #EAB308; }
+        .column.progress { border-top: 3px solid #3B82F6; }
+        .column.done { border-top: 3px solid #22C55E; }
+        .tasks-container { display: flex; height: calc(100% - 50px); position: relative; }
+        .task-card { background: #1e1e2e; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 15px; font-size: 0.8rem; color: #fff; position: absolute; width: calc(33.33% - 20px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s ease; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); } 50% { box-shadow: 0 0 20px 5px rgba(59,130,246,0); } }
+        .task-1 { top: 10px; left: 10px; border-left: 3px solid #EAB308; }
+        .task-2 { top: 60px; left: 10px; border-left: 3px solid #EAB308; }
+        .task-3 { top: 10px; left: 50%; transform: translateX(-50%); border-left: 3px solid #3B82F6; animation-delay: 0.5s; }
+        .task-4 { top: 60px; right: 10px; border-left: 3px solid #22C55E; animation-delay: 1s; }
+        .agents-area { display: flex; justify-content: space-around; align-items: flex-end; height: 300px; position: relative; }
+        .agent { display: flex; flex-direction: column; align-items: center; position: relative; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 10px; position: relative; animation: float 3s ease-in-out infinite; }
+        .groot-avatar { background: linear-gradient(135deg, #2D5016, #4A7C23); border: 4px solid #4A7C23; animation-delay: 0s; }
+        .fin-avatar { background: linear-gradient(135deg, #1E3A5F, #3B82F6); border: 4px solid #3B82F6; animation-delay: 0.5s; }
+        .betty-avatar { background: linear-gradient(135deg, #FFE66D, #FF6B9D); border: 4px solid #FF6B9D; animation-delay: 1s; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .speech-bubble { position: absolute; background: #fff; padding: 12px 18px; border-radius: 12px; font-size: 0.8rem; color: #333; top: -80px; max-width: 200px; opacity: 0; animation: talk 8s infinite; }
+        @keyframes talk { 0%, 20% { opacity: 0; transform: translateY(10px); } 25%, 75% { opacity: 1; transform: translateY(0); } 80%, 100% { opacity: 0; transform: translateY(-10px); } }
+        .speech-bubble::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid #fff; }
+        .status { position: absolute; bottom: 0; right: 0; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #1a1a2e; }
+        .status.active { background: #22C55E; box-shadow: 0 0 10px #22C55E; }
+        .status.oncall { background: #EAB308; box-shadow: 0 0 10px #EAB308; }
+        .name { color: #fff; font-weight: 700; font-size: 1rem; }
+        .role { color: #a0a0a0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+        .groot-name { color: #4A7C23; }
+        .fin-name { color: #3B82F6; }
+        .betty-name { color: #FF6B9D; }
+        .pointer { position: absolute; font-size: 2rem; animation: point 2s ease-in-out infinite; }
+        @keyframes point { 0%, 100% { transform: translateX(0) rotate(-15deg); } 50% { transform: translateX(10px) rotate(-15deg); } }
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <div class="header">
+            <h1>🤖 Daily Scrum - March 13, 2026</h1>
+        </div>
+        <div class="room">
+            <div class="scrum-board">
+                <div class="board-header">
+                    <div class="column todo">📋 To Do</div>
+                    <div class="column progress">⚡ In Progress</div>
+                    <div class="column done">✅ Done</div>
+                </div>
+                <div class="tasks-container">
+                    <div class="task-card task-1">📈 Analyze TSLA/AMZN/NVDA<br><small>Assigned to: Fin</small></div>
+                    <div class="task-card task-2">🎨 Create Team Avatars<br><small>Assigned to: Betty</small></div>
+                    <div class="task-card task-3">🚀 Space Collector Game<br><small>Assigned to: Betty 🔥</small></div>
+                    <div class="task-card task-4">✅ Bubble Pop Rush<br><small>Completed by: Betty</small></div>
+                </div>
+                <div class="pointer" style="left:55%;top:40%">👉</div>
+            </div>
+            <div class="agents-area">
+                <div class="agent">
+                    <div class="avatar fin-avatar">📊<div class="status oncall"></div></div>
+                    <div class="speech-bubble" style="border:2px solid #3B82F6">"Should I pull TSLA data now?"</div>
+                    <div class="name fin-name">Fin</div>
+                    <div class="role">Financial Analyst</div>
+                </div>
+                <div class="agent" style="z-index:10">
+                    <div class="avatar groot-avatar">🌳<div class="status active"></div></div>
+                    <div class="speech-bubble" style="border:2px solid #4A7C23;animation-delay:2s">"Great work team! Betty, that Space Collector game is fire! 🔥"</div>
+                    <div class="name groot-name">Groot</div>
+                    <div class="role">👑 Scrum Master</div>
+                </div>
+                <div class="agent">
+                    <div class="avatar betty-avatar">🎮<div class="status oncall"></div></div>
+                    <div class="speech-bubble" style="border:2px solid #FF6B9D;animation-delay:4s">"Thanks Groot! The neon effects are ✨ amazing!"</div>
+                    <div class="name betty-name">Betty</div>
+                    <div class="role">Game Developer</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

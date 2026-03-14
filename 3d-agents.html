@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 3D Agents</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050508;
+            color: #fff;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow: hidden;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .header {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: auto;
+        }
+        h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #888;
+            margin-top: 10px;
+        }
+        .agent-selector {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+        }
+        .agent-card {
+            width: 120px;
+            height: 160px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .agent-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+        }
+        .agent-card.active {
+            border-color: #3B82F6;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+        .agent-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .agent-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .agent-role {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .info-panel {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 320px;
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            pointer-events: auto;
+        }
+        .info-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .info-role {
+            font-size: 14px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        .info-desc {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .skill-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #3B82F6;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading 3D World... 🎮</div>
+    
+    <div id="canvas-container"></div>
+    
+    <div class="ui-layer">
+        <div class="header">
+            <h1>OPENCLAW AGENTS</h1>
+            <div class="subtitle">Interactive 3D Personas</div>
+        </div>
+        
+        <div class="info-panel" id="infoPanel">
+            <div class="info-title" id="infoTitle" style="color: #4A7C23;">Groot</div>
+            <div class="info-role">Program Director</div>
+            <div class="info-desc">
+                The central coordinator of the OpenClaw team. Groot manages all agents, 
+                delegates tasks, and ensures quality across every project. With deep roots 
+                in system architecture, Groot keeps the team aligned and productive.
+            </div>
+            <div class="skills-list">
+                <span class="skill-tag">Task Management</span>
+                <span class="skill-tag">Coordination</span>
+                <span class="skill-tag">Quality Control</span>
+            </div>
+        </div>
+        
+        <div class="agent-selector">
+            <div class="agent-card active" onclick="selectAgent(0)">
+                <div class="agent-icon">🌳</div>
+                <div class="agent-name">Groot</div>
+                <div class="agent-role">Director</div>
+            </div>
+            <div class="agent-card" onclick="selectAgent(1)">
+                <div class="agent-icon">📊</div>
+                <div class="agent-name">Fin</div>
+                <div class="agent-role">Analyst</div>
+            </div>
+            <div class="agent-card" onclick="selectAgent(2)">
+                <div class="agent-icon">🎮</div>
+                <div class="agent-name">Betty</div>
+                <div class="agent-role">Developer</div>
+            </div>
+            <div class="agent-card" onclick="selectAgent(3)">
+                <div class="agent-icon">🛒</div>
+                <div class="agent-name">AisleBeBack</div>
+                <div class="agent-role">Shopper</div>
+            </div>
+            <div class="agent-card" onclick="selectAgent(4)">
+                <div class="agent-icon">📈</div>
+                <div class="agent-name">Tren</div>
+                <div class="agent-role">Monitor</div>
+            </div>
+            <div class="agent-card" onclick="selectAgent(5)">
+                <div class="agent-icon">🎬</div>
+                <div class="agent-name">Clip</div>
+                <div class="agent-role">Producer</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Agent data
+        const agents = [
+            {
+                name: 'Groot',
+                role: 'Program Director',
+                color: 0x4A7C23,
+                accent: 0x5D4E37,
+                desc: 'The central coordinator of the OpenClaw team. Groot manages all agents, delegates tasks, and ensures quality across every project.',
+                skills: ['Task Management', 'Coordination', 'Quality Control'],
+                shape: 'tree'
+            },
+            {
+                name: 'Fin',
+                role: 'Financial Analyst',
+                color: 0x3B82F6,
+                accent: 0x1E3A5F,
+                desc: 'Deep research specialist for stocks, crypto, and markets. Tracks live prices, analyzes fundamentals, and monitors sentiment.',
+                skills: ['Stock Analysis', 'Crypto Research', 'Portfolio Tracking'],
+                shape: 'analyst'
+            },
+            {
+                name: 'Betty',
+                role: 'Game Developer',
+                color: 0xFF6B9D,
+                accent: 0xFFE66D,
+                desc: 'Creative game designer specializing in kid-friendly experiences. Builds colorful, mobile-optimized games with engaging gameplay.',
+                skills: ['HTML5 Games', 'Mobile Design', 'Animation'],
+                shape: 'creative'
+            },
+            {
+                name: 'AisleBeBack',
+                role: 'Shopping Assistant',
+                color: 0xEAB308,
+                accent: 0xF59E0B,
+                desc: 'Price comparison expert across Australian supermarkets. Finds the best deals and optimizes shopping strategies.',
+                skills: ['Price Comparison', 'Deal Finding', 'Budget Optimization'],
+                shape: 'shopper'
+            },
+            {
+                name: 'Tren',
+                role: 'Trend Monitor',
+                color: 0x8B5CF6,
+                accent: 0x6D28D9,
+                desc: 'Monitors trending topics across financial platforms. Identifies viral stocks, sentiment shifts, and emerging themes.',
+                skills: ['Trend Analysis', 'Social Monitoring', 'Sentiment Tracking'],
+                shape: 'scanner'
+            },
+            {
+                name: 'Clip',
+                role: 'Video Producer',
+                color: 0xEC4899,
+                accent: 0xBE185D,
+                desc: 'Creates video content for Capcut and social platforms. Generates scripts, image sequences, and editing projects.',
+                skills: ['Video Production', 'Content Creation', 'Motion Design'],
+                shape: 'camera'
+            }
+        ];
+
+        let currentAgent = 0;
+        let scene, camera, renderer;
+        let agentMesh, particles, rings;
+        let animationId;
+
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050508, 0.02);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            const pointLight2 = new THREE.PointLight(0x3B82F6, 0.5);
+            pointLight2.position.set(-10, -10, 5);
+            scene.add(pointLight2);
+
+            // Create initial agent
+            createAgent(0);
+
+            // Create particles
+            createParticles();
+
+            // Create rings
+            createRings();
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Start animation
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function createAgent(index) {
+            const agent = agents[index];
+            
+            // Remove existing mesh
+            if (agentMesh) {
+                scene.remove(agentMesh);
+            }
+
+            // Create geometry based on shape
+            let geometry;
+            switch(agent.shape) {
+                case 'tree':
+                    geometry = new THREE.CylinderGeometry(0.3, 0.8, 2, 8);
+                    break;
+                case 'analyst':
+                    geometry = new THREE.BoxGeometry(1.2, 1.5, 1);
+                    break;
+                case 'creative':
+                    geometry = new THREE.SphereGeometry(0.8, 32, 32);
+                    break;
+                case 'shopper':
+                    geometry = new THREE.ConeGeometry(0.8, 1.5, 6);
+                    break;
+                case 'scanner':
+                    geometry = new THREE.OctahedronGeometry(0.8);
+                    break;
+                case 'camera':
+                    geometry = new THREE.CylinderGeometry(0.6, 0.6, 1, 32);
+                    break;
+                default:
+                    geometry = new THREE.SphereGeometry(0.8, 32, 32);
+            }
+
+            // Material with glow
+            const material = new THREE.MeshPhongMaterial({
+                color: agent.color,
+                emissive: agent.color,
+                emissiveIntensity: 0.3,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            agentMesh = new THREE.Mesh(geometry, material);
+            
+            // Add wireframe overlay
+            const wireframe = new THREE.WireframeGeometry(geometry);
+            const line = new THREE.LineSegments(wireframe);
+            line.material.color.setHex(agent.accent);
+            line.material.transparent = true;
+            line.material.opacity = 0.3;
+            agentMesh.add(line);
+
+            // Add glow effect
+            const glowGeometry = geometry.clone();
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: agent.color,
+                transparent: true,
+                opacity: 0.2,
+                side: THREE.BackSide
+            });
+            const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+            glowMesh.scale.multiplyScalar(1.2);
+            agentMesh.add(glowMesh);
+
+            scene.add(agentMesh);
+        }
+
+        function createParticles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            
+            for (let i = 0; i < 1000; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: 0x3B82F6,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function createRings() {
+            rings = new THREE.Group();
+            
+            for (let i = 0; i < 3; i++) {
+                const geometry = new THREE.TorusGeometry(2 + i * 0.5, 0.02, 16, 100);
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0x3B82F6,
+                    transparent: true,
+                    opacity: 0.3 - i * 0.1
+                });
+                const ring = new THREE.Mesh(geometry, material);
+                ring.rotation.x = Math.PI / 2;
+                rings.add(ring);
+            }
+            
+            scene.add(rings);
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+
+            // Rotate agent
+            if (agentMesh) {
+                agentMesh.rotation.y += 0.005;
+                agentMesh.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+            }
+
+            // Rotate particles
+            if (particles) {
+                particles.rotation.y += 0.0005;
+                particles.rotation.x += 0.0002;
+            }
+
+            // Rotate rings
+            if (rings) {
+                rings.rotation.y += 0.002;
+                rings.children.forEach((ring, i) => {
+                    ring.rotation.x = Math.PI / 2 + Math.sin(Date.now() * 0.001 + i) * 0.1;
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function selectAgent(index) {
+            currentAgent = index;
+            const agent = agents[index];
+            
+            // Update UI
+            document.querySelectorAll('.agent-card').forEach((card, i) => {
+                card.classList.toggle('active', i === index);
+            });
+            
+            // Update info panel
+            document.getElementById('infoTitle').textContent = agent.name;
+            document.getElementById('infoTitle').style.color = '#' + agent.color.toString(16).padStart(6, '0');
+            document.querySelector('.info-role').textContent = agent.role;
+            document.querySelector('.info-desc').textContent = agent.desc;
+            
+            const skillsContainer = document.querySelector('.skills-list');
+            skillsContainer.innerHTML = agent.skills.map(skill => 
+                `<span class="skill-tag">${skill}</span>`
+            ).join('');
+            
+            // Recreate 3D agent
+            createAgent(index);
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

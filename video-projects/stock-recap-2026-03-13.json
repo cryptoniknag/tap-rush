@@ -1,0 +1,210 @@
+{
+  "project": {
+    "name": "Stock Market Recap - March 13, 2026",
+    "duration": 30,
+    "resolution": "1080x1920",
+    "fps": 30,
+    "aspect_ratio": "9:16"
+  },
+  "timeline": [
+    {
+      "id": 1,
+      "type": "title_card",
+      "start_time": 0,
+      "duration": 3,
+      "asset": "title_market_update.png",
+      "effects": ["fade_in", "zoom_slow"],
+      "text": {
+        "content": "MARKET UPDATE",
+        "font": "Bold",
+        "size": 72,
+        "color": "#FFFFFF",
+        "animation": "slide_up"
+      }
+    },
+    {
+      "id": 2,
+      "type": "date_display",
+      "start_time": 1.5,
+      "duration": 2,
+      "text": {
+        "content": "March 13, 2026",
+        "font": "Regular",
+        "size": 36,
+        "color": "#A0A0A0"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stock_card",
+      "start_time": 3,
+      "duration": 7,
+      "asset": "stock_card_green.png",
+      "data": {
+        "ticker": "TSLA",
+        "price": "$395.01",
+        "change": "+3.14%",
+        "trend": "up"
+      },
+      "effects": ["slide_right", "glow_green"],
+      "chart": {
+        "type": "sparkline",
+        "data": [380, 385, 390, 395],
+        "color": "#22C55E"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stock_card",
+      "start_time": 10,
+      "duration": 7,
+      "asset": "stock_card_red.png",
+      "data": {
+        "ticker": "NVDA",
+        "price": "$183.14",
+        "change": "-1.54%",
+        "trend": "down"
+      },
+      "effects": ["slide_right", "glow_red"],
+      "chart": {
+        "type": "sparkline",
+        "data": [186, 185, 184, 183],
+        "color": "#EF4444"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stock_card",
+      "start_time": 17,
+      "duration": 7,
+      "asset": "stock_card_red.png",
+      "data": {
+        "ticker": "AMZN",
+        "price": "$209.53",
+        "change": "-1.47%",
+        "trend": "down"
+      },
+      "effects": ["slide_right", "glow_red"],
+      "chart": {
+        "type": "sparkline",
+        "data": [212, 211, 210, 209],
+        "color": "#EF4444"
+      }
+    },
+    {
+      "id": 6,
+      "type": "vix_alert",
+      "start_time": 24,
+      "duration": 4,
+      "asset": "vix_warning.png",
+      "data": {
+        "indicator": "VIX",
+        "value": "+12.63%",
+        "signal": "market_fear"
+      },
+      "effects": ["pulse", "shake"],
+      "text": {
+        "content": "⚠️ VOLATILITY UP",
+        "color": "#EAB308",
+        "animation": "flash"
+      }
+    },
+    {
+      "id": 7,
+      "type": "outro",
+      "start_time": 28,
+      "duration": 2,
+      "text": {
+        "content": "📊 OpenClaw Finance",
+        "font": "Bold",
+        "size": 48,
+        "color": "#3B82F6",
+        "animation": "fade_in"
+      },
+      "cta": "Follow for daily updates"
+    }
+  ],
+  "assets": {
+    "images": [
+      {
+        "id": "title_market_update.png",
+        "specs": {
+          "width": 1080,
+          "height": 1920,
+          "background": "gradient_dark_blue",
+          "gradient": ["#1a1a2e", "#0d0d0d"]
+        }
+      },
+      {
+        "id": "stock_card_green.png",
+        "specs": {
+          "width": 900,
+          "height": 400,
+          "background": "rgba(34, 197, 94, 0.1)",
+          "border": "2px solid #22C55E",
+          "border_radius": 20
+        }
+      },
+      {
+        "id": "stock_card_red.png",
+        "specs": {
+          "width": 900,
+          "height": 400,
+          "background": "rgba(239, 68, 68, 0.1)",
+          "border": "2px solid #EF4444",
+          "border_radius": 20
+        }
+      },
+      {
+        "id": "vix_warning.png",
+        "specs": {
+          "width": 1080,
+          "height": 300,
+          "background": "rgba(234, 179, 8, 0.2)",
+          "border": "2px solid #EAB308",
+          "border_radius": 15
+        }
+      }
+    ],
+    "audio": {
+      "background_track": "upbeat_finance.mp3",
+      "volume": 0.3,
+      "fade_in": 0.5,
+      "fade_out": 1.0
+    },
+    "fonts": ["Inter-Bold", "Inter-Regular"]
+  },
+  "effects": {
+    "fade_in": {"duration": 0.5, "easing": "ease_out"},
+    "fade_out": {"duration": 0.5, "easing": "ease_in"},
+    "slide_right": {"duration": 0.8, "distance": 100, "easing": "ease_out"},
+    "slide_up": {"duration": 0.6, "distance": 50, "easing": "ease_out"},
+    "zoom_slow": {"duration": 3, "scale": 1.1, "easing": "linear"},
+    "glow_green": {"color": "#22C55E", "intensity": 0.5, "duration": 2},
+    "glow_red": {"color": "#EF4444", "intensity": 0.5, "duration": 2},
+    "pulse": {"duration": 0.5, "scale": 1.05},
+    "shake": {"duration": 0.5, "intensity": 5},
+    "flash": {"duration": 0.3, "opacity": [1, 0.5, 1]}
+  },
+  "export": {
+    "format": "mp4",
+    "codec": "h264",
+    "quality": "high",
+    "bitrate": "8Mbps",
+    "audio_codec": "aac",
+    "audio_bitrate": "128kbps"
+  },
+  "capcut_import": {
+    "method": "project_file",
+    "file_format": "json",
+    "import_steps": [
+      "1. Open Capcut",
+      "2. Create new project (9:16 aspect ratio)",
+      "3. Import generated images",
+      "4. Set timeline according to JSON",
+      "5. Apply text overlays",
+      "6. Add background audio",
+      "7. Export video"
+    ]
+  }
+}
