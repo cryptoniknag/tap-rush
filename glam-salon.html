@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Glam Salon ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .sparkle-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .sparkle {
+            position: absolute;
+            color: #ffd700;
+            animation: twinkle 2s infinite;
+            font-size: 20px;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500, #ff6b9d);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease infinite;
+            text-shadow: 0 0 30px rgba(255, 107, 157, 0.5);
+            margin-bottom: 10px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header p {
+            color: #8b5a7c;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr 250px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* Left Panel - Tools */
+        .tools-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(255, 107, 157, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            color: #c44569;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .tool-section {
+            margin-bottom: 20px;
+        }
+
+        .tool-section h3 {
+            font-size: 0.9rem;
+            color: #8b5a7c;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tool-btn {
+            background: linear-gradient(145deg, #fff0f5, #ffe4e1);
+            border: 2px solid #ffb6c1;
+            border-radius: 15px;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+            border-color: #ff6b9d;
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(145deg, #ff6b9d, #c44569);
+            border-color: #c44569;
+            color: white;
+        }
+
+        .tool-btn span {
+            display: block;
+            font-size: 0.7rem;
+            margin-top: 5px;
+            color: inherit;
+        }
+
+        /* Color Palette */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .color-btn.active {
+            box-shadow: 0 0 0 3px #ff6b9d, 0 5px 20px rgba(255, 107, 157, 0.5);
+        }
+
+        /* Center - Salon Chair */
+        .salon-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(255, 107, 157, 0.3);
+            position: relative;
+            min-height: 600px;
+        }
+
+        .customer-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .customer-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid #ffb6c1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #ffe4e1, #fff0f5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .customer-avatar:hover {
+            transform: scale(1.1);
+            border-color: #ff6b9d;
+        }
+
+        .customer-avatar.active {
+            border-color: #c44569;
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.6);
+            transform: scale(1.15);
+        }
+
+        .customer-avatar .hair-preview {
+            position: absolute;
+            top: -5px;
+            font-size: 2.5rem;
+        }
+
+        .chair-area {
+            position: relative;
+            width: 350px;
+            height: 450px;
+            margin: 0 auto;
+        }
+
+        .salon-chair {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 250px;
+            background: linear-gradient(145deg, #d4af37, #f4d03f);
+            border-radius: 20px 20px 10px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .chair-back {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 120px;
+            background: linear-gradient(145deg, #c9a227, #e6c35c);
+            border-radius: 90px 90px 20px 20px;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1);
+        }
+
+        .customer-display {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 280px;
+            z-index: 10;
+        }
+
+        .customer-head {
+            width: 100px;
+            height: 110px;
+            background: linear-gradient(145deg, #ffdbac, #f1c27d);
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .customer-face {
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+        }
+
+        .eyes {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .eye {
+            width: 18px;
+            height: 22px;
+            background: #333;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .blush {
+            position: absolute;
+            top: 55px;
+            width: 15px;
+            height: 10px;
+            background: rgba(255, 107, 157, 0.4);
+            border-radius: 50%;
+        }
+
+        .blush-left { left: 15px; }
+        .blush-right { right: 15px; }
+
+        .mouth {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 25px;
+            height: 12px;
+            border-bottom: 3px solid #c44569;
+            border-radius: 0 0 50% 50%;
+        }
+
+        /* Hair Styles */
+        .hair-container {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 200px;
+            z-index: 5;
+        }
+
+        .hair {
+            position: absolute;
+            transition: all 0.5s ease;
+        }
+
+        /* Long Straight Hair */
+        .hair-long-straight {
+            width: 140px;
+            height: 280px;
+            background: linear-gradient(180deg, #4a3728 0%, #3d2e1f 100%);
+            border-radius: 70px 70px 30px 30px;
+            top: 20px;
+            left: 10px;
+        }
+
+        .hair-long-straight::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            width: 100px;
+            height: 60px;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        /* Long Curly Hair */
+        .hair-long-curly {
+            width: 150px;
+            height: 260px;
+            top: 20px;
+            left: 5px;
+        }
+
+        .curl {
+            position: absolute;
+            background: linear-gradient(145deg, #4a3728, #3d2e1f);
+            border-radius: 50%;
+        }
+
+        /* Medium Wavy Hair */
+        .hair-medium-wavy {
+            width: 130px;
+            height: 180px;
+            top: 25px;
+            left: 15px;
+        }
+
+        .wave {
+            position: absolute;
+            background: linear-gradient(145deg, #4a3728, #3d2e1f);
+            border-radius: 50%;
+        }
+
+        /* Short Hair */
+        .hair-short {
+            width: 120px;
+            height: 100px;
+            background: linear-gradient(145deg, #4a3728, #3d2e1f);
+            border-radius: 60px 60px 40px 40px;
+            top: 30px;
+            left: 20px;
+        }
+
+        /* Bob Cut */
+        .hair-bob {
+            width: 130px;
+            height: 140px;
+            background: linear-gradient(180deg, #4a3728 0%, #3d2e1f 100%);
+            border-radius: 65px 65px 20px 20px;
+            top: 25px;
+            left: 15px;
+        }
+
+        /* Accessories Container */
+        .accessories-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .accessory {
+            position: absolute;
+            cursor: move;
+            pointer-events: auto;
+            transition: transform 0.2s ease;
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .accessory:hover {
+            transform: scale(1.1);
+        }
+
+        .accessory.dragging {
+            opacity: 0.8;
+            z-index: 100;
+        }
+
+        /* Right Panel - Accessories & Actions */
+        .accessories-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(255, 107, 157, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .accessory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .accessory-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #fff0f5, #ffe4e1);
+            border: 2px solid #ffb6c1;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .accessory-item:hover {
+            transform: scale(1.1);
+            border-color: #ff6b9d;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .accessory-item:active {
+            cursor: grabbing;
+        }
+
+        /* Action Buttons */
+        .action-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #ff6b9d, #c44569);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.5);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            color: #495057;
+            border: 2px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(145deg, #e9ecef, #dee2e6);
+        }
+
+        /* Photo Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .photo-frame {
+            background: linear-gradient(145deg, #ffd700, #ffed4e);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .photo-frame canvas {
+            width: 100%;
+            border-radius: 10px;
+            background: white;
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1) rotate(180deg); opacity: 1; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .anim-bounce { animation: bounce 0.5s ease; }
+        .anim-shake { animation: shake 0.3s ease; }
+
+        /* Tool Cursor Effects */
+        .cursor-scissors { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%23c44569" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>') 16 16, auto; }
+        .cursor-spray { cursor: crosshair; }
+        .cursor-brush { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="%23ff6b9d"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 0 0 0-1.41z"/></svg>') 0 24, auto; }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d, #c44569);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-panel, .accessories-panel {
+                order: 2;
+            }
+            
+            .salon-area {
+                order: 1;
+            }
+        }
+
+        /* Hair Dye Effect Overlay */
+        .dye-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            mix-blend-mode: overlay;
+        }
+
+        .dye-overlay.active {
+            opacity: 0.8;
+        }
+
+        /* Glitter Particles */
+        .glitter-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: glitter-fall 1s ease-out forwards;
+        }
+
+        @keyframes glitter-fall {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(50px) scale(0); opacity: 0; }
+        }
+
+        /* Bubbles for washing */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(200,230,255,0.6));
+            border-radius: 50%;
+            animation: float-up 2s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            20% { transform: translateY(-20px) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+
+        /* Cut marks */
+        .cut-mark {
+            position: absolute;
+            width: 30px;
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+            animation: cut-fade 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes cut-fade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* Style variations */
+        .hair-curled .hair-long-straight,
+        .hair-curled .hair-medium-wavy {
+            border-radius: 50% !important;
+        }
+
+        .hair-straightened .hair-long-curly .curl {
+            border-radius: 0 !important;
+        }
+
+        /* Length controls */
+        .length-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .length-btn {
+            padding: 8px 15px;
+            border: 2px solid #ffb6c1;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .length-btn:hover, .length-btn.active {
+            background: #ff6b9d;
+            color: white;
+            border-color: #ff6b9d;
+        }
+
+        /* Customer info */
+        .customer-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(145deg, #fff0f5, #ffe4e1);
+            border-radius: 15px;
+        }
+
+        .customer-info h3 {
+            color: #c44569;
+            margin-bottom: 5px;
+        }
+
+        .customer-info p {
+            color: #8b5a7c;
+            font-size: 0.9rem;
+        }
+
+        /* Reset button */
+        .reset-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #ffb6c1;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #ff6b9d, #c44569);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sparkle Background -->
+    <div class="sparkle-bg" id="sparkleBg"></div>
+
+    <div class="game-container">
+        <div class="header">
+            <h1>✨ Glam Salon ✨</h1>
+            <p>Create your dream hairstyle!</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Panel: Tools -->
+            <div class="tools-panel">
+                <h2 class="panel-title">🛠️ Tools</h2>
+                
+                <div class="tool-section">
+                    <h3>Care</h3>
+                    <div class="tool-grid">
+                        <div class="tool-btn" data-tool="shampoo" title="Wash Hair">
+                            🧴<span>Shampoo</span>
+                        </div>
+                        <div class="tool-btn" data-tool="dryer" title="Blow Dry">
+                            💨<span>Dryer</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Cut & Style</h3>
+                    <div class="tool-grid">
+                        <div class="tool-btn" data-tool="scissors" title="Cut Hair">
+                            ✂️<span>Scissors</span>
+                        </div>
+                        <div class="tool-btn" data-tool="curl" title="Curl Hair">
+                            🌀<span>Curl</span>
+                        </div>
+                        <div class="tool-btn" data-tool="straighten" title="Straighten">
+                            📏<span>Straighten</span>
+                        </div>
+                        <div class="tool-btn" data-tool="braid" title="Braid">
+                            🎀<span>Braid</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Hair Color</h3>
+                    <div class="color-palette" id="colorPalette">
+                        <div class="color-btn active" data-color="original" style="background: linear-gradient(145deg, #4a3728, #3d2e1f);"></div>
+                        <div class="color-btn" data-color="blonde" style="background: linear-gradient(145deg, #f4d03f, #d4ac0d);"></div>
+                        <div class="color-btn" data-color="brunette" style="background: linear-gradient(145deg, #5d4037, #3e2723);"></div>
+                        <div class="color-btn" data-color="red" style="background: linear-gradient(145deg, #c0392b, #922b21);"></div>
+                        <div class="color-btn" data-color="pink" style="background: linear-gradient(145deg, #ff69b4, #ff1493);"></div>
+                        <div class="color-btn" data-color="purple" style="background: linear-gradient(145deg, #9b59b6, #8e44ad);"></div>
+                        <div class="color-btn" data-color="blue" style="background: linear-gradient(145deg, #3498db, #2980b9);"></div>
+                        <div class="color-btn" data-color="rainbow" style="background: linear-gradient(145deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);"></div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Effects</h3>
+                    <div class="tool-grid">
+                        <div class="tool-btn" data-tool="glitter" title="Add Glitter">
+                            ✨<span>Glitter</span>
+                        </div>
+                        <div class="tool-btn" data-tool="gems" title="Add Gems">
+                            💎<span>Gems</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reset-section">
+                    <button class="action-btn btn-secondary" onclick="resetHair()">
+                        🔄 Reset Hair
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center: Salon Chair -->
+            <div class="salon-area">
+                <div class="customer-selector" id="customerSelector">
+                    <!-- Generated by JS -->
+                </div>
+
+                <div class="chair-area" id="chairArea">
+                    <div class="salon-chair">
+                        <div class="chair-back"></div>
+                    </div>
+                    
+                    <div class="customer-display" id="customerDisplay">
+                        <div class="hair-container" id="hairContainer">
+                            <!-- Hair generated by JS -->
+                        </div>
+                        <div class="customer-head">
+                            <div class="customer-face">
+                                <div class="eyes">
+                                    <div class="eye"></div>
+                                    <div class="eye"></div>
+                                </div>
+                                <div class="blush blush-left"></div>
+                                <div class="blush blush-right"></div>
+                                <div class="mouth"></div>
+                            </div>
+                        </div>
+                        <div class="accessories-container" id="accessoriesContainer"></div>
+                    </div>
+                </div>
+
+                <div class="customer-info" id="customerInfo">
+                    <h3>Select a Customer</h3>
+                    <p>Choose someone to style!</p>
+                </div>
+
+                <div class="length-controls" id="lengthControls" style="display: none;">
+                    <button class="length-btn" data-length="short">Short</button>
+                    <button class="length-btn" data-length="medium">Medium</button>
+                    <button class="length-btn" data-length="long">Long</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Accessories -->
+            <div class="accessories-panel">
+                <h2 class="panel-title">🎀 Accessories</h2>
+                
+                <div class="tool-section">
+                    <h3>Hair Clips</h3>
+                    <div class="accessory-grid">
+                        <div class="accessory-item" draggable="true" data-accessory="clip-pink">🌸</div>
+                        <div class="accessory-item" draggable="true" data-accessory="clip-gold">⭐</div>
+                        <div class="accessory-item" draggable="true" data-accessory="clip-pearl">⚪</div>
+                        <div class="accessory-item" draggable="true" data-accessory="clip-bow">🎀</div>
+                        <div class="accessory-item" draggable="true" data-accessory="clip-heart">💗</div>
+                        <div class="accessory-item" draggable="true" data-accessory="clip-star">🌟</div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Headpieces</h3>
+                    <div class="accessory-grid">
+                        <div class="accessory-item" draggable="true" data-accessory="crown">👑</div>
+                        <div class="accessory-item" draggable="true" data-accessory="tiara">💎</div>
+                        <div class="accessory-item" draggable="true" data-accessory="flower-crown">🌺</div>
+                        <div class="accessory-item" draggable="true" data-accessory="halo">😇</div>
+                        <div class="accessory-item" draggable="true" data-accessory="hat">🎩</div>
+                        <div class="accessory-item" draggable="true" data-accessory="beret">🎨</div>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Extras</h3>
+                    <div class="accessory-grid">
+                        <div class="accessory-item" draggable="true" data-accessory="sunglasses">🕶️</div>
+                        <div class="accessory-item" draggable="true" data-accessory="glasses">👓</div>
+                        <div class="accessory-item" draggable="true" data-accessory="earrings">💍</div>
+                        <div class="accessory-item" draggable="true" data-accessory="necklace">📿</div>
+                        <div class="accessory-item" draggable="true" data-accessory="butterfly">🦋</div>
+                        <div class="accessory-item" draggable="true" data-accessory="ribbon">🎗️</div>
+                    </div>
+                </div>
+
+                <div class="action-btns">
+                    <button class="action-btn btn-primary" onclick="takePhoto()">
+                        📸 Take Photo
+                    </button>
+                    <button class="action-btn btn-secondary" onclick="clearAccessories()">
+                        🗑️ Clear Accessories
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div class="modal-overlay" id="photoModal">
+        <div class="modal-content">
+            <h2>📸 Your Creation!</h2>
+            <div class="photo-frame">
+                <canvas id="photoCanvas" width="350" height="450"></canvas>
+            </div>
+            <div class="action-btns" style="flex-direction: row; justify-content: center;">
+                <button class="action-btn btn-primary" onclick="downloadPhoto()">
+                    💾 Save
+                </button>
+                <button class="action-btn btn-secondary" onclick="closeModal()">
+                    ✖️ Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Game State
+        const gameState = {
+            currentCustomer: null,
+            currentTool: null,
+            hairColor: 'original',
+            hairLength: 'long',
+            hairStyle: 'straight',
+            accessories: [],
+            isWashed: false,
+            isStyled: false
+        };
+
+        // Customer Data
+        const customers = [
+            {
+                id: 1,
+                name: 'Emma',
+                hairType: 'straight',
+                hairLength: 'long',
+                baseColor: '#4a3728',
+                emoji: '👧',
+                skinTone: '#ffdbac'
+            },
+            {
+                id: 2,
+                name: 'Sophia',
+                hairType: 'curly',
+                hairLength: 'long',
+                baseColor: '#2c1810',
+                emoji: '👩🏽',
+                skinTone: '#e0ac69'
+            },
+            {
+                id: 3,
+                name: 'Olivia',
+                hairType: 'wavy',
+                hairLength: 'medium',
+                baseColor: '#5d4037',
+                emoji: '👱‍♀️',
+                skinTone: '#f5d5b0'
+            },
+            {
+                id: 4,
+                name: 'Ava',
+                hairType: 'straight',
+                hairLength: 'short',
+                baseColor: '#3e2723',
+                emoji: '👩',
+                skinTone: '#8d5524'
+            },
+            {
+                id: 5,
+                name: 'Mia',
+                hairType: 'curly',
+                hairLength: 'medium',
+                baseColor: '#6d4c41',
+                emoji: '👩🏾',
+                skinTone: '#c68642'
+            }
+        ];
+
+        // Color mappings
+        const colorMap = {
+            original: null,
+            blonde: '#f4d03f',
+            brunette: '#5d4037',
+            red: '#c0392b',
+            pink: '#ff69b4',
+            purple: '#9b59b6',
+            blue: '#3498db',
+            rainbow: 'linear-gradient(180deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createSparkles();
+            renderCustomerSelector();
+            setupTools();
+            setupColors();
+            setupDragAndDrop();
+            setupChairInteractions();
+        });
+
+        // Create background sparkles
+        function createSparkles() {
+            const container = document.getElementById('sparkleBg');
+            for (let i = 0; i < 30; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = ['✨', '⭐', '💫', '🌟'][Math.floor(Math.random() * 4)];
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(sparkle);
+            }
+        }
+
+        // Render customer selector
+        function renderCustomerSelector() {
+            const container = document.getElementById('customerSelector');
+            container.innerHTML = customers.map(c => `
+                <div class="customer-avatar" data-customer="${c.id}" onclick="selectCustomer(${c.id})">
+                    ${c.emoji}
+                </div>
+            `).join('');
+        }
+
+        // Select customer
+        function selectCustomer(id) {
+            gameState.currentCustomer = customers.find(c => c.id === id);
+            gameState.hairType = gameState.currentCustomer.hairType;
+            gameState.hairLength = gameState.currentCustomer.hairLength;
+            
+            // Update UI
+            document.querySelectorAll('.customer-avatar').forEach(el => {
+                el.classList.toggle('active', el.dataset.customer == id);
+            });
+
+            // Update info
+            const info = document.getElementById('customerInfo');
+            info.innerHTML = `
+                <h3>${gameState.currentCustomer.name}</h3>
+                <p>${gameState.currentCustomer.hairLength} ${gameState.currentCustomer.hairType} hair</p>
+            `;
+
+            // Show length controls
+            document.getElementById('lengthControls').style.display = 'flex';
+
+            // Render hair
+            renderHair();
+            
+            // Clear accessories
+            clearAccessories();
+            
+            showNotification(`Welcome ${gameState.currentCustomer.name}! 💕`);
+        }
+
+        // Render hair based on type and length
+        function renderHair() {
+            const container = document.getElementById('hairContainer');
+            const customer = gameState.currentCustomer;
+            
+            if (!customer) return;
+
+            let hairHTML = '';
+            const color = gameState.hairColor !== 'original' ? colorMap[gameState.hairColor] : customer.baseColor;
+
+            switch (customer.hairType) {
+                case 'straight':
+                    if (customer.hairLength === 'long') {
+                        hairHTML = `<div class="hair hair-long-straight" style="background: ${color};"></div>`;
+                    } else if (customer.hairLength === 'medium') {
+                        hairHTML = `<div class="hair hair-bob" style="background: ${color};"></div>`;
+                    } else {
+                        hairHTML = `<div class="hair hair-short" style="background: ${color};"></div>`;
+                    }
+                    break;
+                case 'curly':
+                    hairHTML = renderCurlyHair(color, customer.hairLength);
+                    break;
+                case 'wavy':
+                    hairHTML = renderWavyHair(color, customer.hairLength);
+                    break;
+            }
+
+            container.innerHTML = hairHTML;
+            
+            // Apply current style modifications
+            if (gameState.hairStyle === 'curled') {
+                container.classList.add('hair-curled');
+            } else if (gameState.hairStyle === 'straightened') {
+                container.classList.add('hair-straightened');
+            }
+        }
+
+        function renderCurlyHair(color, length) {
+            let curls = '';
+            const positions = length === 'long' ? 12 : 8;
+            
+            for (let i = 0; i < positions; i++) {
+                const top = 20 + Math.floor(i / 3) * 50;
+                const left = 10 + (i % 3) * 45;
+                const size = 35 + Math.random() * 15;
+                curls += `<div class="curl" style="top: ${top}px; left: ${left}px; width: ${size}px; height: ${size}px; background: ${color};"></div>`;
+            }
+            
+            return `<div class="hair hair-long-curly">${curls}</div>`;
+        }
+
+        function renderWavyHair(color, length) {
+            let waves = '';
+            const height = length === 'long' ? 200 : (length === 'medium' ? 140 : 80);
+            
+            for (let i = 0; i < 6; i++) {
+                const top = 30 + i * 30;
+                waves += `<div class="wave" style="top: ${top}px; left: ${i % 2 === 0 ? 0 : 20}px; width: 110px; height: 40px; background: ${color};"></div>`;
+            }
+            
+            return `<div class="hair hair-medium-wavy" style="height: ${height}px;">${waves}</div>`;
+        }
+
+        // Setup tools
+        function setupTools() {
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tool = btn.dataset.tool;
+                    
+                    // Toggle active state
+                    if (gameState.currentTool === tool) {
+                        gameState.currentTool = null;
+                        btn.classList.remove('active');
+                        document.body.className = '';
+                    } else {
+                        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                        gameState.currentTool = tool;
+                        btn.classList.add('active');
+                        
+                        // Set cursor
+                        document.body.className = '';
+                        if (tool === 'scissors') document.body.classList.add('cursor-scissors');
+                        else if (tool === 'glitter' || tool === 'gems') document.body.classList.add('cursor-spray');
+                    }
+                    
+                    executeTool(tool);
+                });
+            });
+
+            // Length controls
+            document.querySelectorAll('.length-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!gameState.currentCustomer) return;
+                    
+                    document.querySelectorAll('.length-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    gameState.currentCustomer.hairLength = btn.dataset.length;
+                    renderHair();
+                    showNotification(`Hair cut to ${btn.dataset.length}! ✂️`);
+                });
+            });
+        }
+
+        // Execute tool action
+        function executeTool(tool) {
+            if (!gameState.currentCustomer) {
+                showNotification('Please select a customer first! 👆');
+                return;
+            }
+
+            switch (tool) {
+                case 'shampoo':
+                    applyShampoo();
+                    break;
+                case 'dryer':
+                    blowDry();
+                    break;
+                case 'curl':
+                    gameState.hairStyle = 'curled';
+                    renderHair();
+                    showNotification('Beautiful curls! 🌀');
+                    break;
+                case 'straighten':
+                    gameState.hairStyle = 'straightened';
+                    renderHair();
+                    showNotification('Sleek and straight! 📏');
+                    break;
+                case 'braid':
+                    showNotification('Lovely braids! 🎀');
+                    addBraidEffect();
+                    break;
+                case 'glitter':
+                    showNotification('Click on hair to add glitter! ✨');
+                    break;
+                case 'gems':
+                    showNotification('Click on hair to add gems! 💎');
+                    break;
+            }
+        }
+
+        function applyShampoo() {
+            const container = document.getElementById('hairContainer');
+            
+            // Create bubbles
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    const size = 15 + Math.random() * 20;
+                    bubble.style.width = size + 'px';
+                    bubble.style.height = size + 'px';
+                    bubble.style.left = (20 + Math.random() * 120) + 'px';
+                    bubble.style.top = (50 + Math.random() * 150) + 'px';
+                    container.appendChild(bubble);
+                    
+                    setTimeout(() => bubble.remove(), 2000);
+                }, i * 100);
+            }
+            
+            gameState.isWashed = true;
+            showNotification('Hair washed and clean! 🧴✨');
+        }
+
+        function blowDry() {
+            const container = document.getElementById('hairContainer');
+            container.classList.add('anim-bounce');
+            
+            // Wind effect
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const wind = document.createElement('div');
+                    wind.innerHTML = '💨';
+                    wind.style.position = 'absolute';
+                    wind.style.left = '150px';
+                    wind.style.top = (50 + Math.random() * 100) + 'px';
+                    wind.style.fontSize = '1.5rem';
+                    wind.style.animation = 'float-up 1s ease-out forwards';
+                    container.appendChild(wind);
+                    setTimeout(() => wind.remove(), 1000);
+                }, i * 150);
+            }
+            
+            setTimeout(() => container.classList.remove('anim-bounce'), 500);
+            showNotification('All dry! 💨');
+        }
+
+        function addBraidEffect() {
+            const container = document.getElementById('hairContainer');
+            const braid = document.createElement('div');
+            braid.innerHTML = '🎀';
+            braid.style.position = 'absolute';
+            braid.style.fontSize = '2rem';
+            braid.style.left = '60px';
+            braid.style.top = '100px';
+            braid.style.zIndex = '15';
+            braid.style.animation = 'bounce 0.5s ease';
+            container.appendChild(braid);
+        }
+
+        // Setup color palette
+        function setupColors() {
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!gameState.currentCustomer) {
+                        showNotification('Please select a customer first! 👆');
+                        return;
+                    }
+                    
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    gameState.hairColor = btn.dataset.color;
+                    renderHair();
+                    
+                    const colorName = btn.dataset.color.charAt(0).toUpperCase() + btn.dataset.color.slice(1);
+                    showNotification(`Hair dyed ${colorName}! 💇‍♀️`);
+                });
+            });
+        }
+
+        // Setup drag and drop for accessories
+        function setupDragAndDrop() {
+            const accessoryItems = document.querySelectorAll('.accessory-item');
+            const dropZone = document.getElementById('customerDisplay');
+
+            accessoryItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('accessory', item.dataset.accessory);
+                    e.dataTransfer.setData('emoji', item.textContent);
+                });
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const accessory = e.dataTransfer.getData('accessory');
+                const emoji = e.dataTransfer.getData('emoji');
+                
+                const rect = dropZone.getBoundingClientRect();
+                const x = e.clientX - rect.left - 20;
+                const y = e.clientY - rect.top - 20;
+                
+                addAccessory(accessory, emoji, x, y);
+            });
+        }
+
+        function addAccessory(type, emoji, x, y) {
+            const container = document.getElementById('accessoriesContainer');
+            const accessory = document.createElement('div');
+            accessory.className = 'accessory';
+            accessory.innerHTML = emoji;
+            accessory.style.left = x + 'px';
+            accessory.style.top = y + 'px';
+            accessory.dataset.type = type;
+            
+            // Make draggable within container
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+            
+            accessory.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = accessory.offsetLeft;
+                initialY = accessory.offsetTop;
+                accessory.classList.add('dragging');
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                accessory.style.left = (initialX + dx) + 'px';
+                accessory.style.top = (initialY + dy) + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                accessory.classList.remove('dragging');
+            });
+            
+            // Double click to remove
+            accessory.addEventListener('dblclick', () => {
+                accessory.remove();
+            });
+            
+            container.appendChild(accessory);
+            gameState.accessories.push({ type, x, y });
+            
+            // Animation
+            accessory.animate([
+                { transform: 'scale(0) rotate(-180deg)' },
+                { transform: 'scale(1.2) rotate(0deg)' },
+                { transform: 'scale(1) rotate(0deg)' }
+            ], {
+                duration: 400,
+                easing: 'ease-out'
+            });
+        }
+
+        // Setup chair interactions for tools
+        function setupChairInteractions() {
+            const chairArea = document.getElementById('chairArea');
+            const hairContainer = document.getElementById('hairContainer');
+            
+            hairContainer.addEventListener('click', (e) => {
+                if (!gameState.currentTool) return;
+                
+                const rect = hairContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (gameState.currentTool === 'glitter') {
+                    addGlitter(x, y);
+                } else if (gameState.currentTool === 'gems') {
+                    addGem(x, y);
+                } else if (gameState.currentTool === 'scissors') {
+                    addCutMark(x, y);
+                }
+            });
+        }
+
+        function addGlitter(x, y) {
+            const container = document.getElementById('hairContainer');
+            
+            for (let i = 0; i < 5; i++) {
+                const glitter = document.createElement('div');
+                glitter.className = 'glitter-particle';
+                glitter.innerHTML = ['✨', '⭐', '💫'][Math.floor(Math.random() * 3)];
+                glitter.style.left = (x + Math.random() * 40 - 20) + 'px';
+                glitter.style.top = (y + Math.random() * 40 - 20) + 'px';
+                glitter.style.fontSize = (0.8 + Math.random() * 0.7) + 'rem';
+                container.appendChild(glitter);
+                
+                setTimeout(() => glitter.remove(), 1000);
+            }
+        }
+
+        function addGem(x, y) {
+            const container = document.getElementById('hairContainer');
+            const gem = document.createElement('div');
+            gem.innerHTML = '💎';
+            gem.style.position = 'absolute';
+            gem.style.left = x + 'px';
+            gem.style.top = y + 'px';
+            gem.style.fontSize = '1.2rem';
+            gem.style.zIndex = '25';
+            gem.style.animation = 'sparkle 1s ease';
+            container.appendChild(gem);
+            
+            // Make it permanent but removable on double click
+            gem.addEventListener('dblclick', () => gem.remove());
+        }
+
+        function addCutMark(x, y) {
+            const container = document.getElementById('hairContainer');
+            const mark = document.createElement('div');
+            mark.className = 'cut-mark';
+            mark.style.left = (x - 15) + 'px';
+            mark.style.top = y + 'px';
+            mark.style.transform = `rotate(${Math.random() * 360}deg)`;
+            container.appendChild(mark);
+            
+            setTimeout(() => mark.remove(), 1000);
+        }
+
+        // Clear accessories
+        function clearAccessories() {
+            document.getElementById('accessoriesContainer').innerHTML = '';
+            gameState.accessories = [];
+            showNotification('Accessories cleared! 🗑️');
+        }
+
+        // Reset hair
+        function resetHair() {
+            if (!gameState.currentCustomer) return;
+            
+            gameState.hairColor = 'original';
+            gameState.hairStyle = 'straight';
+            gameState.currentCustomer.hairLength = customers.find(c => c.id === gameState.currentCustomer.id).hairLength;
+            
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.color-btn[data-color="original"]').classList.add('active');
+            
+            document.querySelectorAll('.length-btn').forEach(b => b.classList.remove('active'));
+            
+            renderHair();
+            clearAccessories();
+            showNotification('Hair reset! 🔄');
+        }
+
+        // Take photo
+        function takePhoto() {
+            if (!gameState.currentCustomer) {
+                showNotification('Please select a customer first! 👆');
+                return;
+            }
+            
+            const canvas = document.getElementById('photoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.fillStyle = '#fff0f5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw frame
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+            
+            // Draw customer representation
+            const centerX = canvas.width / 2;
+            
+            // Draw hair (simplified)
+            ctx.fillStyle = gameState.hairColor !== 'original' ? 
+                (colorMap[gameState.hairColor] || gameState.currentCustomer.baseColor) : 
+                gameState.currentCustomer.baseColor;
+            
+            // Hair shape based on type and length
+            ctx.beginPath();
+            if (gameState.currentCustomer.hairLength === 'long') {
+                ctx.ellipse(centerX, 200, 80, 150, 0, 0, Math.PI * 2);
+            } else if (gameState.currentCustomer.hairLength === 'medium') {
+                ctx.ellipse(centerX, 180, 70, 100, 0, 0, Math.PI * 2);
+            } else {
+                ctx.ellipse(centerX, 160, 60, 60, 0, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            
+            // Draw face
+            ctx.fillStyle = gameState.currentCustomer.skinTone;
+            ctx.beginPath();
+            ctx.arc(centerX, 150, 50, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw eyes
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(centerX - 15, 140, 8, 0, Math.PI * 2);
+            ctx.arc(centerX + 15, 140, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw smile
+            ctx.strokeStyle = '#c44569';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, 160, 15, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            
+            // Draw accessories
+            const accessories = document.querySelectorAll('.accessory');
+            accessories.forEach(acc => {
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                const rect = acc.getBoundingClientRect();
+                const containerRect = document.getElementById('customerDisplay').getBoundingClientRect();
+                const x = ((rect.left - containerRect.left) / containerRect.width) * canvas.width + 50;
+                const y = ((rect.top - containerRect.top) / containerRect.height) * 400 + 50;
+                ctx.fillText(acc.textContent, x, y);
+            });
+            
+            // Add text
+            ctx.fillStyle = '#c44569';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`✨ ${gameState.currentCustomer.name}'s Glam Look ✨`, centerX, 40);
+            ctx.font = '14px Arial';
+            ctx.fillText('Glam Salon', centerX, canvas.height - 20);
+            
+            // Show modal
+            document.getElementById('photoModal').classList.add('active');
+            
+            // Flash effect
+            const flash = document.createElement('div');
+            flash.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:999;opacity:0.8;transition:opacity 0.3s;';
+            document.body.appendChild(flash);
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                setTimeout(() => flash.remove(), 300);
+            }, 100);
+        }
+
+        function closeModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        function downloadPhoto() {
+            const canvas = document.getElementById('photoCanvas');
+            const link = document.createElement('a');
+            link.download = `glam-salon-${gameState.currentCustomer?.name || 'creation'}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showNotification('Photo saved! 💾');
+        }
+
+        // Notification system
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 2500);
+        }
+
+        // Close modal on outside click
+        document.getElementById('photoModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('photoModal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
