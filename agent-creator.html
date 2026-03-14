@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Agent Creator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d0d;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #3B82F6;
+        }
+        .creator-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+        .preview-panel {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .canvas-container {
+            width: 256px;
+            height: 256px;
+            background: #0d0d0d;
+            border: 2px solid #3a3a4a;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            margin-bottom: 20px;
+        }
+        #pixelCanvas {
+            width: 100%;
+            height: 100%;
+        }
+        .controls-panel {
+            flex: 1;
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 14px;
+            color: #3B82F6;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .option-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #3a3a4a;
+            background: #2a2a3a;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .option-btn:hover {
+            border-color: #3B82F6;
+            transform: scale(1.1);
+        }
+        .option-btn.active {
+            border-color: #22C55E;
+            background: rgba(34, 197, 94, 0.2);
+        }
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .color-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+        .color-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 10px currentColor;
+        }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            color: #fff;
+        }
+        .btn-secondary {
+            background: #2a2a3a;
+            color: #fff;
+            border: 2px solid #3a3a4a;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .agent-presets {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .preset-btn {
+            padding: 8px 16px;
+            background: #2a2a3a;
+            border: 2px solid #3a3a4a;
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover {
+            border-color: #3B82F6;
+            background: rgba(59, 130, 246, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 OPENCLAW AGENT CREATOR</h1>
+    
+    <div class="creator-container">
+        <div class="preview-panel">
+            <div class="canvas-container">
+                <canvas id="pixelCanvas" width="32" height="32"></canvas>
+            </div>
+            
+            <div class="agent-presets">
+                <button class="preset-btn" onclick="loadPreset('groot')">🌳 Groot</button>
+                <button class="preset-btn" onclick="loadPreset('fin')">📊 Fin</button>
+                <button class="preset-btn" onclick="loadPreset('betty')">🎮 Betty</button>
+                <button class="preset-btn" onclick="loadPreset('aislebeback')">🛒 AisleBeBack</button>
+                <button class="preset-btn" onclick="loadPreset('tren')">📈 Tren</button>
+                <button class="preset-btn" onclick="loadPreset('clip')">🎬 Clip</button>
+            </div>
+            
+            <div class="action-btns">
+                <button class="btn btn-primary" onclick="downloadAvatar()">💾 Download PNG</button>
+                <button class="btn btn-secondary" onclick="randomize()">🎲 Randomize</button>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="section">
+                <div class="section-title">Base Shape</div>
+                <div class="option-grid">
+                    <button class="option-btn active" onclick="setShape('circle')">⭕</button>
+                    <button class="option-btn" onclick="setShape('square')">⬜</button>
+                    <button class="option-btn" onclick="setShape('rounded')">🔷</button>
+                    <button class="option-btn" onclick="setShape('diamond')">💠</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Primary Color</div>
+                <div class="color-picker">
+                    <button class="color-btn active" style="background: #4A7C23" onclick="setColor('#4A7C23')"></button>
+                    <button class="color-btn" style="background: #3B82F6" onclick="setColor('#3B82F6')"></button>
+                    <button class="color-btn" style="background: #FF6B9D" onclick="setColor('#FF6B9D')"></button>
+                    <button class="color-btn" style="background: #EAB308" onclick="setColor('#EAB308')"></button>
+                    <button class="color-btn" style="background: #8B5CF6" onclick="setColor('#8B5CF6')"></button>
+                    <button class="color-btn" style="background: #EC4899" onclick="setColor('#EC4899')"></button>
+                    <button class="color-btn" style="background: #EF4444" onclick="setColor('#EF4444')"></button>
+                    <button class="color-btn" style="background: #22C55E" onclick="setColor('#22C55E')"></button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Face Style</div>
+                <div class="option-grid">
+                    <button class="option-btn" onclick="setFace('happy')">😊</button>
+                    <button class="option-btn" onclick="setFace('cool')">😎</button>
+                    <button class="option-btn" onclick="setFace('focused')">🤓</button>
+                    <button class="option-btn" onclick="setFace('neutral')">😐</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Accessory</div>
+                <div class="option-grid">
+                    <button class="option-btn" onclick="setAccessory('none')">❌</button>
+                    <button class="option-btn" onclick="setAccessory('glasses')">👓</button>
+                    <button class="option-btn" onclick="setAccessory('hat')">🎩</button>
+                    <button class="option-btn" onclick="setAccessory('bow')">🎀</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Icon</div>
+                <div class="option-grid">
+                    <button class="option-btn" onclick="setIcon('tree')">🌳</button>
+                    <button class="option-btn" onclick="setIcon('chart')">📊</button>
+                    <button class="option-btn" onclick="setIcon('game')">🎮</button>
+                    <button class="option-btn" onclick="setIcon('cart')">🛒</button>
+                    <button class="option-btn" onclick="setIcon('trend')">📈</button>
+                    <button class="option-btn" onclick="setIcon('video')">🎬</button>
+                    <button class="option-btn" onclick="setIcon('star')">⭐</button>
+                    <button class="option-btn" onclick="setIcon('rocket')">🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        
+        let currentShape = 'circle';
+        let currentColor = '#4A7C23';
+        let currentFace = 'happy';
+        let currentAccessory = 'none';
+        let currentIcon = 'tree';
+        
+        // Preset configurations
+        const presets = {
+            groot: { shape: 'circle', color: '#4A7C23', face: 'happy', accessory: 'none', icon: 'tree' },
+            fin: { shape: 'circle', color: '#3B82F6', face: 'focused', accessory: 'glasses', icon: 'chart' },
+            betty: { shape: 'circle', color: '#FF6B9D', face: 'happy', accessory: 'bow', icon: 'game' },
+            aislebeback: { shape: 'rounded', color: '#EAB308', face: 'neutral', accessory: 'none', icon: 'cart' },
+            tren: { shape: 'diamond', color: '#8B5CF6', face: 'cool', accessory: 'none', icon: 'trend' },
+            clip: { shape: 'circle', color: '#EC4899', face: 'cool', accessory: 'none', icon: 'video' }
+        };
+        
+        function drawPixelAvatar() {
+            // Clear canvas
+            ctx.fillStyle = '#0d0d0d';
+            ctx.fillRect(0, 0, 32, 32);
+            
+            // Draw base shape
+            ctx.fillStyle = currentColor;
+            ctx.beginPath();
+            
+            if (currentShape === 'circle') {
+                ctx.arc(16, 16, 12, 0, Math.PI * 2);
+            } else if (currentShape === 'square') {
+                ctx.fillRect(4, 4, 24, 24);
+            } else if (currentShape === 'rounded') {
+                ctx.roundRect(4, 4, 24, 24, 6);
+            } else if (currentShape === 'diamond') {
+                ctx.moveTo(16, 4);
+                ctx.lineTo(28, 16);
+                ctx.lineTo(16, 28);
+                ctx.lineTo(4, 16);
+            }
+            ctx.fill();
+            
+            // Draw face
+            ctx.fillStyle = '#1a1a1a';
+            if (currentFace === 'happy') {
+                ctx.fillRect(10, 12, 4, 4);
+                ctx.fillRect(18, 12, 4, 4);
+                ctx.fillRect(12, 20, 8, 2);
+            } else if (currentFace === 'cool') {
+                ctx.fillRect(9, 12, 5, 3);
+                ctx.fillRect(18, 12, 5, 3);
+                ctx.fillRect(12, 21, 8, 2);
+            } else if (currentFace === 'focused') {
+                ctx.fillRect(10, 12, 3, 3);
+                ctx.fillRect(19, 12, 3, 3);
+                ctx.fillRect(13, 20, 6, 2);
+            } else if (currentFace === 'neutral') {
+                ctx.fillRect(10, 13, 3, 3);
+                ctx.fillRect(19, 13, 3, 3);
+                ctx.fillRect(12, 20, 8, 2);
+            }
+            
+            // Draw accessory
+            ctx.fillStyle = '#fff';
+            if (currentAccessory === 'glasses') {
+                ctx.fillRect(8, 11, 6, 4);
+                ctx.fillRect(18, 11, 6, 4);
+                ctx.fillRect(14, 12, 4, 2);
+            } else if (currentAccessory === 'hat') {
+                ctx.fillRect(6, 4, 20, 4);
+                ctx.fillRect(10, 0, 12, 4);
+            } else if (currentAccessory === 'bow') {
+                ctx.fillRect(14, 2, 4, 4);
+                ctx.fillRect(10, 3, 4, 2);
+                ctx.fillRect(18, 3, 4, 2);
+            }
+            
+            // Draw icon
+            ctx.font = '8px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fff';
+            
+            const icons = {
+                tree: '🌳', chart: '📊', game: '🎮', cart: '🛒',
+                trend: '📈', video: '🎬', star: '⭐', rocket: '🚀'
+            };
+            
+            ctx.fillText(icons[currentIcon] || '⭐', 26, 26);
+        }
+        
+        function setShape(shape) {
+            currentShape = shape;
+            updateActiveButtons('shape', shape);
+            drawPixelAvatar();
+        }
+        
+        function setColor(color) {
+            currentColor = color;
+            updateActiveButtons('color', color);
+            drawPixelAvatar();
+        }
+        
+        function setFace(face) {
+            currentFace = face;
+            updateActiveButtons('face', face);
+            drawPixelAvatar();
+        }
+        
+        function setAccessory(acc) {
+            currentAccessory = acc;
+            updateActiveButtons('accessory', acc);
+            drawPixelAvatar();
+        }
+        
+        function setIcon(icon) {
+            currentIcon = icon;
+            updateActiveButtons('icon', icon);
+            drawPixelAvatar();
+        }
+        
+        function updateActiveButtons(type, value) {
+            // Update UI to show active selection
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function loadPreset(name) {
+            const preset = presets[name];
+            if (preset) {
+                currentShape = preset.shape;
+                currentColor = preset.color;
+                currentFace = preset.face;
+                currentAccessory = preset.accessory;
+                currentIcon = preset.icon;
+                drawPixelAvatar();
+            }
+        }
+        
+        function randomize() {
+            const shapes = ['circle', 'square', 'rounded', 'diamond'];
+            const colors = ['#4A7C23', '#3B82F6', '#FF6B9D', '#EAB308', '#8B5CF6', '#EC4899', '#EF4444', '#22C55E'];
+            const faces = ['happy', 'cool', 'focused', 'neutral'];
+            const accessories = ['none', 'glasses', 'hat', 'bow'];
+            const icons = ['tree', 'chart', 'game', 'cart', 'trend', 'video', 'star', 'rocket'];
+            
+            currentShape = shapes[Math.floor(Math.random() * shapes.length)];
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            currentFace = faces[Math.floor(Math.random() * faces.length)];
+            currentAccessory = accessories[Math.floor(Math.random() * accessories.length)];
+            currentIcon = icons[Math.floor(Math.random() * icons.length)];
+            
+            drawPixelAvatar();
+        }
+        
+        function downloadAvatar() {
+            const link = document.createElement('a');
+            link.download = 'openclaw-agent.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Initial draw
+        drawPixelAvatar();
+    </script>
+</body>
+</html>
