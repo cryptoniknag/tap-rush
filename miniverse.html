@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Miniverse - Agent Pixel World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 #3B82F6;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        #game-container {
+            position: relative;
+            border: 4px solid #3a3a5a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+        canvas {
+            display: block;
+            background: #2d4a3e;
+        }
+        .ui-panel {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .agent-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .agent-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online { background: #22C55E; box-shadow: 0 0 5px #22C55E; }
+        .status-busy { background: #EAB308; box-shadow: 0 0 5px #EAB308; }
+        .agent-name {
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .agent-task {
+            font-size: 10px;
+            color: #888;
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #3B82F6;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        button:hover {
+            background: #2563EB;
+        }
+        .legend {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 OPENCLAW MINIVERSE</h1>
+    <div class="subtitle">Tiny Pixel World for AI Agents</div>
+    
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+    
+    <div class="ui-panel">
+        <div class="agent-card">
+            <span class="agent-status status-online"></span>
+            <div class="agent-name" style="color: #4A7C23;">GROOT</div>
+            <div class="agent-task">Coordinating</div>
+        </div>
+        <div class="agent-card">
+            <span class="agent-status status-busy"></span>
+            <div class="agent-name" style="color: #3B82F6;">FIN</div>
+            <div class="agent-task">Analyzing</div>
+        </div>
+        <div class="agent-card">
+            <span class="agent-status status-busy"></span>
+            <div class="agent-name" style="color: #FF6B9D;">BETTY</div>
+            <div class="agent-task">Building Games</div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="togglePause()">⏸️ Pause/Resume</button>
+        <button onclick="resetPositions()">🔄 Reset Positions</button>
+        <button onclick="toggleTrails()">✨ Toggle Trails</button>
+    </div>
+    
+    <div class="legend">
+        Click on agents to interact • They wander autonomously • Watch them collaborate!
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Game state
+        let paused = false;
+        let showTrails = true;
+        let frameCount = 0;
+
+        // World map (0 = grass, 1 = tree, 2 = water, 3 = path)
+        const worldMap = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1],
+            [1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        const TILE_SIZE = 40;
+
+        // Pixel art sprites (8x8 scaled up)
+        const sprites = {
+            groot: [
+                [0,0,1,1,1,1,0,0],
+                [0,1,1,2,2,1,1,0],
+                [0,1,2,2,2,2,1,0],
+                [0,1,2,3,3,2,1,0],
+                [0,1,2,3,3,2,1,0],
+                [0,0,1,2,2,1,0,0],
+                [0,0,1,1,1,1,0,0],
+                [0,0,0,1,1,0,0,0]
+            ],
+            fin: [
+                [0,0,4,4,4,4,0,0],
+                [0,4,4,5,5,4,4,0],
+                [0,4,5,5,5,5,4,0],
+                [0,4,5,6,6,5,4,0],
+                [0,4,5,6,6,5,4,0],
+                [0,0,4,5,5,4,0,0],
+                [0,0,4,4,4,4,0,0],
+                [0,0,0,4,4,0,0,0]
+            ],
+            betty: [
+                [0,0,7,7,7,7,0,0],
+                [0,7,7,8,8,7,7,0],
+                [0,7,8,8,8,8,7,0],
+                [0,7,8,9,9,8,7,0],
+                [0,7,8,9,9,8,7,0],
+                [0,0,7,8,8,7,0,0],
+                [0,0,7,7,7,7,0,0],
+                [0,0,0,7,7,0,0,0]
+            ]
+        };
+
+        const colors = {
+            0: null, // transparent
+            1: '#2d5016', // groot dark
+            2: '#4A7C23', // groot main
+            3: '#5D4E37', // groot face
+            4: '#1e3a5f', // fin dark
+            5: '#3B82F6', // fin main
+            6: '#60A5FA', // fin face
+            7: '#9d174d', // betty dark
+            8: '#FF6B9D', // betty main
+            9: '#FFE66D'  // betty face
+        };
+
+        // Agents
+        const agents = [
+            {
+                name: 'Groot',
+                x: 200,
+                y: 200,
+                vx: 0.5,
+                vy: 0.3,
+                sprite: sprites.groot,
+                color: '#4A7C23',
+                state: 'walking',
+                targetX: 200,
+                targetY: 200,
+                trail: []
+            },
+            {
+                name: 'Fin',
+                x: 400,
+                y: 300,
+                vx: -0.4,
+                vy: 0.2,
+                sprite: sprites.fin,
+                color: '#3B82F6',
+                state: 'analyzing',
+                targetX: 400,
+                targetY: 300,
+                trail: []
+            },
+            {
+                name: 'Betty',
+                x: 600,
+                y: 250,
+                vx: 0.3,
+                vy: -0.5,
+                sprite: sprites.betty,
+                color: '#FF6B9D',
+                state: 'creating',
+                targetX: 600,
+                targetY: 250,
+                trail: []
+            }
+        ];
+
+        // Draw pixel art sprite
+        function drawSprite(sprite, x, y, scale = 5) {
+            for (let row = 0; row < sprite.length; row++) {
+                for (let col = 0; col < sprite[row].length; col++) {
+                    const colorCode = sprite[row][col];
+                    if (colors[colorCode]) {
+                        ctx.fillStyle = colors[colorCode];
+                        ctx.fillRect(
+                            x + col * scale,
+                            y + row * scale,
+                            scale,
+                            scale
+                        );
+                    }
+                }
+            }
+        }
+
+        // Draw world
+        function drawWorld() {
+            for (let row = 0; row < worldMap.length; row++) {
+                for (let col = 0; col < worldMap[row].length; col++) {
+                    const tile = worldMap[row][col];
+                    const x = col * TILE_SIZE;
+                    const y = row * TILE_SIZE;
+
+                    switch(tile) {
+                        case 0: // grass
+                            ctx.fillStyle = ((row + col) % 2 === 0) ? '#3d6a4e' : '#2d4a3e';
+                            ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                            break;
+                        case 1: // tree
+                            ctx.fillStyle = '#2d4a3e';
+                            ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                            // Tree trunk
+                            ctx.fillStyle = '#5D4E37';
+                            ctx.fillRect(x + 15, y + 20, 10, 20);
+                            // Tree leaves
+                            ctx.fillStyle = '#2d5016';
+                            ctx.beginPath();
+                            ctx.arc(x + 20, y + 15, 15, 0, Math.PI * 2);
+                            ctx.fill();
+                            break;
+                    }
+                }
+            }
+        }
+
+        // Update agents
+        function updateAgents() {
+            agents.forEach(agent => {
+                // Store trail
+                if (frameCount % 10 === 0 && showTrails) {
+                    agent.trail.push({ x: agent.x, y: agent.y });
+                    if (agent.trail.length > 20) agent.trail.shift();
+                }
+
+                // Random movement
+                if (Math.random() < 0.02) {
+                    agent.targetX = 100 + Math.random() * 600;
+                    agent.targetY = 100 + Math.random() * 400;
+                }
+
+                // Move towards target
+                const dx = agent.targetX - agent.x;
+                const dy = agent.targetY - agent.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 5) {
+                    agent.vx = (dx / dist) * 1.5;
+                    agent.vy = (dy / dist) * 1.5;
+                    agent.x += agent.vx;
+                    agent.y += agent.vy;
+                }
+
+                // Boundary check
+                agent.x = Math.max(40, Math.min(720, agent.x));
+                agent.y = Math.max(40, Math.min(520, agent.y));
+
+                // Update state
+                if (Math.random() < 0.01) {
+                    const states = ['walking', 'thinking', 'working', 'idle'];
+                    agent.state = states[Math.floor(Math.random() * states.length)];
+                }
+            });
+        }
+
+        // Draw agents
+        function drawAgents() {
+            agents.forEach(agent => {
+                // Draw trail
+                if (showTrails &&; agent.trail.length > 1) {
+                    ctx.strokeStyle = agent.color + '40';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(agent.trail[0].x + 20, agent.trail[0].y + 20);
+                    for (let i = 1; i < agent.trail.length; i++) {
+                        ctx.lineTo(agent.trail[i].x + 20, agent.trail[i].y + 20);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw agent sprite
+                drawSprite(agent.sprite, agent.x, agent.y, 5);
+
+                // Draw name tag
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(agent.x - 10, agent.y - 25, 60, 18);
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Courier New';
+                ctx.fillText(agent.name, agent.x - 5, agent.y - 13);
+
+                // Draw state indicator
+                ctx.fillStyle = agent.color;
+                ctx.beginPath();
+                ctx.arc(agent.x + 35, agent.y + 5, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Speech bubble occasionally
+                if (Math.random() < 0.005) {
+                    drawSpeechBubble(agent);
+                }
+            });
+        }
+
+        // Draw speech bubble
+        function drawSpeechBubble(agent) {
+            const messages = {
+                'Groot': ['Managing...', 'Coordinating', 'Team sync'],
+                'Fin': ['Analyzing...', 'Data check', 'Markets'],
+                'Betty': ['Building...', 'Creating', 'Games!']
+            };
+            
+            const msgs = messages[agent.name] || ['Working...'];
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillRect(agent.x - 20, agent.y - 55, 80, 25);
+            ctx.fillStyle = '#000';
+            ctx.font = '10px Arial';
+            ctx.fillText(msg, agent.x - 15, agent.y - 38);
+            
+            // Bubble tail
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.beginPath();
+            ctx.moveTo(agent.x + 15, agent.y - 30);
+            ctx.lineTo(agent.x + 20, agent.y - 25);
+            ctx.lineTo(agent.x + 25, agent.y - 30);
+            ctx.fill();
+        }
+
+        // Main game loop
+        function gameLoop() {
+            if (!paused) {
+                // Clear canvas
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw world
+                drawWorld();
+
+                // Update and draw agents
+                updateAgents();
+                drawAgents();
+
+                // Draw decorative elements
+                drawDecorations();
+
+                frameCount++;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Draw decorations
+        function drawDecorations() {
+            // Floating pixels
+            for (let i = 0; i < 20; i++) {
+                const x = (frameCount * 0.5 + i * 40) % 800;
+                const y = 50 + Math.sin(frameCount * 0.02 + i) * 30;
+                ctx.fillStyle = `hsl(${(frameCount + i * 20) % 360}, 70%, 60%)`;
+                ctx.fillRect(x, y, 3, 3);
+            }
+        }
+
+        // Controls
+        function togglePause() {
+            paused = !paused;
+        }
+
+        function resetPositions() {
+            agents[0].x = 200; agents[0].y = 200;
+            agents[1].x = 400; agents[1].y = 300;
+            agents[2].x = 600; agents[2].y = 250;
+            agents.forEach(agent => agent.trail = []);
+        }
+
+        function toggleTrails() {
+            showTrails = !showTrails;
+        }
+
+        // Click interaction
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            agents.forEach(agent => {
+                const dist = Math.sqrt(
+                    Math.pow(x - agent.x - 20, 2) + 
+                    Math.pow(y - agent.y - 20, 2)
+                );
+                if (dist < 40) {
+                    agent.targetX = Math.random() * 700;
+                    agent.targetY = Math.random() * 500;
+                    
+                    // Visual feedback
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 20, agent.y + 20, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        });
+
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
