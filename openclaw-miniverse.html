@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Miniverse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0f0f1a;
+            color: #eee;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 16px;
+        }
+        h1 {
+            font-size: 28px;
+            color: #e94560;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        #miniverse-container {
+            border: 2px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #0a0a14;
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            background: #16213e;
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border-radius: 2px;
+            transition: all 0.15s;
+        }
+        button:hover {
+            background: #e94560;
+            color: #1a1a2e;
+        }
+        #tooltip {
+            position: fixed;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #e94560;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            max-width: 220px;
+        }
+        #tooltip .name { color: #e94560; font-weight: bold; font-size: 13px; }
+        #tooltip .state { color: #888; margin-top: 4px; }
+        #tooltip .task { color: #66aaff; margin-top: 4px; }
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+            color: #555;
+        }
+        .status-bar .agent {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.working { background: #22C55E; box-shadow: 0 0 8px #22C55E; }
+        .status-dot.idle { background: #EAB308; box-shadow: 0 0 8px #EAB308; }
+        .status-dot.thinking { background: #3B82F6; box-shadow: 0 0 8px #3B82F6; }
+        .status-dot.sleeping { background: #888; }
+    </style>
+</head>
+<body>
+    <h1>🌌 OpenClaw Miniverse</h1>
+    <div class="subtitle">Your agents living in a pixel world</div>
+    
+    <div id="miniverse-container">
+        <canvas id="world" width="640" height="480"></canvas>
+    </div>
+    
+    <div class="controls">
+        <button onclick="spawnAgent()">➕ Spawn Agent</button>
+        <button onclick="togglePause()">⏸️ Pause</button>
+        <button onclick="resetWorld()">🔄 Reset</button>
+    </div>
+    
+    <div class="status-bar" id="statusBar"></div>
+    
+    <div id="tooltip">
+        <div class="name"></div>
+        <div class="state"></div>
+        <div class="task"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // World config
+        const TILE_SIZE = 32;
+        const GRID_W = 20;
+        const GRID_H = 15;
+        
+        // Agent definitions with your avatars
+        const AGENT_TYPES = {
+            groot: {
+                name: 'Groot',
+                color: '#4A7C23',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/groot.jpg',
+                tasks: ['Managing team', 'Coordinating', 'Quality check', 'Strategic planning'],
+                speed: 0.8
+            },
+            fin: {
+                name: 'Fin',
+                color: '#3B82F6',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/fin.jpg',
+                tasks: ['Analyzing TSLA', 'Researching NVDA', 'Portfolio check', 'Market scan'],
+                speed: 1.0
+            },
+            betty: {
+                name: 'Betty',
+                color: '#FF6B9D',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/betty.jpg',
+                tasks: ['Building games', 'Designing UI', 'Testing levels', 'Deploying'],
+                speed: 1.2
+            }
+        };
+
+        // World map (0=floor, 1=wall, 2=desk, 3=plant, 4=computer)
+        const worldMap = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,1],
+            [1,0,2,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,1],
+            [1,0,2,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,3,0,0,0,0,0,3,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // Tile colors
+        const tiles = {
+            0: '#1a1a2e', // floor
+            1: '#0f0f1a', // wall
+            2: '#2d4a3e', // desk
+            3: '#2d5016', // plant
+            4: '#1e3a5f'  // computer
+        };
+
+        // Agents array
+        let agents = [];
+        let paused = false;
+        let frameCount = 0;
+
+        // Preload images
+        const images = {};
+        function preloadImages() {
+            Object.keys(AGENT_TYPES).forEach(key => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = AGENT_TYPES[key].avatar;
+                images[key] = img;
+            });
+        }
+        preloadImages();
+
+        // Initialize agents
+        function initAgents() {
+            agents = [
+                createAgent('groot', 3, 3),
+                createAgent('fin', 10, 5),
+                createAgent('betty', 16, 3)
+            ];
+        }
+
+        function createAgent(type, x, y) {
+            const config = AGENT_TYPES[type];
+            return {
+                type,
+                name: config.name,
+                color: config.color,
+                x: x * TILE_SIZE,
+                y: y * TILE_SIZE,
+                targetX: x * TILE_SIZE,
+                targetY: y * TILE_SIZE,
+                vx: 0,
+                vy: 0,
+                state: 'idle',
+                task: null,
+                energy: 0.8 + Math.random() * 0.2,
+                frame: 0,
+                direction: 1,
+                lastTaskChange: 0
+            };
+        }
+
+        // Draw world
+        function drawWorld() {
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    const tile = worldMap[y][x];
+                    ctx.fillStyle = tiles[tile];
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    
+                    // Add detail
+                    if (tile === 2) { // desk
+                        ctx.fillStyle = '#3d5a4e';
+                        ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, TILE_SIZE - 4, 4);
+                    } else if (tile === 3) { // plant
+                        ctx.fillStyle = '#4A7C23';
+                        ctx.beginPath();
+                        ctx.arc(x * TILE_SIZE + 16, y * TILE_SIZE + 16, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (tile === 4) { // computer
+                        ctx.fillStyle = '#3B82F6';
+                        ctx.fillRect(x * TILE_SIZE + 8, y * TILE_SIZE + 8, 16, 12);
+                        ctx.fillStyle = '#60A5FA';
+                        ctx.fillRect(x * TILE_SIZE + 10, y * TILE_SIZE + 10, 12, 6);
+                    }
+                }
+            }
+        }
+
+        // Update agents
+        function updateAgents() {
+            agents.forEach(agent => {
+                // Change state occasionally
+                if (frameCount - agent.lastTaskChange > 180) {
+                    const states = ['working', 'idle', 'thinking'];
+                    agent.state = states[Math.floor(Math.random() * states.length)];
+                    const config = AGENT_TYPES[agent.type];
+                    agent.task = config.tasks[Math.floor(Math.random() * config.tasks.length)];
+                    agent.lastTaskChange = frameCount;
+                    
+                    // Pick new target
+                    const targets = [
+                        {x: 3, y: 3}, {x: 10, y: 5}, {x: 16, y: 3},
+                        {x: 3, y: 8}, {x: 16, y: 8}, {x: 10, y: 12}
+                    ];
+                    const target = targets[Math.floor(Math.random() * targets.length)];
+                    agent.targetX = target.x * TILE_SIZE;
+                    agent.targetY = target.y * TILE_SIZE;
+                }
+
+                // Move towards target
+                const dx = agent.targetX - agent.x;
+                const dy = agent.targetY - agent.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 2) {
+                    const config = AGENT_TYPES[agent.type];
+                    agent.vx = (dx / dist) * config.speed;
+                    agent.vy = (dy / dist) * config.speed;
+                    agent.x += agent.vx;
+                    agent.y += agent.vy;
+                    agent.direction = agent.vx > 0 ? 1 : -1;
+                    agent.frame += 0.15;
+                } else {
+                    agent.vx = 0;
+                    agent.vy = 0;
+                }
+            });
+        }
+
+        // Draw agents
+        function drawAgents() {
+            agents.forEach(agent => {
+                const config = AGENT_TYPES[agent.type];
+                const img = images[agent.type];
+                
+                // Draw shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(agent.x + 16, agent.y + 28, 12, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw avatar image or fallback
+                if (img && img.complete) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 14, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.drawImage(img, agent.x + 2, agent.y + 2, 28, 28);
+                    ctx.restore();
+                    
+                    // Border
+                    ctx.strokeStyle = config.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 14, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    // Fallback circle
+                    ctx.fillStyle = config.color;
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // State indicator
+                const stateColors = {
+                    working: '#22C55E',
+                    idle: '#EAB308',
+                    thinking: '#3B82F6'
+                };
+                ctx.fillStyle = stateColors[agent.state] || '#888';
+                ctx.beginPath();
+                ctx.arc(agent.x + 26, agent.y + 6, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Name tag
+                ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                ctx.fillRect(agent.x - 10, agent.y - 20, 52, 16);
+                ctx.fillStyle = config.color;
+                ctx.font = '10px Courier New';
+                ctx.fillText(agent.name, agent.x - 5, agent.y - 8);
+            });
+        }
+
+        // Draw speech bubbles
+        function drawSpeechBubbles() {
+            agents.forEach(agent => {
+                if (agent.task && agent.state === 'working' && Math.random() < 0.01) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                    ctx.fillRect(agent.x - 30, agent.y - 50, 100, 24);
+                    ctx.fillStyle = '#000';
+                    ctx.font = '9px Arial';
+                    ctx.fillText(agent.task.substring(0, 12) + '...', agent.x - 25, agent.y - 35);
+                    
+                    // Tail
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                    ctx.beginPath();
+                    ctx.moveTo(agent.x + 10, agent.y - 26);
+                    ctx.lineTo(agent.x + 16, agent.y - 20);
+                    ctx.lineTo(agent.x + 22, agent.y - 26);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Update status bar
+        function updateStatusBar() {
+            const bar = document.getElementById('statusBar');
+            bar.innerHTML = agents.map(agent => {
+                const config = AGENT_TYPES[agent.type];
+                return `
+                    <div class="agent">
+                        <span class="status-dot ${agent.state}"></span>
+                        ${config.name}: ${agent.state}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Main loop
+        function gameLoop() {
+            if (!paused) {
+                ctx.fillStyle = '#0a0a14';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                drawWorld();
+                updateAgents();
+                drawAgents();
+                drawSpeechBubbles();
+                updateStatusBar();
+                
+                frameCount++;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Click handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            agents.forEach(agent => {
+                const dist = Math.sqrt(
+                    Math.pow(x - agent.x - 16, 2) + 
+                    Math.pow(y - agent.y - 16, 2)
+                );
+                
+                if (dist < 20) {
+                    const tooltip = document.getElementById('tooltip');
+                    const config = AGENT_TYPES[agent.type];
+                    tooltip.querySelector('.name').textContent = config.name;
+                    tooltip.querySelector('.state').textContent = `State: ${agent.state}`;
+                    tooltip.querySelector('.task').textContent = agent.task || 'No task';
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = e.clientX + 10 + 'px';
+                    tooltip.style.top = e.clientY + 10 + 'px';
+                    
+                    setTimeout(() => {
+                        tooltip.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        });
+
+        // Controls
+        function spawnAgent() {
+            const types = Object.keys(AGENT_TYPES);
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = 2 + Math.floor(Math.random() * 16);
+            const y = 2 + Math.floor(Math.random() * 10);
+            agents.push(createAgent(type, x, y));
+        }
+
+        function togglePause() {
+            paused = !paused;
+        }
+
+        function resetWorld() {
+            initAgents();
+            frameCount = 0;
+        }
+
+        // Start
+        initAgents();
+        gameLoop();
+    </script>
+</body>
+</html>
