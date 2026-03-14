@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Pixel World</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        .world {
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%);
+            border: 4px solid #4a4a6a;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(180deg, #3a3a5a 0%, #2a2a4a 100%);
+            border-top: 4px solid #4a4a6a;
+        }
+        .grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .agent {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .agent:hover {
+            transform: scale(1.2);
+            z-index: 100;
+        }
+        .agent-name {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #fff;
+            white-space: nowrap;
+            text-shadow: 1px 1px 2px #000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .agent:hover .agent-name {
+            opacity: 1;
+        }
+        .speech-bubble {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            animation: speak 4s infinite;
+            pointer-events: none;
+        }
+        @keyframes speak {
+            0%, 90%, 100% { opacity: 0; }
+            10%, 80% { opacity: 1; }
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #fff;
+        }
+        /* Groot - Tree character */
+        .groot {
+            bottom: 100px;
+            left: 100px;
+            background: 
+                linear-gradient(to bottom, #4A7C23 0%, #4A7C23 40%, transparent 40%),
+                linear-gradient(to right, transparent 30%, #5D4E37 30%, #5D4E37 70%, transparent 70%);
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 0 10px #4A7C23;
+        }
+        .groot::before {
+            content: '🌳';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+        }
+        /* Fin - Analyst with glasses */
+        .fin {
+            bottom: 100px;
+            left: 250px;
+            background: #3B82F6;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #3B82F6;
+        }
+        .fin::before {
+            content: '📊';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        /* Betty - Game dev */
+        .betty {
+            bottom: 100px;
+            left: 400px;
+            background: #FF6B9D;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #FF6B9D;
+        }
+        .betty::before {
+            content: '🎮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        /* AisleBeBack - Shopping */
+        .aislebeback {
+            bottom: 100px;
+            left: 550px;
+            background: #EAB308;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #EAB308;
+        }
+        .aislebeback::before {
+            content: '🛒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        /* Tren - Trend monitor */
+        .tren {
+            bottom: 100px;
+            left: 700px;
+            background: #8B5CF6;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #8B5CF6;
+        }
+        .tren::before {
+            content: '📈';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        /* Clip - Video */
+        .clip {
+            bottom: 200px;
+            left: 175px;
+            background: #EC4899;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #EC4899;
+        }
+        .clip::before {
+            content: '🎬';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+        }
+        .status {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .agent {
+            animation: float 3s ease-in-out infinite;
+        }
+        .groot { animation-delay: 0s; }
+        .fin { animation-delay: 0.5s; }
+        .betty { animation-delay: 1s; }
+        .aislebeback { animation-delay: 1.5s; }
+        .tren { animation-delay: 2s; }
+        .clip { animation-delay: 2.5s; }
+    </style>
+</head>
+<body>
+    <div class="world">
+        <div class="grid"></div>
+        <div class="title">🤖 OpenClaw Pixel World</div>
+        
+        <!-- Groot -->
+        <div class="agent groot">
+            <div class="agent-name">Groot</div>
+            <div class="speech-bubble">Managing team...</div>
+        </div>
+        
+        <!-- Clip -->
+        <div class="agent clip">
+            <div class="agent-name">Clip</div>
+            <div class="speech-bubble">Creating videos...</div>
+        </div>
+        
+        <!-- Fin -->
+        <div class="agent fin">
+            <div class="agent-name">Fin</div>
+            <div class="speech-bubble">Analyzing stocks...</div>
+        </div>
+        
+        <!-- Betty -->
+        <div class="agent betty">
+            <div class="agent-name">Betty</div>
+            <div class="speech-bubble">Building games...</div>
+        </div>
+        
+        <!-- AisleBeBack -->
+        <div class="agent aislebeback">
+            <div class="agent-name">AisleBeBack</div>
+            <div class="speech-bubble">Comparing prices...</div>
+        </div>
+        
+        <!-- Tren -->
+        <div class="agent tren">
+            <div class="agent-name">Tren</div>
+            <div class="speech-bubble">Scanning trends...</div>
+        </div>
+        
+        <div class="ground"></div>
+        <div class="status">6 agents online | Pixel World v1.0</div>
+    </div>
+</body>
+</html>
