@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 3D Conference Room</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050508;
+            color: #fff;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow: hidden;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .header {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #888;
+            margin-top: 8px;
+        }
+        .agent-labels {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 150px;
+            pointer-events: auto;
+        }
+        .agent-label {
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .agent-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .agent-role {
+            font-size: 12px;
+            color: #888;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #3B82F6;
+            z-index: 100;
+        }
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: #3B82F6;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading 3D Conference Room... 🎮</div>
+    
+    <div id="canvas-container"></div>
+    
+    <div class="ui-layer">
+        <div class="header">
+            <h1>OPENCLAW BOARDROOM</h1>
+            <div class="subtitle">3D Conference Room with Agent Avatars</div>
+        </div>
+        
+        <div class="agent-labels">
+            <div class="agent-label">
+                <div class="agent-name" style="color: #4A7C23;">GROOT</div>
+                <div class="agent-role">Program Director</div>
+            </div>
+            <div class="agent-label">
+                <div class="agent-name" style="color: #FF6B9D;">BETTY</div>
+                <div class="agent-role">Game Developer</div>
+            </div>
+            <div class="agent-label">
+                <div class="agent-name" style="color: #3B82F6;">FIN</div>
+                <div class="agent-role">Financial Analyst</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="rotateCamera()">🔄 Rotate View</button>
+            <button class="btn" onclick="resetView()">👁️ Reset View</button>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer;
+        let avatarMeshes = [];
+        let table, chairs = [];
+        let animationId;
+        let cameraAngle = 0;
+
+        // Avatar image paths (using placeholder colors if images not available)
+        const avatarImages = {
+            groot: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/groot.jpg',
+            betty: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/betty.jpg',
+            fin: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/fin.jpg'
+        };
+
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0f);
+            scene.fog = new THREE.FogExp2(0x0a0a0f, 0.02);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, 15);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const spotLight = new THREE.SpotLight(0xffffff, 1);
+            spotLight.position.set(0, 20, 0);
+            spotLight.castShadow = true;
+            spotLight.shadow.mapSize.width = 2048;
+            spotLight.shadow.mapSize.height = 2048;
+            scene.add(spotLight);
+
+            const pointLight1 = new THREE.PointLight(0x3B82F6, 0.5, 20);
+            pointLight1.position.set(-10, 5, -5);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xFF6B9D, 0.5, 20);
+            pointLight2.position.set(0, 5, -5);
+            scene.add(pointLight2);
+
+            const pointLight3 = new THREE.PointLight(0x4A7C23, 0.5, 20);
+            pointLight3.position.set(10, 5, -5);
+            scene.add(pointLight3);
+
+            // Create room
+            createRoom();
+
+            // Create conference table
+            createTable();
+
+            // Create chairs
+            createChairs();
+
+            // Load avatars
+            loadAvatars();
+
+            // Create floating particles
+            createParticles();
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Start animation
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function createRoom() {
+            // Floor
+            const floorGeometry = new THREE.PlaneGeometry(50, 50);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a2e,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Grid pattern on floor
+            const gridHelper = new THREE.GridHelper(50, 50, 0x2a2a4a, 0x1a1a2e);
+            gridHelper.position.y = -1.99;
+            scene.add(gridHelper);
+
+            // Walls
+            const wallMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x151520,
+                roughness: 0.9
+            });
+
+            // Back wall
+            const backWall = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, 20),
+                wallMaterial
+            );
+            backWall.position.set(0, 8, -15);
+            backWall.receiveShadow = true;
+            scene.add(backWall);
+
+            // Side walls
+            const leftWall = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, 20),
+                wallMaterial
+            );
+            leftWall.rotation.y = Math.PI / 2;
+            leftWall.position.set(-25, 8, 0);
+            leftWall.receiveShadow = true;
+            scene.add(leftWall);
+
+            const rightWall = new THREE.Mesh(
+                new THREE.PlaneGeometry(50, 20),
+                wallMaterial
+            );
+            rightWall.rotation.y = -Math.PI / 2;
+            rightWall.position.set(25, 8, 0);
+            rightWall.receiveShadow = true;
+            scene.add(rightWall);
+        }
+
+        function createTable() {
+            // Table top
+            const tableGeometry = new THREE.CylinderGeometry(6, 6, 0.3, 32);
+            const tableMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x2a2a3a,
+                roughness: 0.3,
+                metalness: 0.7
+            });
+            table = new THREE.Mesh(tableGeometry, tableMaterial);
+            table.position.y = 0;
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+
+            // Table edge glow
+            const edgeGeometry = new THREE.TorusGeometry(6, 0.1, 16, 100);
+            const edgeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x3B82F6,
+                transparent: true,
+                opacity: 0.5
+            });
+            const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+            edge.rotation.x = Math.PI / 2;
+            edge.position.y = 0.15;
+            scene.add(edge);
+
+            // Table legs
+            for (let i = 0; i < 4; i++) {
+                const legGeometry = new THREE.CylinderGeometry(0.3, 0.3, 4, 16);
+                const legMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x1a1a2a,
+                    roughness: 0.5,
+                    metalness: 0.8
+                });
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+                const angle = (i / 4) * Math.PI * 2;
+                leg.position.set(
+                    Math.cos(angle) * 4,
+                    -2,
+                    Math.sin(angle) * 4
+                );
+                leg.castShadow = true;
+                scene.add(leg);
+            }
+        }
+
+        function createChairs() {
+            const chairPositions = [
+                { x: -8, z: 0, rot: Math.PI / 2 },    // Groot
+                { x: 0, z: -8, rot: 0 },               // Betty
+                { x: 8, z: 0, rot: -Math.PI / 2 }      // Fin
+            ];
+
+            chairPositions.forEach((pos, index) => {
+                // Seat
+                const seatGeometry = new THREE.BoxGeometry(2, 0.3, 2);
+                const seatMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x2a2a3a,
+                    roughness: 0.7
+                });
+                const seat = new THREE.Mesh(seatGeometry, seatMaterial);
+                seat.position.set(pos.x, -1, pos.z);
+                seat.rotation.y = pos.rot;
+                seat.castShadow = true;
+                scene.add(seat);
+
+                // Back
+                const backGeometry = new THREE.BoxGeometry(2, 2.5, 0.2);
+                const back = new THREE.Mesh(backGeometry, seatMaterial);
+                back.position.set(
+                    pos.x + Math.sin(pos.rot) * 1,
+                    0.25,
+                    pos.z - Math.cos(pos.rot) * 1
+                );
+                back.rotation.y = pos.rot;
+                back.castShadow = true;
+                scene.add(back);
+
+                // Chair glow
+                const glowGeometry = new THREE.BoxGeometry(2.2, 0.1, 2.2);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: index === 0 ? 0x4A7C23 : index === 1 ? 0xFF6B9D : 0x3B82F6,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                glow.position.set(pos.x, -0.8, pos.z);
+                glow.rotation.y = pos.rot;
+                scene.add(glow);
+
+                chairs.push({ seat, back, glow });
+            });
+        }
+
+        function loadAvatars() {
+            const loader = new THREE.TextureLoader();
+            const positions = [
+                { x: -6, y: 1.5, z: 0 },      // Groot
+                { x: 0, y: 1.5, z: -6 },      // Betty
+                { x: 6, y: 1.5, z: 0 }        // Fin
+            ];
+            const images = [avatarImages.groot, avatarImages.betty, avatarImages.fin];
+            const colors = [0x4A7C23, 0xFF6B9D, 0x3B82F6];
+
+            images.forEach((url, index) => {
+                // Create avatar plane
+                const geometry = new THREE.PlaneGeometry(2.5, 2.5);
+                
+                // Try to load image, fallback to colored plane
+                loader.load(
+                    url,
+                    (texture) => {
+                        const material = new THREE.MeshBasicMaterial({ 
+                            map: texture,
+                            transparent: true,
+                            side: THREE.DoubleSide
+                        });
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.position.set(positions[index].x, positions[index].y, positions[index].z);
+                        mesh.lookAt(0, 1.5, 0);
+                        scene.add(mesh);
+                        avatarMeshes.push(mesh);
+                    },
+                    undefined,
+                    () => {
+                        // Fallback: colored plane with text
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 256;
+                        canvas.height = 256;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#' + colors[index].toString(16).padStart(6, '0');
+                        ctx.fillRect(0, 0, 256, 256);
+                        ctx.fillStyle = '#fff';
+                        ctx.font = 'bold 80px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const names = ['🌳', '🎮', '📊'];
+                        ctx.fillText(names[index], 128, 128);
+                        
+                        const texture = new THREE.CanvasTexture(canvas);
+                        const material = new THREE.MeshBasicMaterial({ 
+                            map: texture,
+                            transparent: true
+                        });
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.position.set(positions[index].x, positions[index].y, positions[index].z);
+                        mesh.lookAt(0, 1.5, 0);
+                        scene.add(mesh);
+                        avatarMeshes.push(mesh);
+                    }
+                );
+
+                // Add avatar stand
+                const standGeometry = new THREE.CylinderGeometry(0.1, 0.1, 3, 16);
+                const standMaterial = new THREE.MeshStandardMaterial({ color: 0x333 });
+                const stand = new THREE.Mesh(standGeometry, standMaterial);
+                stand.position.set(positions[index].x, 0, positions[index].z);
+                scene.add(stand);
+
+                // Add avatar glow
+                const glowGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: colors[index],
+                    transparent: true,
+                    opacity: 0.2
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                glow.position.set(positions[index].x, positions[index].y, positions[index].z);
+                scene.add(glow);
+            });
+        }
+
+        function createParticles() {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            
+            for (let i = 0; i < 500; i++) {
+                vertices.push(
+                    (Math.random() - 0.5) * 40,
+                    Math.random() * 20,
+                    (Math.random() - 0.5) * 40
+                );
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.4
+            });
+            
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            // Animate particles
+            setInterval(() => {
+                particles.rotation.y += 0.001;
+            }, 16);
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+
+            // Gentle camera movement
+            cameraAngle += 0.001;
+            camera.position.x = Math.sin(cameraAngle) * 2;
+            camera.lookAt(0, 0, 0);
+
+            // Animate avatars
+            avatarMeshes.forEach((mesh, index) => {
+                if (mesh) {
+                    mesh.position.y = 1.5 + Math.sin(Date.now() * 0.001 + index) * 0.1;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function rotateCamera() {
+            cameraAngle += Math.PI / 2;
+        }
+
+        function resetView() {
+            cameraAngle = 0;
+            camera.position.set(0, 8, 15);
+            camera.lookAt(0, 0, 0);
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
