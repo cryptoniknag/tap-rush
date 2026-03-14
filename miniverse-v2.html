@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Miniverse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            color: #e94560;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        #game-container {
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #050508;
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+        }
+        button {
+            background: #16213e;
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #e94560;
+            color: #0a0a0f;
+        }
+        #tooltip {
+            position: fixed;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid #e94560;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+            z-index: 100;
+            min-width: 150px;
+        }
+        #tooltip .name { 
+            color: #e94560; 
+            font-weight: bold; 
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        #tooltip .state { color: #888; }
+        #tooltip .task { color: #66aaff; margin-top: 4px; }
+        .status-bar {
+            margin-top: 15px;
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-dot.working { background: #22C55E; box-shadow: 0 0 8px #22C55E; }
+        .status-dot.idle { background: #EAB308; box-shadow: 0 0 8px #EAB308; }
+        .status-dot.thinking { background: #3B82F6; box-shadow: 0 0 8px #3B82F6; }
+    </style>
+</head>
+<body>
+    <h1>OpenClaw Miniverse</h1>
+    <div class="subtitle">Your agents living in a pixel world</div>
+    
+    <div id="game-container">
+        <canvas id="world" width="800" height="600"></canvas>
+    </div>
+    
+    <div class="controls">
+        <button onclick="spawnAgent()">➕ Spawn Agent</button>
+        <button onclick="togglePause()">⏸️ Pause</button>
+        <button onclick="resetWorld()">🔄 Reset</button>
+    </div>
+    
+    <div class="status-bar" id="statusBar"></div>
+    
+    <div id="tooltip">
+        <div class="name"></div>
+        <div class="state"></div>
+        <div class="task"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        const TILE_SIZE = 32;
+        const GRID_W = 25;
+        const GRID_H = 18;
+
+        // Agent types with your avatars
+        const AGENT_TYPES = {
+            groot: {
+                name: 'Groot',
+                color: '#4A7C23',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/groot.jpg',
+                tasks: ['Managing team', 'Coordinating', 'Strategic planning'],
+                speed: 0.8
+            },
+            fin: {
+                name: 'Fin',
+                color: '#3B82F6',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/fin.jpg',
+                tasks: ['Analyzing stocks', 'Researching', 'Portfolio check'],
+                speed: 1.0
+            },
+            betty: {
+                name: 'Betty',
+                color: '#FF6B9D',
+                avatar: 'https://cryptoniknag.github.io/tap-rush/agent-avatars/originals/betty.jpg',
+                tasks: ['Building games', 'Designing UI', 'Testing'],
+                speed: 1.2
+            }
+        };
+
+        // World map: 0=floor, 1=wall, 2=desk, 3=chair, 4=computer, 5=plant, 6=whiteboard
+        const worldMap = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,1],
+            [1,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,1],
+            [1,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,5,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,6,6,6,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,6,6,6,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // Tile colors
+        const tiles = {
+            0: '#1a1a2e', // floor
+            1: '#0d0d15', // wall
+            2: '#2d4a3e', // desk
+            3: '#3d5a4e', // chair
+            4: '#1e3a5f', // computer
+            5: '#2d5016', // plant
+            6: '#ffffff'  // whiteboard
+        };
+
+        let agents = [];
+        let paused = false;
+        let frameCount = 0;
+
+        // Preload images
+        const images = {};
+        Object.keys(AGENT_TYPES).forEach(key => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = AGENT_TYPES[key].avatar;
+            images[key] = img;
+        });
+
+        function createAgent(type, gridX, gridY) {
+            const config = AGENT_TYPES[type];
+            return {
+                type,
+                name: config.name,
+                color: config.color,
+                x: gridX * TILE_SIZE,
+                y: gridY * TILE_SIZE,
+                targetX: gridX * TILE_SIZE,
+                targetY: gridY * TILE_SIZE,
+                vx: 0,
+                vy: 0,
+                state: 'idle',
+                task: null,
+                energy: 0.8 + Math.random() * 0.2,
+                frame: 0,
+                direction: 1,
+                lastTaskChange: 0
+            };
+        }
+
+        function initAgents() {
+            agents = [
+                createAgent('groot', 3, 3),
+                createAgent('fin', 12, 6),
+                createAgent('betty', 18, 3)
+            ];
+        }
+
+        function drawWorld() {
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    const tile = worldMap[y][x];
+                    const px = x * TILE_SIZE;
+                    const py = y * TILE_SIZE;
+
+                    // Floor
+                    ctx.fillStyle = tiles[0];
+                    ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+
+                    // Tile details
+                    switch(tile) {
+                        case 1: // Wall
+                            ctx.fillStyle = tiles[1];
+                            ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+                            // Wall highlight
+                            ctx.fillStyle = '#2a2a3a';
+                            ctx.fillRect(px, py, TILE_SIZE, 4);
+                            break;
+                        case 2: // Desk
+                            ctx.fillStyle = tiles[2];
+                            ctx.fillRect(px + 2, py + 8, TILE_SIZE - 4, TILE_SIZE - 10);
+                            // Desk surface
+                            ctx.fillStyle = '#3d6a5e';
+                            ctx.fillRect(px + 2, py + 8, TILE_SIZE - 4, 6);
+                            break;
+                        case 3: // Chair
+                            ctx.fillStyle = tiles[3];
+                            ctx.fillRect(px + 10, py + 12, 12, 14);
+                            // Chair back
+                            ctx.fillStyle = '#4d7a6e';
+                            ctx.fillRect(px + 10, py + 8, 12, 6);
+                            break;
+                        case 4: // Computer
+                            ctx.fillStyle = tiles[4];
+                            ctx.fillRect(px + 8, py + 10, 16, 12);
+                            // Screen glow
+                            ctx.fillStyle = '#60A5FA';
+                            ctx.fillRect(px + 10, py + 12, 12, 6);
+                            break;
+                        case 5: // Plant
+                            ctx.fillStyle = tiles[5];
+                            // Pot
+                            ctx.fillRect(px + 10, py + 20, 12, 8);
+                            // Leaves
+                            ctx.beginPath();
+                            ctx.arc(px + 16, py + 14, 8, 0, Math.PI * 2);
+                            ctx.fill();
+                            break;
+                        case 6: // Whiteboard
+                            ctx.fillStyle = '#2a2a3a';
+                            ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(px + 6, py + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+                            // Some writing
+                            ctx.fillStyle = '#333';
+                            ctx.fillRect(px + 10, py + 12, TILE_SIZE - 20, 2);
+                            ctx.fillRect(px + 10, py + 18, TILE_SIZE - 24, 2);
+                            break;
+                    }
+
+                    // Floor grid lines
+                    ctx.strokeStyle = '#0f0f1a';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        function updateAgents() {
+            agents.forEach(agent => {
+                // Change state
+                if (frameCount - agent.lastTaskChange > 200) {
+                    const states = ['working', 'idle', 'thinking'];
+                    agent.state = states[Math.floor(Math.random() * states.length)];
+                    const config = AGENT_TYPES[agent.type];
+                    agent.task = config.tasks[Math.floor(Math.random() * config.tasks.length)];
+                    agent.lastTaskChange = frameCount;
+
+                    // New target
+                    const targets = [
+                        {x: 3, y: 3}, {x: 12, y: 6}, {x: 18, y: 3},
+                        {x: 3, y: 8}, {x: 18, y: 8}, {x: 12, y: 12}
+                    ];
+                    const target = targets[Math.floor(Math.random() * targets.length)];
+                    agent.targetX = target.x * TILE_SIZE;
+                    agent.targetY = target.y * TILE_SIZE;
+                }
+
+                // Move
+                const dx = agent.targetX - agent.x;
+                const dy = agent.targetY - agent.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 2) {
+                    const config = AGENT_TYPES[agent.type];
+                    agent.vx = (dx / dist) * config.speed;
+                    agent.vy = (dy / dist) * config.speed;
+                    agent.x += agent.vx;
+                    agent.y += agent.vy;
+                    agent.direction = agent.vx > 0 ? 1 : -1;
+                    agent.frame += 0.2;
+                } else {
+                    agent.vx = 0;
+                    agent.vy = 0;
+                }
+            });
+        }
+
+        function drawAgents() {
+            agents.forEach(agent => {
+                const config = AGENT_TYPES[agent.type];
+                const img = images[agent.type];
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.beginPath();
+                ctx.ellipse(agent.x + 16, agent.y + 28, 10, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw avatar
+                if (img && img.complete) {
+                    // Circular avatar with border
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 14, 0, Math.PI * 2);
+                    ctx.clip();
+                    ctx.drawImage(img, agent.x + 2, agent.y + 2, 28, 28);
+                    ctx.restore();
+
+                    // Border
+                    ctx.strokeStyle = config.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 14, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    // Fallback
+                    ctx.fillStyle = config.color;
+                    ctx.beginPath();
+                    ctx.arc(agent.x + 16, agent.y + 16, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // State indicator
+                const stateColors = {
+                    working: '#22C55E',
+                    idle: '#EAB308',
+                    thinking: '#3B82F6'
+                };
+                ctx.fillStyle = stateColors[agent.state] || '#888';
+                ctx.beginPath();
+                ctx.arc(agent.x + 26, agent.y + 6, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Name tag
+                ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                ctx.fillRect(agent.x - 15, agent.y - 22, 62, 18);
+                ctx.fillStyle = config.color;
+                ctx.font = 'bold 11px Courier New';
+                ctx.fillText(agent.name, agent.x - 10, agent.y - 10);
+            });
+        }
+
+        function drawSpeechBubbles() {
+            agents.forEach(agent => {
+                if (agent.task && agent.state === 'working' && Math.random() < 0.005) {
+                    const text = agent.task.substring(0, 15);
+                    const width = text.length * 7 + 20;
+
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                    ctx.fillRect(agent.x - width/2 + 16, agent.y - 45, width, 22);
+
+                    ctx.fillStyle = '#000';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(text, agent.x - width/2 + 26, agent.y - 30);
+
+                    // Tail
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                    ctx.beginPath();
+                    ctx.moveTo(agent.x + 12, agent.y - 23);
+                    ctx.lineTo(agent.x + 16, agent.y - 18);
+                    ctx.lineTo(agent.x + 20, agent.y - 23);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function updateStatusBar() {
+            const bar = document.getElementById('statusBar');
+            bar.innerHTML = agents.map(agent => {
+                const config = AGENT_TYPES[agent.type];
+                return `
+                    <div class="status-item">
+                        <span class="status-dot ${agent.state}"></span>
+                        ${config.name}: ${agent.state}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function gameLoop() {
+            if (!paused) {
+                ctx.fillStyle = '#050508';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawWorld();
+                updateAgents();
+                drawAgents();
+                drawSpeechBubbles();
+                updateStatusBar();
+
+                frameCount++;
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Click handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            agents.forEach(agent => {
+                const dist = Math.sqrt(
+                    Math.pow(x - agent.x - 16, 2) +
+                    Math.pow(y - agent.y - 16, 2)
+                );
+
+                if (dist < 20) {
+                    const tooltip = document.getElementById('tooltip');
+                    const config = AGENT_TYPES[agent.type];
+                    tooltip.querySelector('.name').textContent = config.name;
+                    tooltip.querySelector('.state').textContent = `State: ${agent.state}`;
+                    tooltip.querySelector('.task').textContent = agent.task || 'No task';
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = e.clientX + 10 + 'px';
+                    tooltip.style.top = e.clientY + 10 + 'px';
+
+                    setTimeout(() => {
+                        tooltip.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        });
+
+        // Controls
+        function spawnAgent() {
+            const types = Object.keys(AGENT_TYPES);
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = 2 + Math.floor(Math.random() * 20);
+            const y = 2 + Math.floor(Math.random() * 14);
+            agents.push(createAgent(type, x, y));
+        }
+
+        function togglePause() {
+            paused = !paused;
+        }
+
+        function resetWorld() {
+            initAgents();
+            frameCount = 0;
+        }
+
+        // Start
+        initAgents();
+        gameLoop();
+    </script>
+</body>
+</html>
