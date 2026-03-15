@@ -35,6 +35,11 @@
       background: #0f0f23;
       display: inline-block;
       line-height: 0;
+      transition: border-color 0.15s, border-radius 0.15s;
+    }
+    #editor-wrapper #miniverse-container {
+      border-color: #00ff88;
+      border-radius: 4px 0 0 4px;
     }
     .controls {
       display: flex;
@@ -107,6 +112,7 @@
     .status-dot.error { background: #ef4444; }
     .status-dot.speaking { background: #22d3ee; }
   </style>
+  <script type="module" crossorigin src="/assets/index--9ugS9WN.js"></script>
 </head>
 <body>
   <h1>Miniverse</h1>
@@ -114,9 +120,9 @@
   <div id="miniverse-container"></div>
   <div class="controls">
     <select id="world-select"></select>
-    <button id="intercom-btn">Intercom</button>
-    <button id="cycle-morty">Cycle Morty</button>
-    <button id="cycle-dexter">Cycle Dexter</button>
+    <button onclick="triggerIntercom()">Intercom</button>
+    <button onclick="cycleState('morty')">Cycle Morty</button>
+    <button onclick="cycleState('dexter')">Cycle Dexter</button>
   </div>
   <div class="status-bar" id="status-bar"></div>
   <div id="tooltip">
@@ -124,89 +130,5 @@
     <div class="state"></div>
     <div class="task"></div>
   </div>
-  
-  <div id="debug-output" style="color:#0f0;padding:10px;background:#001a00;border:2px solid #0f0;margin:10px;font-size:10px;max-width:800px;max-height:300px;overflow:auto;">Debug output...</div>
-  
-  <!-- Wrap the Miniverse script in try-catch -->
-  <script>
-    window._miniverseLog = [];
-    window._log = function(msg) {
-      window._miniverseLog.push(msg);
-      console.log(msg);
-      var d = document.getElementById('debug-output');
-      if (d) d.innerHTML += '<br>' + msg;
-    };
-    
-    // Override console methods before loading script
-    var origLog = console.log;
-    console.log = function() {
-      var args = Array.prototype.slice.call(arguments);
-      origLog.apply(console, args);
-      var d = document.getElementById('debug-output');
-      if (d) d.innerHTML += '<br>[LOG] ' + args.join(' ').substring(0, 100);
-    };
-    
-    var origError = console.error;
-    console.error = function() {
-      var args = Array.prototype.slice.call(arguments);
-      origError.apply(console, args);
-      var d = document.getElementById('debug-output');
-      if (d) d.innerHTML += '<br><span style="color:#f44">[ERR] ' + args.join(' ').substring(0, 200) + '</span>';
-    };
-    
-    window._log('Preparing to load script...');
-  </script>
-  
-  <script>
-    // Test if JavaScript works at all
-    window._log('JavaScript is running!');
-    
-    // Load script dynamically with error handling
-    (function() {
-      window._log('Creating script element...');
-      var s = document.createElement('script');
-      s.src = './assets/index--9ugS9WN.js';
-      s.onload = function() { 
-        window._log('Script loaded and executed');
-        // Check if mt function exists
-        if (typeof window.mt === 'function') {
-          window._log('mt() function found!');
-        } else {
-          window._log('<span style="color:#f44">mt() function NOT found</span>');
-        }
-      };
-      s.onerror = function(e) { window._log('<span style="color:#f44">Script error: ' + (e && e.message ? e.message : 'unknown') + '</span>'); };
-      document.head.appendChild(s);
-      window._log('Script element appended');
-    })();
-  </script>
-  
-  <script>
-    window._log('After script tag');
-    
-    // Check execution after delays
-    setTimeout(function() {
-      window._log('=== 2s CHECK ===');
-      window._log('Canvas: ' + (document.querySelector('canvas') ? 'YES' : 'NO'));
-      window._log('Container kids: ' + document.getElementById('miniverse-container').children.length);
-      window._log('Logs captured: ' + window._miniverseLog.length);
-    }, 2000);
-    
-    setTimeout(function() {
-      window._log('=== 5s CHECK ===');
-      var canvas = document.querySelector('canvas');
-      if (!canvas) {
-        window._log('<span style="color:#f44">FAILED: No canvas after 5s</span>');
-        // Check if Miniverse classes exist
-        var hasMiniverse = typeof window.nt !== 'undefined' || typeof window.mt !== 'undefined';
-        window._log('Miniverse classes: ' + (hasMiniverse ? 'FOUND' : 'NOT FOUND'));
-        // Show all captured logs
-        var d = document.getElementById('debug-output');
-        if (d) {
-          d.innerHTML += '<br><br><b>All logs:</b><br>' + window._miniverseLog.join('<br>');
-        }
-      }
-    }, 5000);
-  </script>
 </body>
 </html>
