@@ -126,48 +126,37 @@
   </div>
   
   <script src="./assets/index--9ugS9WN.js"></script>
+  <div id="debug-output" style="color:#0f0;padding:10px;background:#001a00;border:2px solid #0f0;margin:10px;font-size:10px;max-width:800px;max-height:200px;overflow:auto;">Debug output...</div>
   <script>
-    // Comprehensive debugging
-    console.log('=== DEBUG START ===');
+    var debugDiv = document.getElementById('debug-output');
+    function log(msg) {
+      console.log(msg);
+      if (debugDiv) debugDiv.innerHTML += '<br>' + msg;
+    }
     
-    // Capture all errors
-    window.addEventListener('error', function(e) {
-      console.error('ERROR:', e.message, 'at', e.filename, ':', e.lineno);
-      var div = document.createElement('div');
-      div.style.cssText = 'color:red;padding:10px;background:#1a0000;border:2px solid red;margin:10px;font-size:11px;max-width:800px;';
-      div.innerHTML = '<b>Error:</b> ' + e.message + '<br>File: ' + e.filename + '<br>Line: ' + e.lineno;
-      document.body.appendChild(div);
-    });
+    log('Script loaded');
     
-    window.addEventListener('unhandledrejection', function(e) {
-      console.error('PROMISE REJECTION:', e.reason);
-      var div = document.createElement('div');
-      div.style.cssText = 'color:orange;padding:10px;background:#2a1a00;border:2px solid orange;margin:10px;font-size:11px;max-width:800px;';
-      div.innerHTML = '<b>Promise Error:</b> ' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason));
-      document.body.appendChild(div);
-    });
+    // Override console methods
+    var origLog = console.log;
+    console.log = function() {
+      var args = Array.prototype.slice.call(arguments);
+      origLog.apply(console, args);
+      if (debugDiv) debugDiv.innerHTML += '<br>[LOG] ' + args.join(' ');
+    };
     
-    // Check script execution
+    var origError = console.error;
+    console.error = function() {
+      var args = Array.prototype.slice.call(arguments);
+      origError.apply(console, args);
+      if (debugDiv) debugDiv.innerHTML += '<br><span style="color:red">[ERROR] ' + args.join(' ') + '</span>';
+    };
+    
+    // Check after delay
     setTimeout(function() {
-      console.log('Checking execution...');
-      var container = document.getElementById('miniverse-container');
       var canvas = document.querySelector('canvas');
-      
-      console.log('Container exists:', !!container);
-      console.log('Canvas exists:', !!canvas);
-      console.log('Container children:', container ? container.children.length : 'N/A');
-      
-      if (!canvas) {
-        var div = document.createElement('div');
-        div.style.cssText = 'color:yellow;padding:10px;background:#2a2a00;border:2px solid yellow;margin:10px;font-size:11px;max-width:800px;';
-        div.innerHTML = '<b>Debug:</b> No canvas after 3s. Container has ' + (container ? container.children.length : 'no') + ' children.<br>Check console for errors.';
-        document.body.appendChild(div);
-      } else {
-        console.log('SUCCESS: Canvas found!');
-      }
-    }, 3000);
-    
-    console.log('=== DEBUG END ===');
+      log('Canvas check: ' + (canvas ? 'FOUND' : 'NOT FOUND'));
+      log('Container children: ' + document.getElementById('miniverse-container').children.length);
+    }, 2000);
   </script>
 </body>
 </html>
