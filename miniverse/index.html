@@ -113,6 +113,31 @@
     .status-dot.speaking { background: #22d3ee; }
   </style>
   <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
+  <script>
+    // Debug: Check if module loaded
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var canvas = document.querySelector('canvas');
+        var container = document.getElementById('miniverse-container');
+        if (!canvas) {
+          console.error('No canvas found!');
+          var div = document.createElement('div');
+          div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;';
+          div.innerHTML = '<b>Error:</b> Canvas not created. Check console for errors.<br>Container children: ' + (container ? container.children.length : 'N/A');
+          document.body.appendChild(div);
+        }
+      }, 3000);
+    });
+    
+    // Capture errors
+    window.addEventListener('error', function(e) {
+      console.error('Error:', e.message, 'at', e.filename, ':', e.lineno);
+      var div = document.createElement('div');
+      div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;font-size:12px;';
+      div.innerHTML = '<b>JavaScript Error:</b><br>' + e.message + '<br>at ' + e.filename + ':' + e.lineno;
+      document.body.appendChild(div);
+    });
+  </script>
 </head>
 <body>
   <h1>Miniverse</h1>
