@@ -186,6 +186,9 @@
       var canvas = document.querySelector('canvas');
       if (!canvas) {
         window._log('<span style="color:#f44">FAILED: No canvas after 5s</span>');
+        // Check if Miniverse classes exist
+        var hasMiniverse = typeof window.nt !== 'undefined' || typeof window.mt !== 'undefined';
+        window._log('Miniverse classes: ' + (hasMiniverse ? 'FOUND' : 'NOT FOUND'));
         // Show all captured logs
         var d = document.getElementById('debug-output');
         if (d) {
