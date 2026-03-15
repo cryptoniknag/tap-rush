@@ -112,6 +112,13 @@
     .status-dot.error { background: #ef4444; }
     .status-dot.speaking { background: #22d3ee; }
   </style>
+  <script>
+    console.log('IMMEDIATE: HTML parsing started');
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMContentLoaded fired');
+      document.getElementById('miniverse-container').innerHTML += '<div style="color:yellow;padding:10px;">DOM ready, loading module...</div>';
+    });
+  </script>
   <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
   <script>
     console.log('Page loaded, waiting for module...');
