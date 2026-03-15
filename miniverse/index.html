@@ -112,7 +112,14 @@
     .status-dot.error { background: #ef4444; }
     .status-dot.speaking { background: #22d3ee; }
   </style>
-  <script type="module" crossorigin src="/assets/index--9ugS9WN.js"></script>
+  <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
+  <script>
+    window.onerror = function(msg, url, line) {
+      console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + line);
+      document.body.innerHTML += '<div style="color:red;padding:20px;">Error: ' + msg + '</div>';
+      return true;
+    };
+  </script>
 </head>
 <body>
   <h1>Miniverse</h1>
