@@ -125,38 +125,63 @@
     <div class="task"></div>
   </div>
   
-  <script src="./assets/index--9ugS9WN.js"></script>
-  <div id="debug-output" style="color:#0f0;padding:10px;background:#001a00;border:2px solid #0f0;margin:10px;font-size:10px;max-width:800px;max-height:200px;overflow:auto;">Debug output...</div>
+  <div id="debug-output" style="color:#0f0;padding:10px;background:#001a00;border:2px solid #0f0;margin:10px;font-size:10px;max-width:800px;max-height:300px;overflow:auto;">Debug output...</div>
+  
+  <!-- Wrap the Miniverse script in try-catch -->
   <script>
-    var debugDiv = document.getElementById('debug-output');
-    function log(msg) {
+    window._miniverseLog = [];
+    window._log = function(msg) {
+      window._miniverseLog.push(msg);
       console.log(msg);
-      if (debugDiv) debugDiv.innerHTML += '<br>' + msg;
-    }
+      var d = document.getElementById('debug-output');
+      if (d) d.innerHTML += '<br>' + msg;
+    };
     
-    log('Script loaded');
-    
-    // Override console methods
+    // Override console methods before loading script
     var origLog = console.log;
     console.log = function() {
       var args = Array.prototype.slice.call(arguments);
       origLog.apply(console, args);
-      if (debugDiv) debugDiv.innerHTML += '<br>[LOG] ' + args.join(' ');
+      var d = document.getElementById('debug-output');
+      if (d) d.innerHTML += '<br>[LOG] ' + args.join(' ').substring(0, 100);
     };
     
     var origError = console.error;
     console.error = function() {
       var args = Array.prototype.slice.call(arguments);
       origError.apply(console, args);
-      if (debugDiv) debugDiv.innerHTML += '<br><span style="color:red">[ERROR] ' + args.join(' ') + '</span>';
+      var d = document.getElementById('debug-output');
+      if (d) d.innerHTML += '<br><span style="color:#f44">[ERR] ' + args.join(' ').substring(0, 200) + '</span>';
     };
     
-    // Check after delay
+    window._log('Preparing to load script...');
+  </script>
+  
+  <script src="./assets/index--9ugS9WN.js" onerror="window._log('SCRIPT LOAD ERROR')" onload="window._log('Script tag loaded')"></script>
+  
+  <script>
+    window._log('After script tag');
+    
+    // Check execution after delays
     setTimeout(function() {
-      var canvas = document.querySelector('canvas');
-      log('Canvas check: ' + (canvas ? 'FOUND' : 'NOT FOUND'));
-      log('Container children: ' + document.getElementById('miniverse-container').children.length);
+      window._log('=== 2s CHECK ===');
+      window._log('Canvas: ' + (document.querySelector('canvas') ? 'YES' : 'NO'));
+      window._log('Container kids: ' + document.getElementById('miniverse-container').children.length);
+      window._log('Logs captured: ' + window._miniverseLog.length);
     }, 2000);
+    
+    setTimeout(function() {
+      window._log('=== 5s CHECK ===');
+      var canvas = document.querySelector('canvas');
+      if (!canvas) {
+        window._log('<span style="color:#f44">FAILED: No canvas after 5s</span>');
+        // Show all captured logs
+        var d = document.getElementById('debug-output');
+        if (d) {
+          d.innerHTML += '<br><br><b>All logs:</b><br>' + window._miniverseLog.join('<br>');
+        }
+      }
+    }, 5000);
   </script>
 </body>
 </html>
