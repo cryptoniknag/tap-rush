@@ -125,26 +125,12 @@
     <div class="task"></div>
   </div>
   
-  <script src="./assets/index--9ugS9WN.js"></script>
-  <script>
-    // Simple error display
-    window.onerror = function(msg, url, line) {
-      var div = document.createElement('div');
-      div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;font-size:12px;';
-      div.innerHTML = '<b>Error:</b> ' + msg + '<br>Line: ' + line;
-      document.body.appendChild(div);
-      return true;
-    };
-    
-    // Check if canvas was created
-    setTimeout(function() {
-      if (!document.querySelector('canvas')) {
-        var div = document.createElement('div');
-        div.style.cssText = 'color:orange;padding:20px;background:#2a1a00;border:2px solid orange;margin:20px;';
-        div.innerHTML = '<b>Debug:</b> No canvas created. Check console for errors.';
-        document.body.appendChild(div);
-      }
-    }, 3000);
+  <script type="module">
+    try {
+      await import('./assets/index--9ugS9WN.js');
+    } catch (err) {
+      document.body.innerHTML += '<div style="color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;">Module Error: ' + err.message + '</div>';
+    }
   </script>
 </body>
 </html>
