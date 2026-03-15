@@ -158,12 +158,23 @@
   </script>
   
   <script>
+    // Test if JavaScript works at all
+    window._log('JavaScript is running!');
+    
     // Load script dynamically with error handling
     (function() {
       window._log('Creating script element...');
       var s = document.createElement('script');
       s.src = './assets/index--9ugS9WN.js';
-      s.onload = function() { window._log('Script loaded and executed'); };
+      s.onload = function() { 
+        window._log('Script loaded and executed');
+        // Check if mt function exists
+        if (typeof window.mt === 'function') {
+          window._log('mt() function found!');
+        } else {
+          window._log('<span style="color:#f44">mt() function NOT found</span>');
+        }
+      };
       s.onerror = function(e) { window._log('<span style="color:#f44">Script error: ' + (e && e.message ? e.message : 'unknown') + '</span>'); };
       document.head.appendChild(s);
       window._log('Script element appended');
