@@ -157,7 +157,18 @@
     window._log('Preparing to load script...');
   </script>
   
-  <script src="./assets/index--9ugS9WN.js" onerror="window._log('SCRIPT LOAD ERROR')" onload="window._log('Script tag loaded')"></script>
+  <script>
+    // Load script dynamically with error handling
+    (function() {
+      window._log('Creating script element...');
+      var s = document.createElement('script');
+      s.src = './assets/index--9ugS9WN.js';
+      s.onload = function() { window._log('Script loaded and executed'); };
+      s.onerror = function(e) { window._log('<span style="color:#f44">Script error: ' + (e && e.message ? e.message : 'unknown') + '</span>'); };
+      document.head.appendChild(s);
+      window._log('Script element appended');
+    })();
+  </script>
   
   <script>
     window._log('After script tag');
