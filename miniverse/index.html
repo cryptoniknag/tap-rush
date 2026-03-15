@@ -126,11 +126,40 @@
   </div>
   
   <script type="module">
+    console.log('Starting module load...');
     try {
+      // Check if file exists first
+      const check = await fetch('./assets/index--9ugS9WN.js', {method: 'HEAD'});
+      console.log('Module file status:', check.status);
+      
+      if (!check.ok) {
+        throw new Error('Module file not found: ' + check.status);
+      }
+      
+      console.log('Importing module...');
       await import('./assets/index--9ugS9WN.js');
+      console.log('Module imported successfully');
+      
     } catch (err) {
-      document.body.innerHTML += '<div style="color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;">Module Error: ' + err.message + '</div>';
+      console.error('Module error:', err);
+      const div = document.createElement('div');
+      div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;font-size:12px;white-space:pre-wrap;';
+      div.innerHTML = '<b>Module Error:</b>\n' + err.message + '\n\n' + (err.stack || 'No stack');
+      document.body.appendChild(div);
     }
+    
+    // Check for canvas after delay
+    setTimeout(() => {
+      const canvas = document.querySelector('canvas');
+      if (!canvas) {
+        const div = document.createElement('div');
+        div.style.cssText = 'color:orange;padding:20px;background:#2a1a00;border:2px solid orange;margin:20px;';
+        div.innerHTML = '<b>Debug:</b> No canvas created after 3 seconds. Check console for errors.';
+        document.body.appendChild(div);
+      } else {
+        console.log('Canvas found!');
+      }
+    }, 3000);
   </script>
 </body>
 </html>
