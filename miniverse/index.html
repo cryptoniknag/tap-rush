@@ -35,11 +35,6 @@
       background: #0f0f23;
       display: inline-block;
       line-height: 0;
-      transition: border-color 0.15s, border-radius 0.15s;
-    }
-    #editor-wrapper #miniverse-container {
-      border-color: #00ff88;
-      border-radius: 4px 0 0 4px;
     }
     .controls {
       display: flex;
@@ -112,131 +107,16 @@
     .status-dot.error { background: #ef4444; }
     .status-dot.speaking { background: #22d3ee; }
   </style>
-  <script>
-    console.log('IMMEDIATE: HTML parsing started');
-    
-    // Store errors for debugging
-    window._miniverseErrors = [];
-    
-    // Capture all errors
-    window.addEventListener('error', function(e) {
-      window._miniverseErrors.push({
-        type: 'error',
-        message: e.message,
-        filename: e.filename,
-        lineno: e.lineno,
-        colno: e.colno,
-        error: e.error ? e.error.stack : null
-      });
-      console.log('Captured error:', e.message);
-    });
-    
-    window.addEventListener('unhandledrejection', function(e) {
-      window._miniverseErrors.push({
-        type: 'unhandledrejection',
-        reason: e.reason ? (e.reason.stack || e.reason.toString()) : 'Unknown'
-      });
-      console.log('Captured rejection:', e.reason);
-    });
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMContentLoaded fired');
-      const statusDiv = document.getElementById('loading-status');
-      if (statusDiv) {
-        statusDiv.innerHTML += '<br><span style="color:yellow;">DOM ready, loading module...</span>';
-      }
-    });
-  </script>
-  <!-- Load the Miniverse as a regular script (not module) since it's an IIFE bundle -->
-  <script src="./assets/index--9ugS9WN.js"></script>
-  <script>
-    // Status updater
-    const statusDiv = document.getElementById('loading-status');
-    function updateStatus(msg, type = 'info') {
-      console.log('[STATUS]', msg);
-      if (statusDiv) {
-        const color = type === 'error' ? '#ff4444' : type === 'success' ? '#00ff88' : '#ffff00';
-        statusDiv.innerHTML += '<div style="color:' + color + ';font-size:11px;margin:2px 0;">' + msg + '</div>';
-      }
-    }
-    
-    // Check if script loaded
-    setTimeout(function() {
-      updateStatus('Script loaded, checking canvas...');
-      const canvas = document.querySelector('canvas');
-      if (canvas && canvas.id !== 'fallback-canvas') {
-        updateStatus('Canvas created!', 'success');
-        setTimeout(function() { if (statusDiv) statusDiv.style.display = 'none'; }, 1000);
-      } else {
-        updateStatus('No canvas - check console for errors', 'error');
-      }
-    }, 2000);
-  </script>
-  <script>
-    console.log('=== INLINE SCRIPT START ===');
-    
-    // Global error handler
-    window.onerror = function(msg, url, line, col, error) {
-      console.error('=== GLOBAL ERROR ===');
-      console.error('Message:', msg);
-      console.error('URL:', url);
-      console.error('Line:', line, 'Column:', col);
-      console.error('Error:', error);
-      const errorDiv = document.createElement('div');
-      errorDiv.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;overflow:auto;';
-      errorDiv.innerHTML = '<h3>JavaScript Error</h3><pre>' + msg + '\nAt: ' + url + ':' + line + '\n\n' + (error && error.stack ? error.stack : 'No stack trace') + '</pre>';
-      document.body.appendChild(errorDiv);
-      return true;
-    };
-    
-    // Unhandled promise rejection handler
-    window.addEventListener('unhandledrejection', function(event) {
-      console.error('=== UNHANDLED PROMISE REJECTION ===');
-      console.error('Reason:', event.reason);
-      const errorDiv = document.createElement('div');
-      errorDiv.style.cssText = 'color:orange;padding:20px;background:#2a1a00;border:2px solid orange;margin:20px;';
-      errorDiv.innerHTML = '<h3>Unhandled Promise Rejection</h3><pre>' + (event.reason && event.reason.stack ? event.reason.stack : String(event.reason)) + '</pre>';
-      document.body.appendChild(errorDiv);
-    });
-    
-    // Debug: Check for canvas periodically
-    let checkCount = 0;
-    const checkInterval = setInterval(function() {
-      checkCount++;
-      const canvas = document.querySelector('canvas');
-      const container = document.getElementById('miniverse-container');
-      console.log('Check #' + checkCount + ': canvas=' + (canvas ? 'YES' : 'NO') + ', container=' + (container ? 'YES' : 'NO'));
-      
-      if (canvas) {
-        console.log('Canvas found! Stopping checks.');
-        clearInterval(checkInterval);
-      } else if (checkCount >= 20) {
-        console.error('No canvas after 20 checks (10 seconds)');
-        clearInterval(checkInterval);
-        const debugDiv = document.createElement('div');
-        debugDiv.style.cssText = 'color:orange;padding:20px;background:#2a1a00;border:2px solid orange;margin:20px;';
-        debugDiv.innerHTML = '<h3>Debug: No canvas created after 10 seconds</h3><p>The module may have failed to load or execute. Check the console for errors.</p>';
-        document.body.appendChild(debugDiv);
-      }
-    }, 500);
-    
-    console.log('=== INLINE SCRIPT END ===');
-  </script>
 </head>
 <body>
   <h1>Miniverse</h1>
   <p class="subtitle">a tiny pixel world for your AI agents</p>
-  <div id="miniverse-container">
-    <div id="loading-status" style="color:#00ff88;padding:20px;text-align:center;font-family:monospace;">
-      Loading Miniverse...
-    </div>
-    <canvas id="fallback-canvas" width="512" height="384" style="background:#0f0f23; display:none;"></canvas>
-  </div>
+  <div id="miniverse-container"></div>
   <div class="controls">
     <select id="world-select"></select>
-    <button onclick="triggerIntercom()">Intercom</button>
-    <button onclick="cycleState('morty')">Cycle Morty</button>
-    <button onclick="cycleState('dexter')">Cycle Dexter</button>
+    <button id="intercom-btn">Intercom</button>
+    <button id="cycle-morty">Cycle Morty</button>
+    <button id="cycle-dexter">Cycle Dexter</button>
   </div>
   <div class="status-bar" id="status-bar"></div>
   <div id="tooltip">
@@ -244,5 +124,7 @@
     <div class="state"></div>
     <div class="task"></div>
   </div>
+  
+  <script src="./assets/index--9ugS9WN.js"></script>
 </body>
 </html>
