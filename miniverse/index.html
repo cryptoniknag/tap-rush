@@ -119,7 +119,16 @@
       document.getElementById('miniverse-container').innerHTML += '<div style="color:yellow;padding:10px;">DOM ready, loading module...</div>';
     });
   </script>
-  <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
+  <script type="module">
+    try {
+      console.log('Module loading...');
+      await import('./assets/index--9ugS9WN.js');
+      console.log('Module loaded successfully');
+    } catch (err) {
+      console.error('Module failed to load:', err);
+      document.body.innerHTML += '<div style="color:red;padding:20px;">Module Error: ' + err.message + '</div>';
+    }
+  </script>
   <script>
     console.log('Page loaded, waiting for module...');
     window.onerror = function(msg, url, line) {
