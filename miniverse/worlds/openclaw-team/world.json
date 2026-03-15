@@ -1,0 +1,10 @@
+{
+  "name": "openclaw-team",
+  "description": "OpenClaw agent team headquarters",
+  "tileSize": 32,
+  "canvasWidth": 800,
+  "canvasHeight": 600,
+  "defaultScale": 2,
+  "scenes": ["main"],
+  "defaultScene": "main"
+}

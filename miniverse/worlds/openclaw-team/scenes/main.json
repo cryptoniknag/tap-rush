@@ -1,0 +1,17 @@
+{
+  "name": "main",
+  "tileWidth": 32,
+  "tileHeight": 32,
+  "columns": 25,
+  "rows": 18,
+  "locations": {
+    "groot_desk": { "x": 3, "y": 3, "label": "Groot's Desk" },
+    "fin_desk": { "x": 12, "y": 6, "label": "Fin's Trading Station" },
+    "betty_desk": { "x": 18, "y": 3, "label": "Betty's Dev Station" },
+    "conference_table": { "x": 12, "y": 10, "label": "Conference Table" },
+    "coffee_machine": { "x": 22, "y": 2, "label": "Coffee Machine" },
+    "whiteboard": { "x": 12, "y": 14, "label": "Strategy Whiteboard" },
+    "server_rack": { "x": 2, "y": 14, "label": "Server Rack" },
+    "center": { "x": 12, "y": 9, "label": "Center" }
+  }
+}
