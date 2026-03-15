@@ -114,6 +114,7 @@
   </style>
   <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
   <script>
+    console.log('Page loaded, waiting for module...');
     window.onerror = function(msg, url, line) {
       console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + line);
       document.body.innerHTML += '<div style="color:red;padding:20px;">Error: ' + msg + '</div>';
@@ -121,10 +122,14 @@
     };
     // Debug: Check if module loaded
     setTimeout(function() {
+      console.log('Checking for canvas...');
       if (!document.querySelector('canvas')) {
-        document.body.innerHTML += '<div style="color:orange;padding:20px;">Debug: No canvas created after 2s. Check console.</div>';
+        console.error('No canvas found!');
+        document.body.innerHTML += '<div style="color:orange;padding:20px;">Debug: No canvas created. Module may have failed to load. Check console for errors.</div>';
+      } else {
+        console.log('Canvas found!');
       }
-    }, 2000);
+    }, 3000);
   </script>
 </head>
 <body>
