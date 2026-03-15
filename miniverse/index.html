@@ -119,6 +119,12 @@
       document.body.innerHTML += '<div style="color:red;padding:20px;">Error: ' + msg + '</div>';
       return true;
     };
+    // Debug: Check if module loaded
+    setTimeout(function() {
+      if (!document.querySelector('canvas')) {
+        document.body.innerHTML += '<div style="color:orange;padding:20px;">Debug: No canvas created after 2s. Check console.</div>';
+      }
+    }, 2000);
   </script>
 </head>
 <body>
