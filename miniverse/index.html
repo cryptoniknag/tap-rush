@@ -112,48 +112,7 @@
     .status-dot.error { background: #ef4444; }
     .status-dot.speaking { background: #22d3ee; }
   </style>
-  <script type="module" crossorigin src="./assets/index--9ugS9WN.js"></script>
-  <script>
-    // Debug logging
-    console.log('HTML loaded, waiting for module...');
-    
-    // Check module execution
-    setTimeout(function() {
-      console.log('Checking module execution...');
-      console.log('mt function exists:', typeof window.mt === 'function');
-      console.log('Miniverse class exists:', typeof window.Miniverse !== 'undefined');
-      
-      var canvas = document.querySelector('canvas');
-      var container = document.getElementById('miniverse-container');
-      
-      if (!canvas) {
-        console.error('No canvas found!');
-        var div = document.createElement('div');
-        div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;font-size:12px;';
-        div.innerHTML = '<b>Error:</b> Canvas not created.<br>Container children: ' + (container ? container.children.length : 'N/A') + '<br>mt exists: ' + (typeof window.mt === 'function');
-        document.body.appendChild(div);
-      } else {
-        console.log('Canvas found!');
-      }
-    }, 5000);
-    
-    // Capture all errors
-    window.addEventListener('error', function(e) {
-      console.error('Error:', e.message, 'at', e.filename, ':', e.lineno);
-      var div = document.createElement('div');
-      div.style.cssText = 'color:red;padding:20px;background:#1a0000;border:2px solid red;margin:20px;max-width:800px;font-size:12px;';
-      div.innerHTML = '<b>JavaScript Error:</b><br>' + e.message + '<br>at ' + e.filename + ':' + e.lineno;
-      document.body.appendChild(div);
-    });
-    
-    window.addEventListener('unhandledrejection', function(e) {
-      console.error('Promise rejection:', e.reason);
-      var div = document.createElement('div');
-      div.style.cssText = 'color:orange;padding:20px;background:#2a1a00;border:2px solid orange;margin:20px;max-width:800px;font-size:12px;';
-      div.innerHTML = '<b>Promise Error:</b><br>' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason));
-      document.body.appendChild(div);
-    });
-  </script>
+  <script type="module" crossorigin src="./assets/index-BCRy45dj.js"></script>
 </head>
 <body>
   <h1>Miniverse</h1>
