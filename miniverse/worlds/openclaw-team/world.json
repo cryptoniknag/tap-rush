@@ -22,9 +22,9 @@
     "floor": "world_assets/tiles/floor.png"
   },
   "citizens": [
-    { "agentId": "groot", "name": "Groot", "sprite": "morty", "position": "center", "type": "agent" },
-    { "agentId": "fin", "name": "Fin", "sprite": "dexter", "position": "center", "type": "agent" },
-    { "agentId": "betty", "name": "Betty", "sprite": "nova", "position": "center", "type": "agent" }
+    { "agentId": "groot", "name": "Groot", "sprite": "groot", "position": "center", "type": "agent" },
+    { "agentId": "fin", "name": "Fin", "sprite": "fin", "position": "center", "type": "agent" },
+    { "agentId": "betty", "name": "Betty", "sprite": "betty", "position": "center", "type": "agent" }
   ],
   "wanderPoints": [
     { "name": "center", "x": 10, "y": 7 }
