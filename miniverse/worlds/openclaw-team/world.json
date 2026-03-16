@@ -1,0 +1,44 @@
+{
+  "gridCols": 20,
+  "gridRows": 15,
+  "floor": [
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"],
+    ["floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor", "floor"]
+  ],
+  "tiles": {
+    "floor": "world_assets/tiles/floor.png"
+  },
+  "citizens": [
+    { "agentId": "groot", "name": "Groot", "sprite": "groot", "position": "desk_1", "type": "agent" },
+    { "agentId": "fin", "name": "Fin", "sprite": "fin", "position": "desk_2", "type": "agent" },
+    { "agentId": "betty", "name": "Betty", "sprite": "betty", "position": "desk_3", "type": "agent" }
+  ],
+  "props": [
+    { "id": "desk", "x": 3, "y": 5, "w": 2, "h": 1.5, "layer": "below", "anchors": [{ "name": "desk_1", "ox": 1, "oy": 1.5, "type": "work" }] },
+    { "id": "desk", "x": 8, "y": 5, "w": 2, "h": 1.5, "layer": "below", "anchors": [{ "name": "desk_2", "ox": 1, "oy": 1.5, "type": "work" }] },
+    { "id": "desk", "x": 13, "y": 5, "w": 2, "h": 1.5, "layer": "below", "anchors": [{ "name": "desk_3", "ox": 1, "oy": 1.5, "type": "work" }] },
+    { "id": "chair", "x": 3.5, "y": 7, "w": 1, "h": 1, "layer": "above" },
+    { "id": "chair", "x": 8.5, "y": 7, "w": 1, "h": 1, "layer": "above" },
+    { "id": "chair", "x": 13.5, "y": 7, "w": 1, "h": 1, "layer": "above" }
+  ],
+  "wanderPoints": [
+    { "name": "center", "x": 10, "y": 10 }
+  ],
+  "propImages": {
+    "desk": "world_assets/props/desk.png",
+    "chair": "world_assets/props/chair.png"
+  }
+}
