@@ -90,5 +90,19 @@
     
     <!-- Main application -->
     <script src="js/avatar-world.js"></script>
+    <script>
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.message);
+            document.getElementById('loading-screen').innerHTML = 
+                '<div style="color:red;padding:20px;"><h3>Error Loading 3D World</h3><p>' + e.message + '</p></div>';
+        });
+        
+        // Check if Three.js loaded
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading-screen').innerHTML = 
+                '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3><p>Check console for errors</p></div>';
+        }
+    </script>
 </body>
 </html>
