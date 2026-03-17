@@ -13,10 +13,13 @@ let mixer;
 let animations = {};
 let officeItems = {};
 let isMeetingMode = false;
+let isStandupMode = false;
 let steamParticles = [];
 let blinds = [];
 let clockMesh = null;
 let clockHands = {};
+let kanbanBoard = null;
+let standupCircle = null;
 
 // Office zones for agent navigation
 const OFFICE_ZONES = {
@@ -27,7 +30,8 @@ const OFFICE_ZONES = {
     lounge: { x: -14, y: 0, z: 10, rot: Math.PI / 2 },
     coffeeStation: { x: 14, y: 0, z: 10, rot: -Math.PI / 2 },
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
-    whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 }
+    whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
+    standupCircle: { x: -15, y: 0, z: -18, rot: 0 }
 };
 
 // Agent configurations
@@ -105,6 +109,10 @@ const MATERIALS = {
     pinkSticky: new THREE.MeshStandardMaterial({ color: 0xFF69B4, roughness: 0.9 }),
     greenSticky: new THREE.MeshStandardMaterial({ color: 0x90EE90, roughness: 0.9 }),
     whiteboard: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.9 }),
+    kanbanBoard: new THREE.MeshStandardMaterial({ color: 0xF5F5F5, roughness: 0.8 }),
+    kanbanTodo: new THREE.MeshStandardMaterial({ color: 0xFF6B6B, roughness: 0.9 }),
+    kanbanProgress: new THREE.MeshStandardMaterial({ color: 0xFFE66D, roughness: 0.9 }),
+    kanbanDone: new THREE.MeshStandardMaterial({ color: 0x4ECDC4, roughness: 0.9 }),
     blackPlastic: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.2 }),
     bluePlastic: new THREE.MeshStandardMaterial({ color: 0x0066CC, roughness: 0.4 }),
     redPlastic: new THREE.MeshStandardMaterial({ color: 0xCC0000, roughness: 0.4 }),
@@ -303,6 +311,12 @@ function createOfficeEnvironment() {
 
     // Whiteboards
     createWhiteboards();
+
+    // Kanban Board
+    createKanbanBoard();
+
+    // Standup Circle
+    createStandupCircle();
 
     // Filing cabinets
     createFilingCabinets();
@@ -1634,6 +1648,142 @@ function createWhiteboards() {
     scene.add(mobileGroup);
 }
 
+function createKanbanBoard() {
+    const group = new THREE.Group();
+    group.name = 'kanbanBoard';
+
+    // Main whiteboard surface
+    const boardWidth = 8;
+    const boardHeight = 4;
+    const boardGeo = new THREE.BoxGeometry(boardWidth, boardHeight, 0.1);
+    const board = new THREE.Mesh(boardGeo, MATERIALS.kanbanBoard);
+    board.position.y = 6;
+    board.castShadow = true;
+    board.receiveShadow = true;
+    group.add(board);
+
+    // Board frame
+    const frameGeo = new THREE.BoxGeometry(boardWidth + 0.2, boardHeight + 0.2, 0.15);
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    const frame = new THREE.Mesh(frameGeo, frameMat);
+    frame.position.y = 6;
+    group.add(frame);
+
+    // Section dividers (black lines)
+    const dividerGeo = new THREE.BoxGeometry(0.05, boardHeight - 0.2, 0.02);
+    const dividerMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    
+    // Left divider
+    const leftDivider = new THREE.Mesh(dividerGeo, dividerMat);
+    leftDivider.position.set(-boardWidth/3, 6, 0.06);
+    group.add(leftDivider);
+
+    // Right divider
+    const rightDivider = new THREE.Mesh(dividerGeo, dividerMat);
+    rightDivider.position.set(boardWidth/3, 6, 0.06);
+    group.add(rightDivider);
+
+    // Section headers
+    const headerLabels = ['TO DO', 'IN PROGRESS', 'DONE'];
+    const headerPositions = [-boardWidth/3, 0, boardWidth/3];
+    
+    headerLabels.forEach((label, i) => {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 64;
+        
+        context.fillStyle = 'transparent';
+        context.fillRect(0, 0, 256, 64);
+        
+        context.font = 'bold 36px Arial';
+        context.fillStyle = '#666666';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(label, 128, 32);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.MeshBasicMaterial({ 
+            map: texture, 
+            transparent: true,
+            opacity: 0.8
+        });
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.5), material);
+        plane.position.set(headerPositions[i], 7.5, 0.06);
+        group.add(plane);
+    });
+
+    // Add sticky notes to each column
+    const stickyConfigs = [
+        { col: -2.5, color: MATERIALS.kanbanTodo, count: 4 },
+        { col: 0, color: MATERIALS.kanbanProgress, count: 3 },
+        { col: 2.5, color: MATERIALS.kanbanDone, count: 5 }
+    ];
+
+    stickyConfigs.forEach(config => {
+        for (let i = 0; i < config.count; i++) {
+            const stickyGeo = new THREE.BoxGeometry(0.8, 0.8, 0.02);
+            const sticky = new THREE.Mesh(stickyGeo, config.color);
+            // Randomize position within column
+            const xOffset = config.col + (Math.random() - 0.5) * 0.3;
+            const yOffset = 5.5 - (i * 1.2) + (Math.random() - 0.5) * 0.2;
+            sticky.position.set(xOffset, yOffset, 0.06);
+            sticky.rotation.z = (Math.random() - 0.5) * 0.2; // Slight random rotation
+            sticky.castShadow = true;
+            group.add(sticky);
+        }
+    });
+
+    // Mount on wall (back wall)
+    group.position.set(15, 0, -29.7);
+    group.rotation.y = -Math.PI / 2;
+    
+    scene.add(group);
+    kanbanBoard = group;
+}
+
+function createStandupCircle() {
+    const group = new THREE.Group();
+    group.name = 'standupCircle';
+
+    // Circle on floor
+    const circleGeo = new THREE.RingGeometry(2, 2.3, 32);
+    const circleMat = new THREE.MeshStandardMaterial({ 
+        color: 0x4ECDC4,
+        emissive: 0x4ECDC4,
+        emissiveIntensity: 0.2,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.6
+    });
+    const circle = new THREE.Mesh(circleGeo, circleMat);
+    circle.rotation.x = -Math.PI / 2;
+    circle.position.y = 0.02;
+    group.add(circle);
+
+    // Inner circle for better visibility
+    const innerCircleGeo = new THREE.RingGeometry(0, 2, 32);
+    const innerCircleMat = new THREE.MeshStandardMaterial({ 
+        color: 0x4ECDC4,
+        transparent: true,
+        opacity: 0.1,
+        side: THREE.DoubleSide
+    });
+    const innerCircle = new THREE.Mesh(innerCircleGeo, innerCircleMat);
+    innerCircle.rotation.x = -Math.PI / 2;
+    innerCircle.position.y = 0.01;
+    group.add(innerCircle);
+
+    // Position near kanban board
+    group.position.set(12, 0, -20);
+    
+    scene.add(group);
+    standupCircle = group;
+
+    // Update the standup zone position
+    OFFICE_ZONES.standupCircle = { x: 12, y: 0, z: -20, rot: Math.PI / 2 };
+}
+
 function createFilingCabinets() {
     // Create multiple filing cabinets
     const cabinetPositions = [
@@ -2410,6 +2560,108 @@ function toggleMeetingMode() {
     }
 }
 
+function toggleStandupMode() {
+    if (isStandupMode) {
+        // End standup - return to desks
+        isStandupMode = false;
+        endStandup();
+    } else {
+        // Start standup - move to circle
+        isStandupMode = true;
+        startStandup();
+    }
+}
+
+function startStandup() {
+    // Move all agents to standup circle
+    const basePositions = [
+        { x: 10, z: -20, rot: Math.PI / 2 },
+        { x: 12, z: -22, rot: 0 },
+        { x: 14, z: -20, rot: -Math.PI / 2 }
+    ];
+
+    const agentKeys = Object.keys(agents);
+    agentKeys.forEach((key, i) => {
+        const pos = basePositions[i];
+        const agent = agents[key];
+        agent.userData.targetPosition = { x: pos.x, y: 0, z: pos.z, rot: pos.rot };
+        agent.userData.isWalking = true;
+    });
+
+    // Animate standup circle to show it's active
+    if (standupCircle) {
+        const circle = standupCircle.children[0];
+        circle.material.emissiveIntensity = 0.5;
+    }
+
+    // Show discussion after agents arrive
+    setTimeout(() => {
+        agentsDiscuss();
+    }, 2500);
+}
+
+function endStandup() {
+    // Return all agents to workstations
+    Object.keys(AGENT_CONFIGS).forEach(key => {
+        moveAgentToZone(key, AGENT_CONFIGS[key].workstation);
+    });
+
+    // Reset standup circle
+    if (standupCircle) {
+        const circle = standupCircle.children[0];
+        circle.material.emissiveIntensity = 0.2;
+    }
+
+    setTimeout(() => {
+        Object.keys(agents).forEach(key => {
+            const config = AGENT_CONFIGS[key];
+            agents[key].position.set(config.position.x, config.position.y, config.position.z);
+            agents[key].rotation.y = config.position.rot;
+            agents[key].userData.isWalking = false;
+            agents[key].userData.action = null;
+        });
+    }, 2000);
+}
+
+function agentsDiscuss() {
+    if (!isStandupMode) return;
+
+    // Make agents gesture while "discussing"
+    Object.keys(agents).forEach((key, i) => {
+        const agent = agents[key];
+        
+        // Each agent gestures at different times
+        setTimeout(() => {
+            if (!isStandupMode) return;
+            
+            // Simple talking animation - arm movement
+            if (agent.userData.rightArm) {
+                const originalRot = agent.userData.rightArm.rotation.z;
+                let gestureCount = 0;
+                const gestureInterval = setInterval(() => {
+                    if (!isStandupMode || gestureCount > 6) {
+                        clearInterval(gestureInterval);
+                        agent.userData.rightArm.rotation.z = originalRot;
+                        return;
+                    }
+                    agent.userData.rightArm.rotation.z = originalRot + Math.sin(gestureCount) * 0.3;
+                    gestureCount++;
+                }, 300);
+            }
+        }, i * 800);
+    });
+
+    // End discussion after 8 seconds
+    setTimeout(() => {
+        if (isStandupMode) {
+            toggleStandupMode();
+            // Update button text
+            const btn = document.getElementById('btn-standup');
+            if (btn) btn.textContent = '📋 Start Stand-up';
+        }
+    }, 8000);
+}
+
 function animateWalk(agent, time) {
     const walkSpeed = 5;
     const walkRange = 0.4;
@@ -2690,6 +2942,15 @@ function setupUIEvents() {
         meetingBtn.addEventListener('click', () => {
             toggleMeetingMode();
             meetingBtn.textContent = isMeetingMode ? '🔙 Return to Work' : '📅 Meeting Mode';
+        });
+    }
+
+    // Standup button
+    const standupBtn = document.getElementById('btn-standup');
+    if (standupBtn) {
+        standupBtn.addEventListener('click', () => {
+            toggleStandupMode();
+            standupBtn.textContent = isStandupMode ? '🔙 End Stand-up' : '📋 Start Stand-up';
         });
     }
 }

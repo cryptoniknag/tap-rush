@@ -297,6 +297,29 @@ body {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
+.standup-action {
+    margin-top: 10px;
+}
+
+.standup-action button {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.4), rgba(68, 160, 141, 0.4));
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.standup-action button:hover {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.6), rgba(68, 160, 141, 0.6));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .header {
