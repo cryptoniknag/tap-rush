@@ -2972,6 +2972,11 @@ function animate() {
     // Animate steam from coffee mugs
     animateSteam();
     
+    // Update Daily Routine animations
+    if (typeof updateDailyRoutineAnimations === 'function') {
+        updateDailyRoutineAnimations();
+    }
+    
     // Update wall clock
     updateClock();
     
@@ -3034,6 +3039,12 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM ready, starting init...');
     try {
         init();
+        
+        // Initialize Daily Routine feature
+        if (typeof initDailyRoutine === 'function') {
+            initDailyRoutine();
+        }
+        
         console.log('Init completed');
     } catch (err) {
         console.error('Init failed:', err);

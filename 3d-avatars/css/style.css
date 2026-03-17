@@ -377,3 +377,166 @@ body {
 .tooltip.visible {
     opacity: 1;
 }
+
+/* Daily Routine Panel */
+.daily-routine-panel {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    padding: 20px 25px;
+    border-radius: 15px;
+    border: 2px solid rgba(144, 238, 144, 0.3);
+    width: 400px;
+    z-index: 100;
+}
+
+.daily-routine-panel h3 {
+    color: #90EE90;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.routine-status {
+    margin-bottom: 15px;
+}
+
+.phase-indicator {
+    text-align: center;
+    font-size: 1rem;
+    color: #fff;
+    margin-bottom: 10px;
+    font-weight: 600;
+    min-height: 24px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #90EE90, #228B22);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+}
+
+.time-remaining {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #aaa;
+    font-family: monospace;
+}
+
+.routine-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.routine-btn {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.routine-btn.primary {
+    background: linear-gradient(135deg, #90EE90, #228B22);
+    color: #000;
+}
+
+.routine-btn.secondary {
+    background: rgba(102, 126, 234, 0.5);
+    color: #fff;
+}
+
+.routine-btn.danger {
+    background: rgba(231, 76, 60, 0.5);
+    color: #fff;
+}
+
+.routine-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.routine-btn.primary:hover {
+    background: linear-gradient(135deg, #a0FFA0, #32CD32);
+}
+
+.routine-btn.secondary:hover {
+    background: rgba(102, 126, 234, 0.7);
+}
+
+.routine-btn.danger:hover {
+    background: rgba(231, 76, 60, 0.7);
+}
+
+.routine-btn:active {
+    transform: translateY(0);
+}
+
+.routine-phases {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.phase-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #888;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.phase-item.active {
+    background: rgba(144, 238, 144, 0.2);
+    border-color: #90EE90;
+    color: #90EE90;
+    font-weight: 600;
+}
+
+.phase-item.completed {
+    background: rgba(34, 139, 34, 0.3);
+    color: #90EE90;
+}
+
+/* Responsive for daily routine */
+@media (max-width: 768px) {
+    .daily-routine-panel {
+        width: calc(100% - 20px);
+        max-width: 400px;
+        padding: 15px;
+    }
+    
+    .routine-phases {
+        flex-wrap: wrap;
+    }
+    
+    .phase-item {
+        min-width: 60px;
+        font-size: 0.7rem;
+    }
+}
