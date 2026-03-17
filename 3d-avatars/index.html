@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Avatar World - Tap Rush</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="tree-loader">
+                <div class="trunk"></div>
+                <div class="leaves"></div>
+            </div>
+            <p>Loading Agent World...</p>
+        </div>
+    </div>
+
+    <div id="ui-container">
+        <div class="header">
+            <h1>🌳 Agent Avatar World</h1>
+            <p>Welcome to the Tap Rush agent headquarters</p>
+        </div>
+        
+        <div class="controls-info">
+            <div class="control-item">
+                <span class="key">🖱️</span>
+                <span>Drag to rotate camera</span>
+            </div>
+            <div class="control-item">
+                <span class="key">📜</span>
+                <span>Scroll to zoom</span>
+            </div>
+            <div class="control-item">
+                <span class="key">👆</span>
+                <span>Click agents to interact</span>
+            </div>
+            <div class="control-item">
+                <span class="key">⌨️</span>
+                <span>WASD to move camera</span>
+            </div>
+        </div>
+
+        <div class="agent-panel" id="agent-panel">
+            <h3>Agents</h3>
+            <div class="agent-list">
+                <div class="agent-card" data-agent="groot">
+                    <div class="agent-avatar groot-icon">🌳</div>
+                    <div class="agent-info">
+                        <h4>Groot</h4>
+                        <p>The Digital Ent</p>
+                    </div>
+                </div>
+                <div class="agent-card" data-agent="fin">
+                    <div class="agent-avatar fin-icon">👔</div>
+                    <div class="agent-info">
+                        <h4>Fin</h4>
+                        <p>The Strategist</p>
+                    </div>
+                </div>
+                <div class="agent-card" data-agent="betty">
+                    <div class="agent-avatar betty-icon">💗</div>
+                    <div class="agent-info">
+                        <h4>Betty</h4>
+                        <p>The Creative</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interaction-panel" id="interaction-panel" style="display: none;">
+            <h3 id="selected-agent-name">Agent</h3>
+            <p id="selected-agent-desc">Description</p>
+            <div class="actions">
+                <button id="btn-wave">👋 Wave</button>
+                <button id="btn-dance">💃 Dance</button>
+                <button id="btn-follow">🚶 Follow</button>
+                <button id="btn-reset">↩️ Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- Three.js and dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- Main application -->
+    <script src="js/avatar-world.js"></script>
+</body>
+</html>
