@@ -419,7 +419,7 @@ function createGrootAvatar(group, config) {
     group.add(rightEye);
 
     // Mouth
-    const mouthGeometry = new THREE.CapsuleGeometry(0.08, 0.2, 4, 8);
+    const mouthGeometry = new THREE.CylinderGeometry(0.08, 0.2, 4, 8);
     const mouth = new THREE.Mesh(mouthGeometry, eyeMaterial);
     mouth.rotation.z = Math.PI / 2;
     mouth.position.set(0, 2.1, 0.45);
