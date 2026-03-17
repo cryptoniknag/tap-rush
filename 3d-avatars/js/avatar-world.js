@@ -45,6 +45,13 @@ const AGENT_CONFIGS = {
 
 // Initialize the application
 function init() {
+    console.log('Starting init...');
+    
+    // Check if THREE is available
+    if (typeof THREE === 'undefined') {
+        throw new Error('Three.js not loaded');
+    }
+    console.log('Three.js available');
     // Scene setup
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a2e);
@@ -61,14 +68,19 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('canvas-container').appendChild(renderer.domElement);
+    console.log('Renderer created');
 
     // Controls
+    if (typeof THREE.OrbitControls === 'undefined') {
+        throw new Error('OrbitControls not loaded');
+    }
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.maxPolarAngle = Math.PI / 2 - 0.1;
     controls.minDistance = 5;
     controls.maxDistance = 20;
+    console.log('Controls created');
 
     // Lighting
     setupLighting();
@@ -883,4 +895,14 @@ function animate() {
 }
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM ready, starting init...');
+    try {
+        init();
+        console.log('Init completed');
+    } catch (err) {
+        console.error('Init failed:', err);
+        document.getElementById('loading-screen').innerHTML = 
+            '<div style="color:red;padding:20px;"><h3>Error</h3><p>' + err.message + '</p><pre>' + err.stack + '</pre></div>';
+    }
+});
