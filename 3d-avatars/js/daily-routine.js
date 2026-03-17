@@ -239,6 +239,7 @@ function runPhase(phaseIndex) {
  */
 function runStandupPhase() {
     console.log('Phase: Stand-up at Kanban');
+    console.log('Agents:', Object.keys(agents));
     
     // Move all agents to kanban board in a semi-circle
     const kanbanPositions = [
@@ -559,6 +560,7 @@ function runWorkPhase() {
  * Move agent to a specific position with walking animation
  */
 function moveAgentToPosition(agent, x, z, rot) {
+    console.log('Moving agent to:', x, z, rot, 'Current pos:', agent.position);
     agent.userData.targetPosition = { x, y: 0, z, rot };
     agent.userData.isWalking = true;
     agent.userData.action = 'walk';
