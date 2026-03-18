@@ -3037,6 +3037,7 @@ function animate() {
 // Export agents for daily routine
 window.agents = agents;
 window.AGENT_CONFIGS = AGENT_CONFIGS;
+window.scene = scene;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {

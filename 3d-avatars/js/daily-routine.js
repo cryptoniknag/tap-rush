@@ -239,7 +239,15 @@ function runPhase(phaseIndex) {
  */
 function runStandupPhase() {
     console.log('Phase: Stand-up at Kanban');
-    console.log('Agents:', Object.keys(agents));
+    
+    // Access agents from window object
+    const agents = window.agents;
+    console.log('Agents:', Object.keys(agents || {}));
+    
+    if (!agents || Object.keys(agents).length === 0) {
+        console.error('No agents found!');
+        return;
+    }
     
     // Move all agents to kanban board in a semi-circle
     const kanbanPositions = [
@@ -252,7 +260,9 @@ function runStandupPhase() {
     agentKeys.forEach((key, i) => {
         const agent = agents[key];
         const pos = kanbanPositions[i];
-        moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        if (agent) {
+            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        }
     });
     
     // Show speech bubbles after agents arrive
@@ -276,13 +286,21 @@ function runStandupPhase() {
 function showStandupSpeechBubbles() {
     if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 0) return;
     
+    const agents = window.agents;
+    if (!agents) return;
+    
     Object.keys(agents).forEach((key, i) => {
         setTimeout(() => {
             if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 0) return;
             
+            const agent = agents[key];
+            if (!agent) return;
+            
             const messages = STANDUP_MESSAGES[key];
+            if (!messages) return;
+            
             const message = messages[Math.floor(Math.random() * messages.length)];
-            showSpeechBubble(agents[key], message, 3000);
+            showSpeechBubble(agent, message, 3000);
         }, i * 600);
     });
 }
@@ -293,12 +311,22 @@ function showStandupSpeechBubbles() {
 function runReturnDesksPhase() {
     console.log('Phase: Return to Desks');
     
+    const agents = window.agents;
+    const AGENT_CONFIGS = window.AGENT_CONFIGS;
+    
+    if (!agents || !AGENT_CONFIGS) {
+        console.error('Agents or AGENT_CONFIGS not found!');
+        return;
+    }
+    
     // Move each agent to their desk
     Object.keys(AGENT_CONFIGS).forEach((key, i) => {
         setTimeout(() => {
             const config = AGENT_CONFIGS[key];
             const agent = agents[key];
-            moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
+            if (agent && config) {
+                moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
+            }
         }, i * 500);
     });
     
@@ -306,7 +334,9 @@ function runReturnDesksPhase() {
     setTimeout(() => {
         if (DailyRoutine.isRunning && DailyRoutine.currentPhase === 1) {
             Object.keys(agents).forEach(key => {
-                startTypingAnimation(agents[key]);
+                if (agents[key]) {
+                    startTypingAnimation(agents[key]);
+                }
             });
         }
     }, 3000);
@@ -317,6 +347,13 @@ function runReturnDesksPhase() {
  */
 function runMeetingPhase() {
     console.log('Phase: Conference Room Meeting');
+    
+    const agents = window.agents;
+    
+    if (!agents) {
+        console.error('Agents not found!');
+        return;
+    }
     
     // Move agents to conference table positions
     const meetingPositions = [
@@ -329,7 +366,9 @@ function runMeetingPhase() {
     agentKeys.forEach((key, i) => {
         const agent = agents[key];
         const pos = meetingPositions[i];
-        moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        if (agent) {
+            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        }
     });
     
     // After arriving, start discussion
@@ -347,6 +386,9 @@ function runMeetingPhase() {
 function runMeetingDiscussion() {
     if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 2) return;
     
+    const agents = window.agents;
+    if (!agents) return;
+    
     let topicIndex = 0;
     
     const discussionInterval = setInterval(() => {
@@ -357,6 +399,8 @@ function runMeetingDiscussion() {
         
         const topic = MEETING_TOPICS[topicIndex % MEETING_TOPICS.length];
         const agent = agents[topic.speaker];
+        
+        if (!agent) return;
         
         // Show speech bubble
         showSpeechBubble(agent, topic.message, 3000);
@@ -399,6 +443,13 @@ function animateAgentGesture(agent) {
 function runCoffeePhase() {
     console.log('Phase: Coffee Break');
     
+    const agents = window.agents;
+    
+    if (!agents) {
+        console.error('Agents not found!');
+        return;
+    }
+    
     // Move agents to coffee station
     const coffeePositions = [
         { x: 13, z: 11, rot: -Math.PI / 2 },
@@ -410,7 +461,9 @@ function runCoffeePhase() {
     agentKeys.forEach((key, i) => {
         const agent = agents[key];
         const pos = coffeePositions[i];
-        moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        if (agent) {
+            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+        }
     });
     
     // After arriving, show coffee mugs and steam
@@ -419,16 +472,19 @@ function runCoffeePhase() {
             Object.keys(agents).forEach((key, i) => {
                 setTimeout(() => {
                     if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 3) return;
-                    showCoffeeMug(agents[key]);
+                    const agent = agents[key];
+                    if (!agent) return;
+                    
+                    showCoffeeMug(agent);
                     createSteamEffectAtPosition(
-                        agents[key].position.x + 0.5,
-                        agents[key].position.y + 1.5,
-                        agents[key].position.z + 0.3
+                        agent.position.x + 0.5,
+                        agent.position.y + 1.5,
+                        agent.position.z + 0.3
                     );
                     
                     // Show casual chat
                     const chat = COFFEE_CHATS[Math.floor(Math.random() * COFFEE_CHATS.length)];
-                    showSpeechBubble(agents[key], chat, 2500);
+                    showSpeechBubble(agent, chat, 2500);
                 }, i * 800);
             });
         }
@@ -441,9 +497,13 @@ function runCoffeePhase() {
             return;
         }
         
-        const randomAgent = agentKeys[Math.floor(Math.random() * agentKeys.length)];
-        const chat = COFFEE_CHATS[Math.floor(Math.random() * COFFEE_CHATS.length)];
-        showSpeechBubble(agents[randomAgent], chat, 2000);
+        const agentKeys = Object.keys(agents);
+        const randomKey = agentKeys[Math.floor(Math.random() * agentKeys.length)];
+        const randomAgent = agents[randomKey];
+        if (randomAgent) {
+            const chat = COFFEE_CHATS[Math.floor(Math.random() * COFFEE_CHATS.length)];
+            showSpeechBubble(randomAgent, chat, 2000);
+        }
     }, 4000);
 }
 
@@ -481,6 +541,12 @@ function showCoffeeMug(agent) {
  * Create steam effect at a position
  */
 function createSteamEffectAtPosition(x, y, z) {
+    const scene = window.scene;
+    if (!scene) {
+        console.error('Scene not available');
+        return;
+    }
+    
     const steamCount = 5;
     const steamGroup = [];
     
@@ -520,9 +586,17 @@ function createSteamEffectAtPosition(x, y, z) {
 function runWorkPhase() {
     console.log('Phase: Back to Work');
     
+    const agents = window.agents;
+    const AGENT_CONFIGS = window.AGENT_CONFIGS;
+    
+    if (!agents || !AGENT_CONFIGS) {
+        console.error('Agents or AGENT_CONFIGS not found!');
+        return;
+    }
+    
     // Remove coffee mugs
     Object.values(agents).forEach(agent => {
-        if (agent.userData.rightArm) {
+        if (agent && agent.userData.rightArm) {
             const mug = agent.userData.rightArm.getObjectByName('coffeeMug');
             if (mug) {
                 agent.userData.rightArm.remove(mug);
@@ -535,7 +609,9 @@ function runWorkPhase() {
         setTimeout(() => {
             const config = AGENT_CONFIGS[key];
             const agent = agents[key];
-            moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
+            if (agent && config) {
+                moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
+            }
         }, i * 400);
     });
     
@@ -543,14 +619,16 @@ function runWorkPhase() {
     setTimeout(() => {
         if (DailyRoutine.isRunning && DailyRoutine.currentPhase === 4) {
             Object.keys(agents).forEach(key => {
-                startTypingAnimation(agents[key]);
+                if (agents[key]) {
+                    startTypingAnimation(agents[key]);
+                }
             });
         }
     }, 2500);
     
     // Auto-end after phase duration
     setTimeout(() => {
-        if (DailyRoutine.isRunning) {
+        if (DailyRoutine.isRunning && agents.fin) {
             showSpeechBubble(agents.fin, "Back to work! Let's crush it! 💪", 2000);
         }
     }, 5000);
@@ -560,7 +638,11 @@ function runWorkPhase() {
  * Move agent to a specific position with walking animation
  */
 function moveAgentToPosition(agent, x, z, rot) {
-    console.log('Moving agent to:', x, z, rot, 'Current pos:', agent.position);
+    if (!agent) {
+        console.error('moveAgentToPosition: agent is null');
+        return;
+    }
+    console.log('Moving agent', agent.userData?.id, 'to:', x, z, rot, 'Current pos:', agent.position);
     agent.userData.targetPosition = { x, y: 0, z, rot };
     agent.userData.isWalking = true;
     agent.userData.action = 'walk';
@@ -588,6 +670,9 @@ function startTypingAnimation(agent) {
  * Animate typing effects
  */
 function animateTyping() {
+    const agents = window.agents;
+    if (!agents) return;
+    
     const now = Date.now();
     
     DailyRoutine.typingEffects = DailyRoutine.typingEffects.filter(typing => {
@@ -732,6 +817,9 @@ function clearAllEffects() {
  * Show/hide whiteboard charts
  */
 function showWhiteboardCharts(show) {
+    const scene = window.scene;
+    if (!scene) return;
+    
     // Find or create charts
     let chartsGroup = scene.getObjectByName('whiteboardCharts');
     
@@ -767,23 +855,35 @@ function showWhiteboardCharts(show) {
  * Return agents to their desks
  */
 function returnAgentsToDesks() {
+    const agents = window.agents;
+    const AGENT_CONFIGS = window.AGENT_CONFIGS;
+    
+    if (!agents || !AGENT_CONFIGS) {
+        console.error('Agents or AGENT_CONFIGS not found!');
+        return;
+    }
+    
     Object.keys(AGENT_CONFIGS).forEach(key => {
         const config = AGENT_CONFIGS[key];
         const agent = agents[key];
         
-        agent.userData.targetPosition = { ...config.position };
-        agent.userData.isWalking = true;
-        agent.userData.action = null;
+        if (agent && config) {
+            agent.userData.targetPosition = { ...config.position };
+            agent.userData.isWalking = true;
+            agent.userData.action = null;
+        }
     });
     
     // Reset positions after animation
     setTimeout(() => {
         Object.keys(agents).forEach(key => {
             const config = AGENT_CONFIGS[key];
-            agents[key].position.set(config.position.x, config.position.y, config.position.z);
-            agents[key].rotation.y = config.position.rot;
-            agents[key].userData.isWalking = false;
-            resetAgentPose(agents[key]);
+            if (agents[key] && config) {
+                agents[key].position.set(config.position.x, config.position.y, config.position.z);
+                agents[key].rotation.y = config.position.rot;
+                agents[key].userData.isWalking = false;
+                resetAgentPose(agents[key]);
+            }
         });
     }, 2000);
 }
