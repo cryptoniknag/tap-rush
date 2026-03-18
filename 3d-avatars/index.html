@@ -121,10 +121,27 @@
                 '<div style="color:red;padding:20px;"><h3>Error Loading 3D World</h3><p>' + e.message + '</p></div>';
         });
         
-        // Check if Three.js loaded
+        // Check if Three.js loaded and initialize
         if (typeof THREE === 'undefined') {
             document.getElementById('loading-screen').innerHTML = 
                 '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3><p>Check console for errors</p></div>';
+        } else {
+            console.log('Three.js loaded, initializing...');
+            // Initialize the 3D world
+            if (typeof init === 'function') {
+                try {
+                    init();
+                    console.log('init() called successfully');
+                } catch (err) {
+                    console.error('Error calling init():', err);
+                    document.getElementById('loading-screen').innerHTML = 
+                        '<div style="color:red;padding:20px;"><h3>Initialization Error</h3><p>' + err.message + '</p></div>';
+                }
+            } else {
+                console.error('init() function not found');
+                document.getElementById('loading-screen').innerHTML = 
+                    '<div style="color:red;padding:20px;"><h3>Initialization Error</h3><p>init() function not found. Check that avatar-world.js loaded correctly.</p></div>';
+            }
         }
     </script>
 </body>
