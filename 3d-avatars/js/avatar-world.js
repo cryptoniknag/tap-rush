@@ -2394,45 +2394,45 @@ function createGymArea() {
     
     // Bench legs - BRIGHT YELLOW
     const benchLegGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.5);
-    const brightYellowMat = new THREE.MeshStandardMaterial({ 
+    const benchLegMat = new THREE.MeshStandardMaterial({ 
         color: 0xFFFF00,
         roughness: 0.3,
         metalness: 0.5
     });
-    const legPositions = [[-0.5, -1], [0.5, -1], [-0.5, 1], [0.5, 1]];
-    legPositions.forEach(pos => {
-        const leg = new THREE.Mesh(benchLegGeo, brightYellowMat);
+    const benchLegPositions = [[-0.5, -1], [0.5, -1], [-0.5, 1], [0.5, 1]];
+    benchLegPositions.forEach(pos => {
+        const leg = new THREE.Mesh(benchLegGeo, benchLegMat);
         leg.position.set(pos[0], 0.25, pos[1]);
         benchGroup.add(leg);
     });
     
     // Barbell rack (uprights) - BRIGHT CYAN
     const uprightGeo = new THREE.BoxGeometry(0.1, 1.8, 0.1);
-    const brightCyanMat = new THREE.MeshStandardMaterial({ 
+    const uprightMat = new THREE.MeshStandardMaterial({ 
         color: 0x00FFFF,
         roughness: 0.3,
         metalness: 0.6
     });
-    const leftUpright = new THREE.Mesh(uprightGeo, brightCyanMat);
+    const leftUpright = new THREE.Mesh(uprightGeo, uprightMat);
     leftUpright.position.set(-0.7, 0.9, -1.2);
     benchGroup.add(leftUpright);
     
-    const rightUpright = new THREE.Mesh(uprightGeo, brightCyanMat);
+    const rightUpright = new THREE.Mesh(uprightGeo, uprightMat);
     rightUpright.position.set(0.7, 0.9, -1.2);
     benchGroup.add(rightUpright);
     
     // Barbell hooks - BRIGHT ORANGE
     const hookGeo = new THREE.BoxGeometry(0.15, 0.05, 0.2);
-    const brightOrangeMat2 = new THREE.MeshStandardMaterial({ 
+    const hookMat = new THREE.MeshStandardMaterial({ 
         color: 0xFF6600,
         roughness: 0.3,
         metalness: 0.5
     });
-    const leftHook = new THREE.Mesh(hookGeo, brightOrangeMat2);
+    const leftHook = new THREE.Mesh(hookGeo, hookMat);
     leftHook.position.set(-0.7, 1.5, -1.1);
     benchGroup.add(leftHook);
     
-    const rightHook = new THREE.Mesh(hookGeo, brightOrangeMat2);
+    const rightHook = new THREE.Mesh(hookGeo, hookMat);
     rightHook.position.set(0.7, 1.5, -1.1);
     benchGroup.add(rightHook);
     
@@ -2608,32 +2608,32 @@ function createGymArea() {
     gymGroup.add(mount);
 
     // === "GYM ZONE" SIGN ===
-    const signCanvas = document.createElement('canvas');
-    const signCtx = signCanvas.getContext('2d');
-    signCanvas.width = 512;
-    signCanvas.height = 128;
+    const zoneSignCanvas = document.createElement('canvas');
+    const zoneSignCtx = zoneSignCanvas.getContext('2d');
+    zoneSignCanvas.width = 512;
+    zoneSignCanvas.height = 128;
     
     // Background
-    signCtx.fillStyle = '#1a1a1a';
-    signCtx.fillRect(0, 0, 512, 128);
+    zoneSignCtx.fillStyle = '#1a1a1a';
+    zoneSignCtx.fillRect(0, 0, 512, 128);
     
     // Border
-    signCtx.strokeStyle = '#39FF14';
-    signCtx.lineWidth = 8;
-    signCtx.strokeRect(4, 4, 504, 120);
+    zoneSignCtx.strokeStyle = '#39FF14';
+    zoneSignCtx.lineWidth = 8;
+    zoneSignCtx.strokeRect(4, 4, 504, 120);
     
     // Text
-    signCtx.fillStyle = '#39FF14';
-    signCtx.font = 'bold 72px Arial';
-    signCtx.textAlign = 'center';
-    signCtx.textBaseline = 'middle';
-    signCtx.fillText('GYM ZONE', 256, 64);
+    zoneSignCtx.fillStyle = '#39FF14';
+    zoneSignCtx.font = 'bold 72px Arial';
+    zoneSignCtx.textAlign = 'center';
+    zoneSignCtx.textBaseline = 'middle';
+    zoneSignCtx.fillText('GYM ZONE', 256, 64);
     
-    const signTexture = new THREE.CanvasTexture(signCanvas);
-    const signMat = new THREE.MeshBasicMaterial({ map: signTexture });
-    const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.75), signMat);
-    signMesh.position.set(0, 7, -3.9);
-    gymGroup.add(signMesh);
+    const zoneSignTexture = new THREE.CanvasTexture(zoneSignCanvas);
+    const zoneSignMat = new THREE.MeshBasicMaterial({ map: zoneSignTexture });
+    const zoneSignMesh = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.75), zoneSignMat);
+    zoneSignMesh.position.set(0, 7, -3.9);
+    gymGroup.add(zoneSignMesh);
 
     // Position gym in a MORE VISIBLE location (closer to center)
     // Changed from (20, 0, -20) to (10, 0, -10) to be in camera view
