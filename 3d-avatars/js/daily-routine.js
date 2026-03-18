@@ -11,25 +11,26 @@ let phaseTimer = null;
 
 // Movement targets for each phase
 const PHASE_TARGETS = {
-    0: { // Standup at Kanban
-        groot: { x: 10, z: -15, rot: -Math.PI / 2 },
-        fin:   { x: 12, z: -15, rot: -Math.PI / 2 },
-        betty: { x: 14, z: -15, rot: -Math.PI / 2 }
+    0: { // Standup at Kanban (outside conference room)
+        groot: { x: -2, z: -3, rot: 0 },
+        fin:   { x: 0, z: -3, rot: 0 },
+        betty: { x: 2, z: -3, rot: 0 }
     },
     1: { // Return to desks
         groot: { x: -10, z: -8, rot: Math.PI / 4 },
         fin:   { x: 0, z: -12, rot: 0 },
         betty: { x: 10, z: -8, rot: -Math.PI / 4 }
     },
-    2: { // Conference table
-        groot: { x: -3, z: 0, rot: 0 },
-        fin:   { x: 0, z: 0, rot: 0 },
-        betty: { x: 3, z: 0, rot: 0 }
+    2: { // Conference table - agents SIT, arranged opposite each other
+        // Groot at head (x:0, z:6.5, facing center), Fin and Betty opposite each other
+        groot: { x: 0, z: 6.5, rot: 0 },      // Groot at head, facing table
+        fin:   { x: -3, z: 8, rot: Math.PI / 2 },   // Fin on left side, facing right
+        betty: { x: 3, z: 8, rot: -Math.PI / 2 }    // Betty on right side, facing left (opposite Fin)
     },
-    3: { // Coffee station
-        groot: { x: -5, z: -5, rot: Math.PI / 2 },
-        fin:   { x: -3, z: -5, rot: Math.PI / 2 },
-        betty: { x: -1, z: -5, rot: Math.PI / 2 }
+    3: { // Coffee station - at EDGE of room (left side)
+        groot: { x: -26, z: -2, rot: Math.PI / 2 },
+        fin:   { x: -26, z: 0, rot: Math.PI / 2 },
+        betty: { x: -26, z: 2, rot: Math.PI / 2 }
     },
     4: { // Back to desks
         groot: { x: -10, z: -8, rot: Math.PI / 4 },
@@ -165,6 +166,12 @@ function stopRoutine() {
         phaseTimer = null;
     }
     
+    // Reset all agents to standing
+    Object.values(localAgents).forEach(agent => {
+        agent.userData.isSitting = false;
+        agent.position.y = 0;
+    });
+    
     // Return agents to desks
     moveAllAgentsToPhase(1);
     
@@ -225,13 +232,16 @@ function moveAllAgentsToPhase(phaseNum) {
         return;
     }
     
-    console.log(`[DailyRoutine] Phase ${phaseNum + 1} - Moving agents to:`, targets);
+    // Phase 2 is conference - agents should sit
+    const isSitting = phaseNum === 2;
+    
+    console.log(`[DailyRoutine] Phase ${phaseNum + 1} - Moving agents to:`, targets, `sitting=${isSitting}`);
     
     Object.entries(targets).forEach(([agentKey, target]) => {
         const agent = localAgents[agentKey];
         if (agent) {
-            console.log(`[DailyRoutine] Moving ${agentKey} to (${target.x}, ${target.z})`);
-            moveAgent(agent, target.x, target.z, target.rot);
+            console.log(`[DailyRoutine] Moving ${agentKey} to (${target.x}, ${target.z}), sitting=${isSitting}`);
+            moveAgent(agent, target.x, target.z, target.rot, isSitting);
         } else {
             console.warn(`[DailyRoutine] Agent ${agentKey} not found`);
         }
@@ -240,8 +250,9 @@ function moveAllAgentsToPhase(phaseNum) {
 
 /**
  * Move a single agent to a target position
+ * If isSitting is true, agent will be positioned at sitting height
  */
-function moveAgent(agent, targetX, targetZ, targetRot) {
+function moveAgent(agent, targetX, targetZ, targetRot, isSitting = false) {
     if (!agent) {
         console.error('[DailyRoutine] Cannot move null agent');
         return;
@@ -260,7 +271,10 @@ function moveAgent(agent, targetX, targetZ, targetRot) {
     const duration = Math.max(2000, distance * 200);
     const startTime = performance.now();
     
-    console.log(`[DailyRoutine] Move started: distance=${distance.toFixed(2)}, duration=${duration}ms`);
+    console.log(`[DailyRoutine] Move started: distance=${distance.toFixed(2)}, duration=${duration}ms, sitting=${isSitting}`);
+    
+    // Store sitting state on agent
+    agent.userData.isSitting = isSitting;
     
     function animateMove(currentTime) {
         const elapsed = currentTime - startTime;
@@ -277,21 +291,51 @@ function moveAgent(agent, targetX, targetZ, targetRot) {
         const rotDiff = angleDifference(startRot, targetRot);
         agent.rotation.y = startRot + rotDiff * ease;
         
-        // Add walking bob effect
+        // Add walking bob effect (only when not sitting)
         if (progress < 1) {
             agent.position.y = Math.abs(Math.sin(elapsed * 0.01)) * 0.1;
         } else {
-            agent.position.y = 0;
+            // Final position - sitting or standing
+            agent.position.y = isSitting ? -0.4 : 0; // Lower Y when sitting
         }
         
         if (progress < 1) {
             requestAnimationFrame(animateMove);
         } else {
-            console.log(`[DailyRoutine] Move complete - agent now at (${agent.position.x.toFixed(2)}, ${agent.position.z.toFixed(2)})`);
+            console.log(`[DailyRoutine] Move complete - agent now at (${agent.position.x.toFixed(2)}, ${agent.position.z.toFixed(2)}), sitting=${isSitting}`);
         }
     }
     
     requestAnimationFrame(animateMove);
+}
+
+/**
+ * Set agent to sitting position (lower Y and adjust posture)
+ */
+function setAgentSitting(agent, isSitting) {
+    if (!agent) return;
+    
+    agent.userData.isSitting = isSitting;
+    
+    // Smooth transition to sitting height
+    const targetY = isSitting ? -0.4 : 0;
+    const startY = agent.position.y;
+    const startTime = performance.now();
+    const duration = 500; // 500ms transition
+    
+    function animateSit(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        
+        agent.position.y = lerp(startY, targetY, ease);
+        
+        if (progress < 1) {
+            requestAnimationFrame(animateSit);
+        }
+    }
+    
+    requestAnimationFrame(animateSit);
 }
 
 /**

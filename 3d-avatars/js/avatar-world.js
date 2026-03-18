@@ -26,12 +26,17 @@ const OFFICE_ZONES = {
     grootDesk: { x: -10, y: 0, z: -8, rot: Math.PI / 4 },
     finDesk: { x: 0, y: 0, z: -12, rot: 0 },
     bettyDesk: { x: 10, y: 0, z: -8, rot: -Math.PI / 4 },
+    // Conference table with sitting positions - Groot at head, Fin and Betty opposite
     conferenceTable: { x: 0, y: 0, z: 8, rot: 0 },
+    grootChair: { x: 0, y: 0, z: 5.5, rot: 0 },      // Groot at head
+    finChair: { x: -3, y: 0, z: 8, rot: Math.PI / 2 },     // Fin on left
+    bettyChair: { x: 3, y: 0, z: 8, rot: -Math.PI / 2 },   // Betty on right, opposite Fin
     lounge: { x: -14, y: 0, z: 10, rot: Math.PI / 2 },
-    coffeeStation: { x: 14, y: 0, z: 10, rot: -Math.PI / 2 },
+    coffeeStation: { x: -28, y: 0, z: 0, rot: Math.PI / 2 },  // EDGE of room (left side)
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
-    standupCircle: { x: -15, y: 0, z: -18, rot: 0 }
+    standupCircle: { x: 0, y: 0, z: -5, rot: 0 },      // Outside conference room, near kanban
+    kanbanBoard: { x: 0, y: 0, z: 0, rot: 0 }           // Freestanding near standup
 };
 
 // Agent configurations
@@ -1133,13 +1138,59 @@ function createBettyWorkstation() {
     officeItems.bettyDesk = group;
 }
 
+function createConferenceChair() {
+    const chairGroup = new THREE.Group();
+
+    // Seat cushion (lower for sitting)
+    const seatGeo = new THREE.BoxGeometry(1.2, 0.15, 1.2);
+    const seatMat = MATERIALS.fabricGrey;
+    const seat = new THREE.Mesh(seatGeo, seatMat);
+    seat.position.y = 0.85;
+    seat.castShadow = true;
+    chairGroup.add(seat);
+
+    // Seat base
+    const seatBaseGeo = new THREE.BoxGeometry(1.1, 0.1, 1.1);
+    const seatBase = new THREE.Mesh(seatBaseGeo, MATERIALS.plastic);
+    seatBase.position.y = 0.8;
+    chairGroup.add(seatBase);
+
+    // Backrest
+    const backGeo = new THREE.BoxGeometry(1.2, 1.2, 0.15);
+    const backMat = MATERIALS.fabricBlue;
+    const back = new THREE.Mesh(backGeo, backMat);
+    back.position.set(0, 1.5, -0.55);
+    back.castShadow = true;
+    chairGroup.add(back);
+
+    // Chair legs (fixed conference chair style)
+    const legGeo = new THREE.BoxGeometry(0.08, 0.8, 0.08);
+    const legMat = MATERIALS.metal;
+    
+    const positions = [
+        [-0.5, 0.4, -0.5],
+        [0.5, 0.4, -0.5],
+        [-0.5, 0.4, 0.5],
+        [0.5, 0.4, 0.5]
+    ];
+    
+    positions.forEach(pos => {
+        const leg = new THREE.Mesh(legGeo, legMat);
+        leg.position.set(...pos);
+        leg.castShadow = true;
+        chairGroup.add(leg);
+    });
+
+    return chairGroup;
+}
+
 function createConferenceRoom() {
     const group = new THREE.Group();
     group.name = 'conferenceRoom';
     group.userData = { type: 'meeting', clickable: true };
 
     // Large conference table
-    const tableTopGeo = new THREE.BoxGeometry(12, 0.15, 5);
+    const tableTopGeo = new THREE.BoxGeometry(10, 0.15, 4);
     const tableTop = new THREE.Mesh(tableTopGeo, MATERIALS.darkWood);
     tableTop.position.y = 1.2;
     tableTop.castShadow = true;
@@ -1148,7 +1199,7 @@ function createConferenceRoom() {
 
     // Table legs
     const legGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.2);
-    const legPositions = [[-5, 0.6, -2], [5, 0.6, -2], [-5, 0.6, 2], [5, 0.6, 2]];
+    const legPositions = [[-4, 0.6, -1.5], [4, 0.6, -1.5], [-4, 0.6, 1.5], [4, 0.6, 1.5]];
     legPositions.forEach(pos => {
         const leg = new THREE.Mesh(legGeo, MATERIALS.metal);
         leg.position.set(...pos);
@@ -1156,22 +1207,38 @@ function createConferenceRoom() {
         group.add(leg);
     });
 
-    // Conference chairs (10 chairs)
-    const chairPositions = [
-        { x: -6.5, z: 0, rot: Math.PI / 2 },
-        { x: 6.5, z: 0, rot: -Math.PI / 2 },
-        { x: -4, z: -4, rot: 0 },
-        { x: -1.5, z: -4, rot: 0 },
-        { x: 1.5, z: -4, rot: 0 },
-        { x: 4, z: -4, rot: 0 },
-        { x: -4, z: 4, rot: Math.PI },
-        { x: -1.5, z: 4, rot: Math.PI },
-        { x: 1.5, z: 4, rot: Math.PI },
-        { x: 4, z: 4, rot: Math.PI }
+    // Conference chairs - arranged OPPOSITE each other with Groot at head
+    // Chair positions for sitting agents:
+    // Groot at head (x:0, z:-2.5, facing table/center)
+    // Fin at one side (x:-3, z:0, facing right/across)
+    // Betty opposite Fin (x:3, z:0, facing left/across)
+    const agentChairPositions = [
+        { x: 0, z: -2.5, rot: 0, agent: 'groot' },      // Groot at head, facing center
+        { x: -3, z: 0, rot: Math.PI / 2, agent: 'fin' },  // Fin on left side
+        { x: 3, z: 0, rot: -Math.PI / 2, agent: 'betty' }  // Betty on right side, opposite Fin
     ];
 
-    chairPositions.forEach(pos => {
-        const chair = createErgonomicChair();
+    // Store chair positions for agent sitting
+    group.userData.agentChairs = {};
+
+    agentChairPositions.forEach(pos => {
+        const chair = createConferenceChair();
+        chair.position.set(pos.x, 0, pos.z);
+        chair.rotation.y = pos.rot;
+        chair.name = `chair_${pos.agent}`;
+        group.add(chair);
+        group.userData.agentChairs[pos.agent] = { x: pos.x, z: pos.z, rot: pos.rot };
+    });
+
+    // Additional chairs for other attendees
+    const extraChairPositions = [
+        { x: -6, z: 0, rot: Math.PI / 2 },
+        { x: 6, z: 0, rot: -Math.PI / 2 },
+        { x: 0, z: 3, rot: Math.PI }
+    ];
+
+    extraChairPositions.forEach((pos, i) => {
+        const chair = createConferenceChair();
         chair.position.set(pos.x, 0, pos.z);
         chair.rotation.y = pos.rot;
         group.add(chair);
@@ -1184,7 +1251,7 @@ function createConferenceRoom() {
     group.add(phone);
 
     // Notepads and pens
-    const padPositions = [[-4, -1.5], [-1.5, -1.5], [1.5, -1.5], [4, -1.5]];
+    const padPositions = [[-3, 0], [3, 0], [0, -1.5]];
     padPositions.forEach(pos => {
         const padGeo = new THREE.BoxGeometry(0.5, 0.02, 0.7);
         const pad = new THREE.Mesh(padGeo, MATERIALS.paper);
@@ -1461,8 +1528,9 @@ function createCoffeeStation() {
     napkin.position.set(-1.5, 1.38, 0.4);
     group.add(napkin);
 
-    group.position.set(14, 0, 10);
-    group.rotation.y = -Math.PI / 2;
+    // Position at EDGE of room (left side, near wall)
+    group.position.set(-28, 0, 0);
+    group.rotation.y = Math.PI / 2;
     scene.add(group);
     officeItems.coffeeStation = group;
 }
@@ -1651,6 +1719,7 @@ function createWhiteboards() {
 function createKanbanBoard() {
     const group = new THREE.Group();
     group.name = 'kanbanBoard';
+    group.userData = { type: 'kanban', clickable: true };
 
     // Main whiteboard surface
     const boardWidth = 8;
@@ -1734,12 +1803,38 @@ function createKanbanBoard() {
         }
     });
 
-    // Mount on wall (back wall)
-    group.position.set(15, 0, -29.7);
-    group.rotation.y = -Math.PI / 2;
+    // Stand legs (freestanding kanban board)
+    const legGeo = new THREE.BoxGeometry(0.15, 5.5, 0.15);
+    const legMat = MATERIALS.metal;
+    
+    const leftLeg = new THREE.Mesh(legGeo, legMat);
+    leftLeg.position.set(-3.5, 2.75, -0.3);
+    group.add(leftLeg);
+
+    const rightLeg = new THREE.Mesh(legGeo, legMat);
+    rightLeg.position.set(3.5, 2.75, -0.3);
+    group.add(rightLeg);
+
+    // Support feet
+    const footGeo = new THREE.BoxGeometry(1.5, 0.1, 0.8);
+    const footMat = MATERIALS.blackPlastic;
+    
+    const leftFoot = new THREE.Mesh(footGeo, footMat);
+    leftFoot.position.set(-3.5, 0.05, 0);
+    group.add(leftFoot);
+
+    const rightFoot = new THREE.Mesh(footGeo, footMat);
+    rightFoot.position.set(3.5, 0.05, 0);
+    group.add(rightFoot);
+
+    // Position outside conference room (conference room is at z:8, back wall is at z:-29.7)
+    // Place it just outside the conference room area
+    group.position.set(0, 0, 0);
+    group.rotation.y = 0;
     
     scene.add(group);
     kanbanBoard = group;
+    officeItems.kanbanBoard = group;
 }
 
 function createStandupCircle() {
@@ -1774,14 +1869,14 @@ function createStandupCircle() {
     innerCircle.position.y = 0.01;
     group.add(innerCircle);
 
-    // Position near kanban board
-    group.position.set(12, 0, -20);
+    // Position outside conference room, near kanban board
+    group.position.set(0, 0, -5);
     
     scene.add(group);
     standupCircle = group;
 
     // Update the standup zone position
-    OFFICE_ZONES.standupCircle = { x: 12, y: 0, z: -20, rot: Math.PI / 2 };
+    OFFICE_ZONES.standupCircle = { x: 0, y: 0, z: -5, rot: 0 };
 }
 
 function createFilingCabinets() {
@@ -2532,18 +2627,27 @@ function toggleMeetingMode() {
     isMeetingMode = !isMeetingMode;
     
     if (isMeetingMode) {
-        // Move all agents to conference table
-        moveAgentToZone('groot', 'conferenceTable');
-        moveAgentToZone('fin', 'conferenceTable');
-        moveAgentToZone('betty', 'conferenceTable');
+        // Move all agents to conference table with sitting positions
+        // Groot at head, Fin and Betty opposite each other
+        moveAgentToZone('groot', 'grootChair');
+        moveAgentToZone('fin', 'finChair');
+        moveAgentToZone('betty', 'bettyChair');
         
         setTimeout(() => {
-            agents.groot.position.set(-3, 0, 8);
+            // Groot at head (facing table center)
+            agents.groot.position.set(0, -0.4, 5.5);
             agents.groot.rotation.y = 0;
-            agents.fin.position.set(0, 0, 8);
-            agents.fin.rotation.y = 0;
-            agents.betty.position.set(3, 0, 8);
-            agents.betty.rotation.y = 0;
+            agents.groot.userData.isSitting = true;
+            
+            // Fin on left side (facing right/across)
+            agents.fin.position.set(-3, -0.4, 8);
+            agents.fin.rotation.y = Math.PI / 2;
+            agents.fin.userData.isSitting = true;
+            
+            // Betty on right side, opposite Fin (facing left)
+            agents.betty.position.set(3, -0.4, 8);
+            agents.betty.rotation.y = -Math.PI / 2;
+            agents.betty.userData.isSitting = true;
             
             Object.values(agents).forEach(agent => {
                 agent.userData.isWalking = false;
@@ -2551,8 +2655,9 @@ function toggleMeetingMode() {
             });
         }, 2000);
     } else {
-        // Return to workstations
+        // Return to workstations - standing up
         Object.keys(AGENT_CONFIGS).forEach(key => {
+            agents[key].userData.isSitting = false;
             moveAgentToZone(key, AGENT_CONFIGS[key].workstation);
         });
         
@@ -2563,6 +2668,7 @@ function toggleMeetingMode() {
                 agents[key].rotation.y = config.position.rot;
                 agents[key].userData.isWalking = false;
                 agents[key].userData.action = null;
+                agents[key].userData.isSitting = false;
             });
         }, 2000);
     }
@@ -2581,11 +2687,11 @@ function toggleStandupMode() {
 }
 
 function startStandup() {
-    // Move all agents to standup circle
+    // Move all agents to standup circle (outside conference room, near kanban)
     const basePositions = [
-        { x: 10, z: -20, rot: Math.PI / 2 },
-        { x: 12, z: -22, rot: 0 },
-        { x: 14, z: -20, rot: -Math.PI / 2 }
+        { x: -2, z: -3, rot: 0 },      // Groot
+        { x: 0, z: -3, rot: 0 },       // Fin
+        { x: 2, z: -3, rot: 0 }        // Betty
     ];
 
     const agentKeys = Object.keys(agents);
@@ -2838,6 +2944,10 @@ function handleOfficeItemClick(itemData) {
         case 'desk':
             nameEl.textContent = `${AGENT_CONFIGS[itemData.agent].name}'s Desk`;
             descEl.textContent = `Click "Go to Desk" to move ${AGENT_CONFIGS[itemData.agent].name} here`;
+            break;
+        case 'kanban':
+            nameEl.textContent = 'Kanban Board';
+            descEl.textContent = 'Daily stand-up board - TO DO, IN PROGRESS, DONE 📝';
             break;
         case 'meeting':
             nameEl.textContent = 'Conference Room';
