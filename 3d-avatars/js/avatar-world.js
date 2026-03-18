@@ -2383,11 +2383,11 @@ function createGymArea() {
     
     // Bench pad - BRIGHT RED
     const benchPadGeo = new THREE.BoxGeometry(1.2, 0.15, 2.5);
-    const brightRedMat = new THREE.MeshStandardMaterial({ 
+    const benchPadMat = new THREE.MeshStandardMaterial({ 
         color: 0xFF0000,
         roughness: 0.7 
     });
-    const benchPad = new THREE.Mesh(benchPadGeo, brightRedMat);
+    const benchPad = new THREE.Mesh(benchPadGeo, benchPadMat);
     benchPad.position.y = 0.5;
     benchPad.castShadow = true;
     benchGroup.add(benchPad);
