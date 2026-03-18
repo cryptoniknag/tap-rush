@@ -3860,41 +3860,53 @@ function setupUIEvents() {
         });
     });
     
-    // Action buttons
-    document.getElementById('btn-wave').addEventListener('click', () => {
-        if (selectedAgent) {
-            agents[selectedAgent].userData.action = 'wave';
-            setTimeout(() => {
-                agents[selectedAgent].userData.action = null;
-                resetAnimation(agents[selectedAgent]);
-            }, 2000);
-        }
-    });
-    
-    document.getElementById('btn-dance').addEventListener('click', () => {
-        if (selectedAgent) {
-            agents[selectedAgent].userData.action = 'dance';
-        }
-    });
-    
-    document.getElementById('btn-follow').addEventListener('click', () => {
-        if (selectedAgent) {
-            const zones = Object.keys(OFFICE_ZONES);
-            const randomZone = zones[Math.floor(Math.random() * zones.length)];
-            moveAgentToZone(selectedAgent, randomZone);
-        }
-    });
-    
-    document.getElementById('btn-reset').addEventListener('click', () => {
-        if (selectedAgent) {
-            moveAgentToZone(selectedAgent, AGENT_CONFIGS[selectedAgent].workstation);
-        } else {
-            toggleMeetingMode();
-            if (isMeetingMode) {
-                isMeetingMode = false;
+    // Action buttons (with null checks)
+    const btnWave = document.getElementById('btn-wave');
+    if (btnWave) {
+        btnWave.addEventListener('click', () => {
+            if (selectedAgent) {
+                agents[selectedAgent].userData.action = 'wave';
+                setTimeout(() => {
+                    agents[selectedAgent].userData.action = null;
+                    resetAnimation(agents[selectedAgent]);
+                }, 2000);
             }
-        }
-    });
+        });
+    }
+    
+    const btnDance = document.getElementById('btn-dance');
+    if (btnDance) {
+        btnDance.addEventListener('click', () => {
+            if (selectedAgent) {
+                agents[selectedAgent].userData.action = 'dance';
+            }
+        });
+    }
+    
+    const btnFollow = document.getElementById('btn-follow');
+    if (btnFollow) {
+        btnFollow.addEventListener('click', () => {
+            if (selectedAgent) {
+                const zones = Object.keys(OFFICE_ZONES);
+                const randomZone = zones[Math.floor(Math.random() * zones.length)];
+                moveAgentToZone(selectedAgent, randomZone);
+            }
+        });
+    }
+    
+    const btnReset = document.getElementById('btn-reset');
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (selectedAgent) {
+                moveAgentToZone(selectedAgent, AGENT_CONFIGS[selectedAgent].workstation);
+            } else {
+                toggleMeetingMode();
+                if (isMeetingMode) {
+                    isMeetingMode = false;
+                }
+            }
+        });
+    }
 
     // Meeting mode button
     const meetingBtn = document.getElementById('btn-meeting');
