@@ -3,55 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Avatar World</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            overflow: hidden;
-            background: #1a1a2e;
-        }
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-        }
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #1a1a2e;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 24px;
-            z-index: 1000;
-        }
-    </style>
+    <title>Agent Avatar World - Tap Rush</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="loading-screen">Loading Agent World...</div>
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="tree-loader">
+                <div class="trunk"></div>
+                <div class="leaves"></div>
+            </div>
+            <p>Loading Agent World...</p>
+        </div>
+    </div>
+
+    <div id="ui-container">
+        <div class="header">
+            <h1>🏢 Tap Rush HQ</h1>
+            <p>Agent Avatar World - Explore the office!</p>
+        </div>
+        
+        <div class="controls-info">
+            <div class="control-item">
+                <span class="key">🖱️</span>
+                <span>Drag to rotate camera</span>
+            </div>
+            <div class="control-item">
+                <span class="key">📜</span>
+                <span>Scroll to zoom</span>
+            </div>
+            <div class="control-item">
+                <span class="key">👆</span>
+                <span>Click agents & desks</span>
+            </div>
+            <div class="control-item">
+                <span class="key">🏢</span>
+                <span>Explore the office</span>
+            </div>
+        </div>
+
+        <div class="location-panel" id="location-panel">
+            <h3>📍 Locations</h3>
+            <div class="location-list">
+                <button class="location-btn" data-location="grootDesk">🌳 Groot's Desk</button>
+                <button class="location-btn" data-location="finDesk">👔 Fin's Desk</button>
+                <button class="location-btn" data-location="bettyDesk">💕 Betty's Desk</button>
+                <button class="location-btn" data-location="conferenceRoom">📅 Conference Room</button>
+                <button class="location-btn" data-location="kanbanBoard">📋 Kanban Board</button>
+                <button class="location-btn" data-location="coffeeStation">☕ Coffee Station</button>
+                <button class="location-btn" data-location="lounge">🛋️ Lounge</button>
+                <button class="location-btn" data-location="gymArea">💪 Gym</button>
+            </div>
+        </div>
+
+        <div class="agent-panel" id="agent-panel">
+            <h3>Agents</h3>
+            <div class="agent-list">
+                <div class="agent-card" data-agent="groot">
+                    <div class="agent-avatar groot-icon">🌳</div>
+                    <div class="agent-info">
+                        <h4>Groot</h4>
+                        <p>The Digital Ent</p>
+                    </div>
+                </div>
+                <div class="agent-card" data-agent="fin">
+                    <div class="agent-avatar fin-icon">👔</div>
+                    <div class="agent-info">
+                        <h4>Fin</h4>
+                        <p>The Strategist</p>
+                    </div>
+                </div>
+                <div class="agent-card" data-agent="betty">
+                    <div class="agent-avatar betty-icon">💗</div>
+                    <div class="agent-info">
+                        <h4>Betty</h4>
+                        <p>The Creative</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interaction-panel" id="interaction-panel" style="display: none;">
+            <h3 id="selected-agent-name">Agent</h3>
+            <p id="selected-agent-desc">Description</p>
+            <div class="actions">
+                <button id="btn-wave">👋 Wave</button>
+                <button id="btn-dance">💃 Dance</button>
+                <button id="btn-follow">🚶 Walk</button>
+                <button id="btn-reset">↩️ Reset</button>
+            </div>
+            <div class="meeting-action">
+                <button id="btn-meeting">📅 Meeting Mode</button>
+            </div>
+            <div class="standup-action">
+                <button id="btn-standup">📋 Start Stand-up</button>
+            </div>
+        </div>
+    </div>
+
     <div id="canvas-container"></div>
+
+    <!-- Three.js and dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     
-    <!-- Load THREE.js from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- Load avatar world -->
+    <!-- Main application -->
     <script src="js/avatar-world.js"></script>
     
-    <!-- Initialize -->
+    <!-- Daily Routine Feature -->
+    <script src="js/daily-routine.js"></script>
     <script>
-        // Wait for DOM and scripts to load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.message);
+            document.getElementById('loading-screen').innerHTML = 
+                '<div style="color:red;padding:20px;"><h3>Error Loading 3D World</h3><p>' + e.message + '</p></div>';
+        });
+        
+        // Check if Three.js loaded and initialize
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading-screen').innerHTML = 
+                '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3><p>Check console for errors</p></div>';
         } else {
-            init();
+            console.log('Three.js loaded, initializing...');
+            // Initialize the 3D world
+            if (typeof init === 'function') {
+                try {
+                    init();
+                    console.log('init() called successfully');
+                } catch (err) {
+                    console.error('Error calling init():', err);
+                    document.getElementById('loading-screen').innerHTML = 
+                        '<div style="color:red;padding:20px;"><h3>Initialization Error</h3><p>' + err.message + '</p></div>';
+                }
+            } else {
+                console.error('init() function not found');
+                document.getElementById('loading-screen').innerHTML = 
+                    '<div style="color:red;padding:20px;"><h3>Initialization Error</h3><p>init() function not found. Check that avatar-world.js loaded correctly.</p></div>';
+            }
         }
     </script>
 </body>
