@@ -37,13 +37,13 @@ const OFFICE_ZONES = {
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
     standupCircle: { x: 0, y: 0, z: 1.5, rot: Math.PI },      // In front of kanban board
     kanbanBoard: { x: 0, y: 0, z: -2, rot: 0 },           // Freestanding at z: -2
-    // Gym area - opposite corner from coffee station
-    gymArea: { x: 20, y: 0, z: -20, rot: 0 },
-    treadmill: { x: 18, y: 0, z: -18, rot: -Math.PI / 2 },
-    dumbbellRack: { x: 22, y: 0, z: -18, rot: Math.PI / 2 },
-    benchPress: { x: 20, y: 0, z: -22, rot: 0 },
-    exerciseMat: { x: 23, y: 0, z: -22, rot: Math.PI / 4 },
-    waterFountain: { x: 16, y: 0, z: -20, rot: Math.PI / 2 }
+    // Gym area - moved closer to center for visibility
+    gymArea: { x: 10, y: 0, z: -10, rot: 0 },
+    treadmill: { x: 8, y: 0, z: -8, rot: -Math.PI / 2 },
+    dumbbellRack: { x: 12, y: 0, z: -8, rot: Math.PI / 2 },
+    benchPress: { x: 10, y: 0, z: -12, rot: 0 },
+    exerciseMat: { x: 13, y: 0, z: -12, rot: Math.PI / 4 },
+    waterFountain: { x: 6, y: 0, z: -10, rot: Math.PI / 2 }
 };
 
 // Agent configurations
@@ -2095,21 +2095,38 @@ function createStandupCircle() {
 
 function createGymArea() {
     console.log('>>> CREATEGYMAREA() CALLED - Creating Office Gym <<<');
+    console.log('[GYM] Starting gym creation...');
     
     const gymGroup = new THREE.Group();
     gymGroup.name = 'gymArea';
     gymGroup.userData = { type: 'gym', clickable: true };
 
-    // Gym floor area - rubber flooring (8x8 area)
+    // Gym floor area - BRIGHT CHECKERBOARD pattern for visibility
     const floorSize = 8;
     const tileSize = 2;
     const tilesPerRow = floorSize / tileSize;
+    
+    // Bright red and yellow materials for checkerboard
+    const brightRedMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFF0000, 
+        roughness: 0.8, 
+        metalness: 0.1,
+        emissive: 0xFF0000,
+        emissiveIntensity: 0.1
+    });
+    const brightYellowMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFFFF00, 
+        roughness: 0.8, 
+        metalness: 0.1,
+        emissive: 0xFFFF00,
+        emissiveIntensity: 0.1
+    });
     
     for (let i = 0; i < tilesPerRow; i++) {
         for (let j = 0; j < tilesPerRow; j++) {
             const tileGeo = new THREE.BoxGeometry(tileSize - 0.05, 0.08, tileSize - 0.05);
             const isAlternate = (i + j) % 2 === 0;
-            const tile = new THREE.Mesh(tileGeo, isAlternate ? MATERIALS.gymFloor : MATERIALS.gymFloorDark);
+            const tile = new THREE.Mesh(tileGeo, isAlternate ? brightRedMat : brightYellowMat);
             tile.position.set(
                 (i - tilesPerRow/2 + 0.5) * tileSize,
                 0.04,
@@ -2119,6 +2136,72 @@ function createGymArea() {
             gymGroup.add(tile);
         }
     }
+    console.log('[GYM] Checkerboard floor created');
+
+    // === FLOATING NEON "GYM HERE" SIGN ===
+    const signCanvas = document.createElement('canvas');
+    const signCtx = signCanvas.getContext('2d');
+    signCanvas.width = 512;
+    signCanvas.height = 128;
+    
+    // Neon glow background
+    signCtx.fillStyle = '#000000';
+    signCtx.fillRect(0, 0, 512, 128);
+    
+    // Neon border
+    signCtx.strokeStyle = '#FF00FF';
+    signCtx.lineWidth = 8;
+    signCtx.strokeRect(4, 4, 504, 120);
+    
+    // Neon text
+    signCtx.fillStyle = '#FF00FF';
+    signCtx.font = 'bold 80px Arial';
+    signCtx.textAlign = 'center';
+    signCtx.textBaseline = 'middle';
+    signCtx.fillText('GYM HERE', 256, 64);
+    
+    // Add glow effect
+    signCtx.shadowColor = '#FF00FF';
+    signCtx.shadowBlur = 20;
+    signCtx.fillText('GYM HERE', 256, 64);
+    
+    const neonTexture = new THREE.CanvasTexture(signCanvas);
+    const neonMat = new THREE.MeshBasicMaterial({ 
+        map: neonTexture,
+        transparent: true,
+        side: THREE.DoubleSide
+    });
+    const neonSign = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.5), neonMat);
+    neonSign.position.set(0, 10, 0);
+    neonSign.name = 'gymNeonSign';
+    gymGroup.add(neonSign);
+    console.log('[GYM] Neon sign created at y=10');
+
+    // === SPOTLIGHTS POINTING TO GYM ===
+    // Spotlight 1 - from above
+    const spotLight1 = new THREE.SpotLight(0xFF00FF, 2, 30, Math.PI / 6, 0.5, 1);
+    spotLight1.position.set(-5, 15, -5);
+    spotLight1.target.position.set(0, 0, 0);
+    spotLight1.castShadow = true;
+    gymGroup.add(spotLight1);
+    gymGroup.add(spotLight1.target);
+    
+    // Spotlight 2 - from other side
+    const spotLight2 = new THREE.SpotLight(0x00FFFF, 2, 30, Math.PI / 6, 0.5, 1);
+    spotLight2.position.set(5, 15, 5);
+    spotLight2.target.position.set(0, 0, 0);
+    spotLight2.castShadow = true;
+    gymGroup.add(spotLight2);
+    gymGroup.add(spotLight2.target);
+    
+    // Spotlight 3 - from front
+    const spotLight3 = new THREE.SpotLight(0xFFFF00, 1.5, 25, Math.PI / 5, 0.3, 1);
+    spotLight3.position.set(0, 12, 8);
+    spotLight3.target.position.set(0, 0, 0);
+    gymGroup.add(spotLight3);
+    gymGroup.add(spotLight3.target);
+    
+    console.log('[GYM] 3 spotlights added');
 
     // Mirrors on back wall
     const mirrorGeo = new THREE.PlaneGeometry(6, 3);
@@ -2146,26 +2229,40 @@ function createGymArea() {
     const treadmillGroup = new THREE.Group();
     treadmillGroup.name = 'treadmill';
     
-    // Base platform
+    // Base platform - BRIGHT ORANGE
     const treadBaseGeo = new THREE.BoxGeometry(1.8, 0.3, 3.5);
-    const treadBase = new THREE.Mesh(treadBaseGeo, MATERIALS.treadmillFrame);
+    const brightOrangeMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFF6600, 
+        roughness: 0.3, 
+        metalness: 0.4 
+    });
+    const treadBase = new THREE.Mesh(treadBaseGeo, brightOrangeMat);
     treadBase.position.y = 0.15;
     treadBase.castShadow = true;
     treadmillGroup.add(treadBase);
     
-    // Running belt
+    // Running belt - BRIGHT BLUE
     const beltGeo = new THREE.BoxGeometry(1.4, 0.05, 3);
-    const belt = new THREE.Mesh(beltGeo, MATERIALS.treadmillBelt);
+    const brightBlueMat = new THREE.MeshStandardMaterial({ 
+        color: 0x00CCFF, 
+        roughness: 0.9 
+    });
+    const belt = new THREE.Mesh(beltGeo, brightBlueMat);
     belt.position.set(0, 0.32, 0);
     treadmillGroup.add(belt);
     
-    // Side rails
+    // Side rails - BRIGHT GREEN
     const railGeo = new THREE.BoxGeometry(0.15, 0.1, 3);
-    const leftRail = new THREE.Mesh(railGeo, MATERIALS.treadmillFrame);
+    const brightGreenMat = new THREE.MeshStandardMaterial({ 
+        color: 0x00FF00, 
+        roughness: 0.3, 
+        metalness: 0.6 
+    });
+    const leftRail = new THREE.Mesh(railGeo, brightGreenMat);
     leftRail.position.set(-0.8, 0.35, 0);
     treadmillGroup.add(leftRail);
     
-    const rightRail = new THREE.Mesh(railGeo, MATERIALS.treadmillFrame);
+    const rightRail = new THREE.Mesh(railGeo, brightGreenMat);
     rightRail.position.set(0.8, 0.35, 0);
     treadmillGroup.add(rightRail);
     
@@ -2211,37 +2308,51 @@ function createGymArea() {
     const rackGroup = new THREE.Group();
     rackGroup.name = 'dumbbellRack';
     
-    // Rack frame
+    // Rack frame - BRIGHT PURPLE
     const rackFrameGeo = new THREE.BoxGeometry(2.5, 1.5, 0.8);
-    const rackFrame = new THREE.Mesh(rackFrameGeo, MATERIALS.metal);
+    const brightPurpleMat = new THREE.MeshStandardMaterial({ 
+        color: 0x9900FF, 
+        roughness: 0.4, 
+        metalness: 0.3 
+    });
+    const rackFrame = new THREE.Mesh(rackFrameGeo, brightPurpleMat);
     rackFrame.position.y = 0.75;
     rackFrame.castShadow = true;
     rackGroup.add(rackFrame);
     
-    // Shelves
+    // Shelves - BRIGHT PINK
+    const shelfGeo = new THREE.BoxGeometry(2.3, 0.05, 0.7);
+    const brightPinkMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFF0099, 
+        roughness: 0.4 
+    });
+    
     for (let i = 0; i < 3; i++) {
-        const shelfGeo = new THREE.BoxGeometry(2.3, 0.05, 0.7);
-        const shelf = new THREE.Mesh(shelfGeo, MATERIALS.blackPlastic);
+        const shelf = new THREE.Mesh(shelfGeo, brightPinkMat);
         shelf.position.set(0, 0.4 + i * 0.5, 0);
         rackGroup.add(shelf);
         
-        // Dumbbells on each shelf
-        const dumbbellSizes = [0.08, 0.1, 0.12]; // Different sizes
+        // Dumbbells on each shelf - BRIGHT COLORS
+        const dumbbellColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00]; // Red, Green, Blue, Yellow
         const numDumbbells = 4;
         
         for (let j = 0; j < numDumbbells; j++) {
             const dbGroup = new THREE.Group();
             
-            // Handle
+            // Handle - SILVER
             const handleGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4);
             const handle = new THREE.Mesh(handleGeo, MATERIALS.chrome);
             handle.rotation.z = Math.PI / 2;
             dbGroup.add(handle);
             
-            // Weights
-            const weightRadius = dumbbellSizes[i] + (j * 0.015);
+            // Weights - BRIGHT COLORS
+            const weightRadius = 0.08 + (j * 0.015);
             const weightGeo = new THREE.CylinderGeometry(weightRadius, weightRadius, 0.15, 12);
-            const weightMat = i === 0 ? MATERIALS.weightSilver : MATERIALS.weightBlack;
+            const weightMat = new THREE.MeshStandardMaterial({ 
+                color: dumbbellColors[j],
+                emissive: dumbbellColors[j],
+                emissiveIntensity: 0.2
+            });
             
             const leftWeight = new THREE.Mesh(weightGeo, weightMat);
             leftWeight.rotation.z = Math.PI / 2;
@@ -2270,54 +2381,79 @@ function createGymArea() {
     const benchGroup = new THREE.Group();
     benchGroup.name = 'benchPress';
     
-    // Bench pad
+    // Bench pad - BRIGHT RED
     const benchPadGeo = new THREE.BoxGeometry(1.2, 0.15, 2.5);
-    const benchPad = new THREE.Mesh(benchPadGeo, MATERIALS.leatherBlack);
+    const brightRedMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFF0000,
+        roughness: 0.7 
+    });
+    const benchPad = new THREE.Mesh(benchPadGeo, brightRedMat);
     benchPad.position.y = 0.5;
     benchPad.castShadow = true;
     benchGroup.add(benchPad);
     
-    // Bench legs
+    // Bench legs - BRIGHT YELLOW
     const benchLegGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.5);
+    const brightYellowMat = new THREE.MeshStandardMaterial({ 
+        color: 0xFFFF00,
+        roughness: 0.3,
+        metalness: 0.5
+    });
     const legPositions = [[-0.5, -1], [0.5, -1], [-0.5, 1], [0.5, 1]];
     legPositions.forEach(pos => {
-        const leg = new THREE.Mesh(benchLegGeo, MATERIALS.metal);
+        const leg = new THREE.Mesh(benchLegGeo, brightYellowMat);
         leg.position.set(pos[0], 0.25, pos[1]);
         benchGroup.add(leg);
     });
     
-    // Barbell rack (uprights)
+    // Barbell rack (uprights) - BRIGHT CYAN
     const uprightGeo = new THREE.BoxGeometry(0.1, 1.8, 0.1);
-    const leftUpright = new THREE.Mesh(uprightGeo, MATERIALS.metal);
+    const brightCyanMat = new THREE.MeshStandardMaterial({ 
+        color: 0x00FFFF,
+        roughness: 0.3,
+        metalness: 0.6
+    });
+    const leftUpright = new THREE.Mesh(uprightGeo, brightCyanMat);
     leftUpright.position.set(-0.7, 0.9, -1.2);
     benchGroup.add(leftUpright);
     
-    const rightUpright = new THREE.Mesh(uprightGeo, MATERIALS.metal);
+    const rightUpright = new THREE.Mesh(uprightGeo, brightCyanMat);
     rightUpright.position.set(0.7, 0.9, -1.2);
     benchGroup.add(rightUpright);
     
-    // Barbell hooks
+    // Barbell hooks - BRIGHT ORANGE
     const hookGeo = new THREE.BoxGeometry(0.15, 0.05, 0.2);
-    const leftHook = new THREE.Mesh(hookGeo, MATERIALS.weightSilver);
+    const brightOrangeMat2 = new THREE.MeshStandardMaterial({ 
+        color: 0xFF6600,
+        roughness: 0.3,
+        metalness: 0.5
+    });
+    const leftHook = new THREE.Mesh(hookGeo, brightOrangeMat2);
     leftHook.position.set(-0.7, 1.5, -1.1);
     benchGroup.add(leftHook);
     
-    const rightHook = new THREE.Mesh(hookGeo, MATERIALS.weightSilver);
+    const rightHook = new THREE.Mesh(hookGeo, brightOrangeMat2);
     rightHook.position.set(0.7, 1.5, -1.1);
     benchGroup.add(rightHook);
     
-    // Barbell
+    // Barbell - BRIGHT SILVER/CHROME
     const barGeo = new THREE.CylinderGeometry(0.025, 0.025, 2.2);
     const bar = new THREE.Mesh(barGeo, MATERIALS.chrome);
     bar.rotation.z = Math.PI / 2;
     bar.position.set(0, 1.55, -1.2);
     benchGroup.add(bar);
     
-    // Weight plates on barbell
+    // Weight plates on barbell - RAINBOW COLORS
+    const plateColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00];
     const plateGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
     const platePositions = [-0.9, -0.8, 0.8, 0.9];
     platePositions.forEach((x, i) => {
-        const plate = new THREE.Mesh(plateGeo, MATERIALS.weightBlack);
+        const plateMat = new THREE.MeshStandardMaterial({ 
+            color: plateColors[i],
+            emissive: plateColors[i],
+            emissiveIntensity: 0.2
+        });
+        const plate = new THREE.Mesh(plateGeo, plateMat);
         plate.rotation.z = Math.PI / 2;
         plate.position.set(x, 1.55, -1.2);
         benchGroup.add(plate);
@@ -2330,23 +2466,34 @@ function createGymArea() {
     const matGroup = new THREE.Group();
     matGroup.name = 'exerciseMat';
     
-    // Main mat
+    // Main mat - BRIGHT LIME GREEN
     const matGeo = new THREE.BoxGeometry(1.5, 0.03, 2.5);
-    const mat = new THREE.Mesh(matGeo, MATERIALS.gymMat);
+    const brightLimeMat = new THREE.MeshStandardMaterial({ 
+        color: 0x00FF00,
+        roughness: 0.9 
+    });
+    const mat = new THREE.Mesh(matGeo, brightLimeMat);
     mat.position.y = 0.015;
     mat.receiveShadow = true;
     matGroup.add(mat);
     
-    // Rolled mat in corner
+    // Rolled mat in corner - BRIGHT PINK
     const rolledMatGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.5);
-    const rolledMat = new THREE.Mesh(rolledMatGeo, MATERIALS.gymMat);
+    const brightPinkMat2 = new THREE.MeshStandardMaterial({ 
+        color: 0xFF00FF,
+        roughness: 0.9 
+    });
+    const rolledMat = new THREE.Mesh(rolledMatGeo, brightPinkMat2);
     rolledMat.rotation.z = Math.PI / 2;
     rolledMat.position.set(1.2, 0.08, -0.8);
     matGroup.add(rolledMat);
     
-    // Yoga block
+    // Yoga block - BRIGHT ORANGE
     const blockGeo = new THREE.BoxGeometry(0.2, 0.15, 0.35);
-    const block = new THREE.Mesh(blockGeo, new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
+    const brightOrangeMat3 = new THREE.MeshStandardMaterial({ 
+        color: 0xFF6600 
+    });
+    const block = new THREE.Mesh(blockGeo, brightOrangeMat3);
     block.position.set(-0.5, 0.075, 0.5);
     matGroup.add(block);
     
@@ -2488,14 +2635,16 @@ function createGymArea() {
     signMesh.position.set(0, 7, -3.9);
     gymGroup.add(signMesh);
 
-    // Position gym in far corner (opposite from coffee station)
-    // Coffee station is at x: -28, z: 0, so gym goes to x: 20, z: -20
-    gymGroup.position.set(20, 0, -20);
+    // Position gym in a MORE VISIBLE location (closer to center)
+    // Changed from (20, 0, -20) to (10, 0, -10) to be in camera view
+    gymGroup.position.set(10, 0, -10);
     
     scene.add(gymGroup);
     officeItems.gymArea = gymGroup;
     
     console.log('[AvatarWorld] Gym area created at position:', gymGroup.position);
+    console.log('[GYM] Gym is now at (10, 0, -10) - closer to center for visibility');
+    console.log('[GYM] Features: checkerboard floor, neon sign, spotlights, bright equipment');
 }
 
 function createFilingCabinets() {
@@ -3644,11 +3793,70 @@ function selectAgent(agentId) {
     animateCamera();
 }
 
+function teleportToLocation(locationName) {
+    console.log('[TELEPORT] Moving camera to:', locationName);
+    
+    const locations = {
+        grootDesk: { x: -10, y: 8, z: 5, targetX: -10, targetY: 0, targetZ: -8 },
+        finDesk: { x: 0, y: 8, z: 5, targetX: 0, targetY: 0, targetZ: -12 },
+        bettyDesk: { x: 10, y: 8, z: 5, targetX: 10, targetY: 0, targetZ: -8 },
+        conferenceRoom: { x: 0, y: 12, z: 20, targetX: 0, targetY: 0, targetZ: 8 },
+        kanbanBoard: { x: 0, y: 10, z: 8, targetX: 0, targetY: 0, targetZ: -2 },
+        coffeeStation: { x: -20, y: 10, z: 10, targetX: -28, targetY: 0, targetZ: 0 },
+        lounge: { x: -10, y: 10, z: 20, targetX: -14, targetY: 0, targetZ: 10 },
+        gymArea: { x: 10, y: 12, z: 5, targetX: 10, targetY: 0, targetZ: -10 }
+    };
+    
+    const loc = locations[locationName];
+    if (!loc) {
+        console.error('[TELEPORT] Unknown location:', locationName);
+        return;
+    }
+    
+    // Animate camera to location
+    const startPos = camera.position.clone();
+    const startTarget = controls.target.clone();
+    const endPos = new THREE.Vector3(loc.x, loc.y, loc.z);
+    const endTarget = new THREE.Vector3(loc.targetX, loc.targetY, loc.targetZ);
+    
+    let progress = 0;
+    const duration = 1000; // ms
+    const startTime = Date.now();
+    
+    function animateCamera() {
+        const elapsed = Date.now() - startTime;
+        progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function (ease-out)
+        const ease = 1 - Math.pow(1 - progress, 3);
+        
+        camera.position.lerpVectors(startPos, endPos, ease);
+        controls.target.lerpVectors(startTarget, endTarget, ease);
+        controls.update();
+        
+        if (progress < 1) {
+            requestAnimationFrame(animateCamera);
+        } else {
+            console.log('[TELEPORT] Arrived at', locationName);
+        }
+    }
+    
+    animateCamera();
+}
+
 function setupUIEvents() {
     // Agent cards
     document.querySelectorAll('.agent-card').forEach(card => {
         card.addEventListener('click', () => {
             selectAgent(card.dataset.agent);
+        });
+    });
+    
+    // Location buttons - teleport camera to locations
+    document.querySelectorAll('.location-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const location = btn.dataset.location;
+            teleportToLocation(location);
         });
     });
     

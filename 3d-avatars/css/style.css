@@ -320,6 +320,57 @@ body {
     box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
 }
 
+/* Location Panel */
+.location-panel {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(144, 238, 144, 0.3);
+    width: 200px;
+    pointer-events: auto;
+}
+
+.location-panel h3 {
+    color: #90EE90;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.location-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.location-btn {
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    text-align: left;
+    border: 1px solid transparent;
+}
+
+.location-btn:hover {
+    background: rgba(144, 238, 144, 0.2);
+    border-color: rgba(144, 238, 144, 0.3);
+    transform: translateX(5px);
+}
+
+.location-btn:active {
+    transform: translateX(2px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .header {
