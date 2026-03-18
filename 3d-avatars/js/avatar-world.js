@@ -154,7 +154,13 @@ const MATERIALS = {
     weightBlack: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.5 }),
     gymMat: new THREE.MeshStandardMaterial({ color: 0x4A90A4, roughness: 0.9 }),
     towel: new THREE.MeshStandardMaterial({ color: 0xF5F5F5, roughness: 0.9 }),
-    neonGreen: new THREE.MeshStandardMaterial({ color: 0x39FF14, emissive: 0x39FF14, emissiveIntensity: 0.3 })
+    neonGreen: new THREE.MeshStandardMaterial({ color: 0x39FF14, emissive: 0x39FF14, emissiveIntensity: 0.3 }),
+    // Cubicle materials
+    cubicleFabric: new THREE.MeshStandardMaterial({ color: 0x7A7A7A, roughness: 0.9, metalness: 0.1 }),
+    cubicleFrame: new THREE.MeshStandardMaterial({ color: 0x4A4A4A, roughness: 0.3, metalness: 0.7 }),
+    cubicleWhiteboard: new THREE.MeshStandardMaterial({ color: 0xF8F8F8, roughness: 0.9 }),
+    trashBin: new THREE.MeshStandardMaterial({ color: 0x2C3E50, roughness: 0.5 }),
+    trashBinRim: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.4 })
 };
 
 // Initialize the application
@@ -633,74 +639,248 @@ function createCityView() {
 }
 
 function createWorkstations() {
-    // Create cubicle partitions
-    createCubiclePartitions();
-    
-    // Create three workstations
-    createGrootWorkstation();
-    createFinWorkstation();
-    createBettyWorkstation();
-    createSmithWorkstation();
+    // Create cubicles for each agent
+    createCubicle('groot', OFFICE_ZONES.grootDesk, Math.PI / 4);
+    createCubicle('fin', OFFICE_ZONES.finDesk, 0);
+    createCubicle('betty', OFFICE_ZONES.bettyDesk, -Math.PI / 4);
+    createCubicle('smith', OFFICE_ZONES.smithDesk, -Math.PI / 3);
 }
 
-function createCubiclePartitions() {
-    const partitionHeight = 5;
-    const partitionThickness = 0.1;
-    const partitionMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0xD3D3D3, 
-        roughness: 0.9 
-    });
+function createCubicle(agentId, position, rotation) {
+    const group = new THREE.Group();
+    group.name = `${agentId}Cubicle`;
+    group.userData = { type: 'cubicle', agent: agentId, clickable: true };
 
-    // Groot's cubicle (left)
-    const grootLeft = new THREE.Mesh(
-        new THREE.BoxGeometry(partitionThickness, partitionHeight, 8),
-        partitionMaterial
-    );
-    grootLeft.position.set(-14, partitionHeight/2, -6);
-    grootLeft.castShadow = true;
-    scene.add(grootLeft);
+    const cubicleWidth = 5;
+    const cubicleDepth = 4;
+    const wallHeight = 4.5;
+    const wallThickness = 0.08;
+    const frameThickness = 0.12;
 
-    const grootFront = new THREE.Mesh(
-        new THREE.BoxGeometry(8, partitionHeight, partitionThickness),
-        partitionMaterial
-    );
-    grootFront.position.set(-10, partitionHeight/2, -2);
-    grootFront.castShadow = true;
-    scene.add(grootFront);
+    // Back wall
+    const backWallGeo = new THREE.BoxGeometry(cubicleWidth, wallHeight, wallThickness);
+    const backWall = new THREE.Mesh(backWallGeo, MATERIALS.cubicleFabric);
+    backWall.position.set(0, wallHeight / 2, -cubicleDepth / 2);
+    backWall.castShadow = true;
+    backWall.receiveShadow = true;
+    group.add(backWall);
 
-    // Fin's cubicle (center)
-    const finLeft = new THREE.Mesh(
-        new THREE.BoxGeometry(partitionThickness, partitionHeight, 8),
-        partitionMaterial
+    // Back wall frame (top and sides)
+    const backTopFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(cubicleWidth + frameThickness * 2, frameThickness, frameThickness),
+        MATERIALS.cubicleFrame
     );
-    finLeft.position.set(-4, partitionHeight/2, -10);
-    finLeft.castShadow = true;
-    scene.add(finLeft);
+    backTopFrame.position.set(0, wallHeight, -cubicleDepth / 2);
+    group.add(backTopFrame);
 
-    const finRight = new THREE.Mesh(
-        new THREE.BoxGeometry(partitionThickness, partitionHeight, 8),
-        partitionMaterial
+    const backLeftFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, wallHeight, frameThickness),
+        MATERIALS.cubicleFrame
     );
-    finRight.position.set(4, partitionHeight/2, -10);
-    finRight.castShadow = true;
-    scene.add(finRight);
+    backLeftFrame.position.set(-cubicleWidth / 2, wallHeight / 2, -cubicleDepth / 2);
+    group.add(backLeftFrame);
 
-    // Betty's cubicle (right)
-    const bettyRight = new THREE.Mesh(
-        new THREE.BoxGeometry(partitionThickness, partitionHeight, 8),
-        partitionMaterial
+    const backRightFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, wallHeight, frameThickness),
+        MATERIALS.cubicleFrame
     );
-    bettyRight.position.set(14, partitionHeight/2, -6);
-    bettyRight.castShadow = true;
-    scene.add(bettyRight);
+    backRightFrame.position.set(cubicleWidth / 2, wallHeight / 2, -cubicleDepth / 2);
+    group.add(backRightFrame);
 
-    const bettyFront = new THREE.Mesh(
-        new THREE.BoxGeometry(8, partitionHeight, partitionThickness),
-        partitionMaterial
+    // Left side wall
+    const leftWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, cubicleDepth);
+    const leftWall = new THREE.Mesh(leftWallGeo, MATERIALS.cubicleFabric);
+    leftWall.position.set(-cubicleWidth / 2, wallHeight / 2, 0);
+    leftWall.castShadow = true;
+    leftWall.receiveShadow = true;
+    group.add(leftWall);
+
+    // Left wall frame
+    const leftTopFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, frameThickness, cubicleDepth + frameThickness * 2),
+        MATERIALS.cubicleFrame
     );
-    bettyFront.position.set(10, partitionHeight/2, -2);
-    bettyFront.castShadow = true;
-    scene.add(bettyFront);
+    leftTopFrame.position.set(-cubicleWidth / 2, wallHeight, 0);
+    group.add(leftTopFrame);
+
+    const leftFrontFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, wallHeight, frameThickness),
+        MATERIALS.cubicleFrame
+    );
+    leftFrontFrame.position.set(-cubicleWidth / 2, wallHeight / 2, cubicleDepth / 2);
+    group.add(leftFrontFrame);
+
+    // Right side wall
+    const rightWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, cubicleDepth);
+    const rightWall = new THREE.Mesh(rightWallGeo, MATERIALS.cubicleFabric);
+    rightWall.position.set(cubicleWidth / 2, wallHeight / 2, 0);
+    rightWall.castShadow = true;
+    rightWall.receiveShadow = true;
+    group.add(rightWall);
+
+    // Right wall frame
+    const rightTopFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, frameThickness, cubicleDepth + frameThickness * 2),
+        MATERIALS.cubicleFrame
+    );
+    rightTopFrame.position.set(cubicleWidth / 2, wallHeight, 0);
+    group.add(rightTopFrame);
+
+    const rightFrontFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThickness, wallHeight, frameThickness),
+        MATERIALS.cubicleFrame
+    );
+    rightFrontFrame.position.set(cubicleWidth / 2, wallHeight / 2, cubicleDepth / 2);
+    group.add(rightFrontFrame);
+
+    // Whiteboard on back wall
+    const whiteboardGeo = new THREE.BoxGeometry(cubicleWidth - 0.5, 1.5, 0.02);
+    const whiteboard = new THREE.Mesh(whiteboardGeo, MATERIALS.cubicleWhiteboard);
+    whiteboard.position.set(0, wallHeight - 1, -cubicleDepth / 2 + 0.06);
+    group.add(whiteboard);
+
+    // Whiteboard frame
+    const wbFrameGeo = new THREE.BoxGeometry(cubicleWidth - 0.4, 1.6, 0.03);
+    const wbFrame = new THREE.Mesh(wbFrameGeo, MATERIALS.cubicleFrame);
+    wbFrame.position.set(0, wallHeight - 1, -cubicleDepth / 2 + 0.05);
+    group.add(wbFrame);
+
+    // Whiteboard tray
+    const wbTrayGeo = new THREE.BoxGeometry(cubicleWidth - 0.4, 0.08, 0.15);
+    const wbTray = new THREE.Mesh(wbTrayGeo, MATERIALS.cubicleFrame);
+    wbTray.position.set(0, wallHeight - 1.8, -cubicleDepth / 2 + 0.1);
+    group.add(wbTray);
+
+    // Add workstation based on agent
+    switch(agentId) {
+        case 'groot':
+            createGrootWorkstation(group);
+            break;
+        case 'fin':
+            createFinWorkstation(group);
+            break;
+        case 'betty':
+            createBettyWorkstation(group);
+            break;
+        case 'smith':
+            createSmithWorkstation(group);
+            break;
+    }
+
+    // Add trash bin
+    const trashBin = createTrashBin();
+    trashBin.position.set(cubicleWidth / 2 - 0.5, 0, cubicleDepth / 2 - 0.5);
+    group.add(trashBin);
+
+    // Add personal item based on agent
+    addPersonalItem(group, agentId, cubicleWidth, cubicleDepth);
+
+    // Position the entire cubicle
+    group.position.set(position.x, position.y, position.z);
+    group.rotation.y = rotation;
+
+    scene.add(group);
+    officeItems[`${agentId}Cubicle`] = group;
+}
+
+function createTrashBin() {
+    const group = new THREE.Group();
+
+    // Bin body
+    const binGeo = new THREE.CylinderGeometry(0.2, 0.15, 0.5, 16);
+    const bin = new THREE.Mesh(binGeo, MATERIALS.trashBin);
+    bin.position.y = 0.25;
+    bin.castShadow = true;
+    group.add(bin);
+
+    // Bin rim
+    const rimGeo = new THREE.TorusGeometry(0.2, 0.02, 8, 16);
+    const rim = new THREE.Mesh(rimGeo, MATERIALS.trashBinRim);
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.5;
+    group.add(rim);
+
+    // Liner visible inside
+    const linerGeo = new THREE.CylinderGeometry(0.18, 0.13, 0.45, 16);
+    const liner = new THREE.Mesh(linerGeo, new THREE.MeshStandardMaterial({ color: 0x111111 }));
+    liner.position.y = 0.25;
+    group.add(liner);
+
+    return group;
+}
+
+function addPersonalItem(group, agentId, width, depth) {
+    switch(agentId) {
+        case 'groot':
+            // Small potted plant
+            const smallPotGeo = new THREE.CylinderGeometry(0.1, 0.08, 0.15, 8);
+            const smallPot = new THREE.Mesh(smallPotGeo, MATERIALS.potClay);
+            smallPot.position.set(-width / 2 + 0.3, 0.075, -depth / 2 + 0.5);
+            smallPot.castShadow = true;
+            group.add(smallPot);
+
+            const smallPlantGeo = new THREE.SphereGeometry(0.15, 8, 8);
+            const smallPlant = new THREE.Mesh(smallPlantGeo, MATERIALS.plantGreen);
+            smallPlant.position.set(-width / 2 + 0.3, 0.3, -depth / 2 + 0.5);
+            group.add(smallPlant);
+            break;
+
+        case 'fin':
+            // Stack of books
+            const bookColors = [0x8B0000, 0x000080, 0x006400];
+            bookColors.forEach((color, i) => {
+                const bookGeo = new THREE.BoxGeometry(0.4, 0.06, 0.6);
+                const bookMat = new THREE.MeshStandardMaterial({ color: color });
+                const book = new THREE.Mesh(bookGeo, bookMat);
+                book.position.set(-width / 2 + 0.4, 0.03 + i * 0.06, -depth / 2 + 0.6);
+                book.rotation.y = 0.2;
+                book.castShadow = true;
+                group.add(book);
+            });
+            break;
+
+        case 'betty':
+            // Art supplies / colorful items
+            const pencilHolderGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.2, 8);
+            const pencilHolder = new THREE.Mesh(pencilHolderGeo, new THREE.MeshStandardMaterial({ color: 0xFF69B4 }));
+            pencilHolder.position.set(-width / 2 + 0.3, 0.1, -depth / 2 + 0.5);
+            group.add(pencilHolder);
+
+            // Pencils
+            const pencilColors = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00];
+            pencilColors.forEach((color, i) => {
+                const pencilGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.25);
+                const pencilMat = new THREE.MeshStandardMaterial({ color: color });
+                const pencil = new THREE.Mesh(pencilGeo, pencilMat);
+                pencil.position.set(
+                    -width / 2 + 0.28 + Math.cos(i * 1.5) * 0.03,
+                    0.2,
+                    -depth / 2 + 0.5 + Math.sin(i * 1.5) * 0.03
+                );
+                pencil.rotation.z = (Math.random() - 0.5) * 0.3;
+                pencil.rotation.x = (Math.random() - 0.5) * 0.3;
+                group.add(pencil);
+            });
+            break;
+
+        case 'smith':
+            // Tech gadget / small device
+            const deviceGeo = new THREE.BoxGeometry(0.15, 0.02, 0.25);
+            const device = new THREE.Mesh(deviceGeo, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            device.position.set(-width / 2 + 0.4, 0.02, -depth / 2 + 0.5);
+            group.add(device);
+
+            // Small LED light
+            const ledGeo = new THREE.SphereGeometry(0.03, 8, 8);
+            const led = new THREE.Mesh(ledGeo, new THREE.MeshStandardMaterial({ 
+                color: 0x00FF00, 
+                emissive: 0x00FF00, 
+                emissiveIntensity: 0.5 
+            }));
+            led.position.set(-width / 2 + 0.4, 0.04, -depth / 2 + 0.5);
+            group.add(led);
+            break;
+    }
 }
 
 function createLShapedDesk(group, width, depth, color) {
@@ -976,7 +1156,7 @@ function createSteamEffect(group, x, y, z) {
     }
 }
 
-function createGrootWorkstation() {
+function createGrootWorkstation(parentGroup) {
     const group = new THREE.Group();
     group.name = 'grootDesk';
     group.userData = { type: 'desk', agent: 'groot', clickable: true };
@@ -1017,21 +1197,16 @@ function createGrootWorkstation() {
     plant.position.set(-1.2, 2, 0.5);
     group.add(plant);
 
-    // Position the desk
-    group.position.set(-10, 0, -8);
-    group.rotation.y = Math.PI / 4;
-    
     // Ergonomic chair
     const chair = createErgonomicChair();
     chair.position.set(0, 0, 1.5);
     chair.rotation.y = -Math.PI / 4;
     group.add(chair);
     
-    scene.add(group);
-    officeItems.grootDesk = group;
+    parentGroup.add(group);
 }
 
-function createFinWorkstation() {
+function createFinWorkstation(parentGroup) {
     const group = new THREE.Group();
     group.name = 'finDesk';
     group.userData = { type: 'desk', agent: 'fin', clickable: true };
@@ -1089,20 +1264,16 @@ function createFinWorkstation() {
         book.castShadow = true;
         group.add(book);
     });
-
-    // Position the desk
-    group.position.set(0, 0, -12);
     
     // Ergonomic chair
     const chair = createErgonomicChair();
     chair.position.set(0, 0, 1.5);
     group.add(chair);
     
-    scene.add(group);
-    officeItems.finDesk = group;
+    parentGroup.add(group);
 }
 
-function createBettyWorkstation() {
+function createBettyWorkstation(parentGroup) {
     const group = new THREE.Group();
     group.name = 'bettyDesk';
     group.userData = { type: 'desk', agent: 'betty', clickable: true };
@@ -1156,10 +1327,6 @@ function createBettyWorkstation() {
         swatch.position.set(1, 1.54 + i * 0.015, 0.4 - i * 0.08);
         group.add(swatch);
     });
-
-    // Position the desk
-    group.position.set(10, 0, -8);
-    group.rotation.y = -Math.PI / 4;
     
     // Ergonomic chair
     const chair = createErgonomicChair();
@@ -1167,11 +1334,10 @@ function createBettyWorkstation() {
     chair.rotation.y = Math.PI / 4;
     group.add(chair);
     
-    scene.add(group);
-    officeItems.bettyDesk = group;
+    parentGroup.add(group);
 }
 
-function createSmithWorkstation() {
+function createSmithWorkstation(parentGroup) {
     const group = new THREE.Group();
     group.name = 'smithDesk';
     group.userData = { type: 'desk', agent: 'smith', clickable: true };
@@ -1211,10 +1377,6 @@ function createSmithWorkstation() {
     const keyboard = new THREE.Mesh(kbGeo, kbMat);
     keyboard.position.set(0, 1.55, 0.3);
     group.add(keyboard);
-
-    // Position the desk
-    group.position.set(15, 0, -5);
-    group.rotation.y = -Math.PI / 3;
     
     // Ergonomic chair
     const chair = createErgonomicChair();
@@ -1222,8 +1384,7 @@ function createSmithWorkstation() {
     chair.rotation.y = Math.PI / 3;
     group.add(chair);
     
-    scene.add(group);
-    officeItems.smithDesk = group;
+    parentGroup.add(group);
 }
 
 function createConferenceChair() {
