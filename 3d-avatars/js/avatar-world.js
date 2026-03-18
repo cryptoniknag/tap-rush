@@ -1225,6 +1225,8 @@ function createSmithWorkstation() {
     scene.add(group);
     officeItems.smithDesk = group;
 }
+
+function createConferenceChair() {
     const chairGroup = new THREE.Group();
 
     // Seat cushion (lower for sitting)
@@ -4070,10 +4072,24 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+// Export init to window for external access
+window.init = init;
+console.log('avatar-world.js loaded, init() defined:', typeof init);
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM ready, starting init...');
+    console.log('init() available:', typeof window.init);
+    console.log('THREE available:', typeof THREE);
+    
     try {
+        if (typeof THREE === 'undefined') {
+            throw new Error('Three.js library not loaded');
+        }
+        if (typeof init !== 'function') {
+            throw new Error('init() function not found');
+        }
+        
         init();
         
         // Initialize Daily Routine feature
@@ -4081,10 +4097,14 @@ document.addEventListener('DOMContentLoaded', function() {
             initDailyRoutine();
         }
         
-        console.log('Init completed');
+        console.log('Init completed successfully');
     } catch (err) {
         console.error('Init failed:', err);
-        document.getElementById('loading-screen').innerHTML = 
-            '<div style="color:red;padding:20px;"><h3>Error</h3><p>' + err.message + '</p><pre>' + err.stack + '</pre></div>';
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.innerHTML = 
+                '<div style="color:red;padding:20px;"><h3>Initialization Error</h3><p>' + 
+                err.message + '</p><p>Check browser console for details</p></div>';
+        }
     }
 });

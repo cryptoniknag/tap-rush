@@ -77,30 +77,51 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     
     <!-- Main application -->
-    <script src="js/avatar-world.js?v=37" onload="console.log('avatar-world.js loaded successfully')" onerror="console.error('avatar-world.js FAILED to load')">
+    <script src="js/avatar-world.js?v=38" onload="console.log('avatar-world.js loaded successfully')" onerror="console.error('avatar-world.js FAILED to load')">
     </script>
     
     <script>
-        console.log('HTML loaded, checking...');
+        console.log('HTML inline script running...');
         
         // Wait for everything to load
         window.addEventListener('load', function() {
-            console.log('Window loaded');
+            console.log('Window load event fired');
             
-            // Check if initialization succeeded (init() is called automatically by avatar-world.js)
+            // Check if initialization succeeded
             setTimeout(function() {
-                console.log('Checking THREE...', typeof THREE);
-                console.log('Checking init...', typeof init);
+                console.log('Checking THREE:', typeof THREE);
+                console.log('Checking init:', typeof init);
+                console.log('Checking window.init:', typeof window.init);
+                
+                const loadingScreen = document.getElementById('loading-screen');
                 
                 if (typeof THREE === 'undefined') {
-                    document.getElementById('loading-screen').innerHTML = 
-                        '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3></div>';
-                } else if (typeof init === 'undefined') {
-                    document.getElementById('loading-screen').innerHTML = 
-                        '<div style="color:red;padding:20px;"><h3>init() not found</h3><p>Check console</p></div>';
+                    console.error('Three.js failed to load');
+                    if (loadingScreen) {
+                        loadingScreen.innerHTML = 
+                            '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3><p>Check internet connection</p></div>';
+                    }
+                } else if (typeof init === 'undefined' && typeof window.init === 'undefined') {
+                    console.error('init() function not found');
+                    if (loadingScreen) {
+                        loadingScreen.innerHTML = 
+                            '<div style="color:red;padding:20px;"><h3>init() not found</h3><p>Script may have failed to load. Check console.</p></div>';
+                    }
+                } else {
+                    console.log('All checks passed, init should have run');
                 }
-                // init() is called automatically by avatar-world.js on DOMContentLoaded
-            }, 1000);
+            }, 1500);
+        });
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.message, 'at', e.filename, 'line', e.lineno);
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.innerHTML = 
+                    '<div style="color:red;padding:20px;"><h3>JavaScript Error</h3><p>' + 
+                    e.message + '</p><p>File: ' + (e.filename || 'unknown') + '</p></div>';
+            }
         });
     </script>
 </body>
