@@ -26,6 +26,7 @@ const OFFICE_ZONES = {
     grootDesk: { x: -10, y: 0, z: -8, rot: Math.PI / 4 },
     finDesk: { x: 0, y: 0, z: -12, rot: 0 },
     bettyDesk: { x: 10, y: 0, z: -8, rot: -Math.PI / 4 },
+    smithDesk: { x: 15, y: 0, z: -5, rot: -Math.PI / 3 },  // Agent Smith - The Coder
     // Conference table with sitting positions - Groot at head, Fin and Betty opposite
     conferenceTable: { x: 0, y: 0, z: 8, rot: 0 },
     grootChair: { x: 0, y: 0, z: 5.5, rot: 0 },      // Groot at head
@@ -77,6 +78,16 @@ const AGENT_CONFIGS = {
         scale: 0.9,
         type: 'voxel',
         workstation: 'bettyDesk'
+    },
+    smith: {
+        name: 'Agent Smith',
+        description: 'The Coder - Spawns Claude Code, builds the future',
+        color: 0x000000,
+        secondaryColor: 0x00FF00,
+        position: OFFICE_ZONES.smithDesk,
+        scale: 1.0,
+        type: 'human',
+        workstation: 'smithDesk'
     }
 };
 
@@ -629,6 +640,7 @@ function createWorkstations() {
     createGrootWorkstation();
     createFinWorkstation();
     createBettyWorkstation();
+    createSmithWorkstation();
 }
 
 function createCubiclePartitions() {
@@ -1159,7 +1171,60 @@ function createBettyWorkstation() {
     officeItems.bettyDesk = group;
 }
 
-function createConferenceChair() {
+function createSmithWorkstation() {
+    const group = new THREE.Group();
+    group.name = 'smithDesk';
+    group.userData = { type: 'desk', agent: 'smith', clickable: true };
+
+    // Black L-shaped desk (hacker style)
+    createLShapedDesk(group, 3.5, 1.8, 0x1a1a1a);
+
+    // Triple monitor setup (coder style)
+    const monitorGeo = new THREE.BoxGeometry(1.3, 0.8, 0.05);
+    
+    // Center monitor
+    const monitorCenter = new THREE.Mesh(monitorGeo, MATERIALS.screenOn);
+    monitorCenter.position.set(0, 2.3, -0.6);
+    monitorCenter.castShadow = true;
+    group.add(monitorCenter);
+    
+    // Left monitor
+    const monitorLeft = new THREE.Mesh(monitorGeo, MATERIALS.screenOn);
+    monitorLeft.position.set(-1.5, 2.3, -0.4);
+    monitorLeft.rotation.y = 0.3;
+    monitorLeft.castShadow = true;
+    group.add(monitorLeft);
+    
+    // Right monitor
+    const monitorRight = new THREE.Mesh(monitorGeo, MATERIALS.screenOn);
+    monitorRight.position.set(1.5, 2.3, -0.4);
+    monitorRight.rotation.y = -0.3;
+    monitorRight.castShadow = true;
+    group.add(monitorRight);
+
+    // Desk items
+    createDeskItems(group, 0, 0, 'human');
+
+    // Mechanical keyboard
+    const kbGeo = new THREE.BoxGeometry(0.8, 0.05, 0.3);
+    const kbMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const keyboard = new THREE.Mesh(kbGeo, kbMat);
+    keyboard.position.set(0, 1.55, 0.3);
+    group.add(keyboard);
+
+    // Position the desk
+    group.position.set(15, 0, -5);
+    group.rotation.y = -Math.PI / 3;
+    
+    // Ergonomic chair
+    const chair = createErgonomicChair();
+    chair.position.set(0, 0, 1.5);
+    chair.rotation.y = Math.PI / 3;
+    group.add(chair);
+    
+    scene.add(group);
+    officeItems.smithDesk = group;
+}
     const chairGroup = new THREE.Group();
 
     // Seat cushion (lower for sitting)
