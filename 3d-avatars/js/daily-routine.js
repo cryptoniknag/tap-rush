@@ -13,10 +13,11 @@ let phaseTimer = null;
 const PHASE_TARGETS = {
     0: { // Standup at Kanban Board - agents stand in semi-circle facing the board
         // Kanban board is at z: -2, standup circle at z: 1.5
-        // Agents face the board (rot: Math.PI means facing negative Z)
-        groot: { x: -2.5, z: 2.0, rot: Math.PI },   // Left position, facing board
-        fin:   { x: 0, z: 1.5, rot: Math.PI },      // Center position, facing board  
-        betty: { x: 2.5, z: 2.0, rot: Math.PI }    // Right position, facing board
+        // Agents should stand on the standup circle markers at z: ~0.5 to 2.0
+        // They face the board (rot: Math.PI means facing negative Z, toward the board)
+        groot: { x: -2.5, z: 1.0, rot: Math.PI },   // Left position, facing board
+        fin:   { x: 0, z: 0.5, rot: Math.PI },      // Center position, facing board  
+        betty: { x: 2.5, z: 1.0, rot: Math.PI }    // Right position, facing board
     },
     1: { // Return to desks
         groot: { x: -10, z: -8, rot: Math.PI / 4 },
@@ -59,6 +60,7 @@ function angleDifference(current, target) {
  */
 function initDailyRoutine() {
     console.log('[DailyRoutine] Initializing...');
+    console.log('[DailyRoutine] PHASE_TARGETS:', PHASE_TARGETS);
     
     // Wait a moment for agents to be created
     setTimeout(() => {
@@ -242,7 +244,7 @@ function moveAllAgentsToPhase(phaseNum) {
     Object.entries(targets).forEach(([agentKey, target]) => {
         const agent = localAgents[agentKey];
         if (agent) {
-            console.log(`[DailyRoutine] Moving ${agentKey} to (${target.x}, ${target.z}), sitting=${isSitting}`);
+            console.log(`[DailyRoutine] Moving ${agentKey} to (${target.x}, ${target.z}), rot=${target.rot}, sitting=${isSitting}`);
             moveAgent(agent, target.x, target.z, target.rot, isSitting);
         } else {
             console.warn(`[DailyRoutine] Agent ${agentKey} not found`);
