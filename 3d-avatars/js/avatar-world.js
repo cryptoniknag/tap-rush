@@ -36,7 +36,14 @@ const OFFICE_ZONES = {
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
     standupCircle: { x: 0, y: 0, z: 1.5, rot: Math.PI },      // In front of kanban board
-    kanbanBoard: { x: 0, y: 0, z: -2, rot: 0 }           // Freestanding at z: -2
+    kanbanBoard: { x: 0, y: 0, z: -2, rot: 0 },           // Freestanding at z: -2
+    // Gym area - opposite corner from coffee station
+    gymArea: { x: 20, y: 0, z: -20, rot: 0 },
+    treadmill: { x: 18, y: 0, z: -18, rot: -Math.PI / 2 },
+    dumbbellRack: { x: 22, y: 0, z: -18, rot: Math.PI / 2 },
+    benchPress: { x: 20, y: 0, z: -22, rot: 0 },
+    exerciseMat: { x: 23, y: 0, z: -22, rot: Math.PI / 4 },
+    waterFountain: { x: 16, y: 0, z: -20, rot: Math.PI / 2 }
 };
 
 // Agent configurations
@@ -125,7 +132,18 @@ const MATERIALS = {
     leather: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.7 }),
     leatherBlack: new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 }),
     rubber: new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 }),
-    gold: new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.2, metalness: 0.8 })
+    gold: new THREE.MeshStandardMaterial({ color: 0xFFD700, roughness: 0.2, metalness: 0.8 }),
+    // Gym materials
+    gymFloor: new THREE.MeshStandardMaterial({ color: 0x2C5F4E, roughness: 0.8, metalness: 0.1 }), // Dark green rubber
+    gymFloorDark: new THREE.MeshStandardMaterial({ color: 0x1E3D32, roughness: 0.8, metalness: 0.1 }),
+    mirror: new THREE.MeshStandardMaterial({ color: 0xDDDDDD, roughness: 0.0, metalness: 0.9 }),
+    treadmillBelt: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9 }),
+    treadmillFrame: new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3, metalness: 0.6 }),
+    weightSilver: new THREE.MeshStandardMaterial({ color: 0xC0C0C0, roughness: 0.3, metalness: 0.8 }),
+    weightBlack: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.5 }),
+    gymMat: new THREE.MeshStandardMaterial({ color: 0x4A90A4, roughness: 0.9 }),
+    towel: new THREE.MeshStandardMaterial({ color: 0xF5F5F5, roughness: 0.9 }),
+    neonGreen: new THREE.MeshStandardMaterial({ color: 0x39FF14, emissive: 0x39FF14, emissiveIntensity: 0.3 })
 };
 
 // Initialize the application
@@ -322,6 +340,9 @@ function createOfficeEnvironment() {
 
     // Standup Circle
     createStandupCircle();
+
+    // Gym Area
+    createGymArea();
 
     // Filing cabinets
     createFilingCabinets();
@@ -2072,6 +2093,411 @@ function createStandupCircle() {
     console.log('[AvatarWorld] Standup circle created at position:', group.position);
 }
 
+function createGymArea() {
+    console.log('>>> CREATEGYMAREA() CALLED - Creating Office Gym <<<');
+    
+    const gymGroup = new THREE.Group();
+    gymGroup.name = 'gymArea';
+    gymGroup.userData = { type: 'gym', clickable: true };
+
+    // Gym floor area - rubber flooring (8x8 area)
+    const floorSize = 8;
+    const tileSize = 2;
+    const tilesPerRow = floorSize / tileSize;
+    
+    for (let i = 0; i < tilesPerRow; i++) {
+        for (let j = 0; j < tilesPerRow; j++) {
+            const tileGeo = new THREE.BoxGeometry(tileSize - 0.05, 0.08, tileSize - 0.05);
+            const isAlternate = (i + j) % 2 === 0;
+            const tile = new THREE.Mesh(tileGeo, isAlternate ? MATERIALS.gymFloor : MATERIALS.gymFloorDark);
+            tile.position.set(
+                (i - tilesPerRow/2 + 0.5) * tileSize,
+                0.04,
+                (j - tilesPerRow/2 + 0.5) * tileSize
+            );
+            tile.receiveShadow = true;
+            gymGroup.add(tile);
+        }
+    }
+
+    // Mirrors on back wall
+    const mirrorGeo = new THREE.PlaneGeometry(6, 3);
+    const mirror1 = new THREE.Mesh(mirrorGeo, MATERIALS.mirror);
+    mirror1.position.set(-2, 4, -3.9);
+    mirror1.rotation.y = Math.PI;
+    gymGroup.add(mirror1);
+    
+    const mirror2 = new THREE.Mesh(mirrorGeo, MATERIALS.mirror);
+    mirror2.position.set(2, 4, -3.9);
+    mirror2.rotation.y = Math.PI;
+    gymGroup.add(mirror2);
+
+    // Mirror frames
+    const frameGeo = new THREE.BoxGeometry(6.2, 3.2, 0.1);
+    const frame1 = new THREE.Mesh(frameGeo, MATERIALS.metal);
+    frame1.position.set(-2, 4, -3.95);
+    gymGroup.add(frame1);
+    
+    const frame2 = new THREE.Mesh(frameGeo, MATERIALS.metal);
+    frame2.position.set(2, 4, -3.95);
+    gymGroup.add(frame2);
+
+    // === TREADMILL ===
+    const treadmillGroup = new THREE.Group();
+    treadmillGroup.name = 'treadmill';
+    
+    // Base platform
+    const treadBaseGeo = new THREE.BoxGeometry(1.8, 0.3, 3.5);
+    const treadBase = new THREE.Mesh(treadBaseGeo, MATERIALS.treadmillFrame);
+    treadBase.position.y = 0.15;
+    treadBase.castShadow = true;
+    treadmillGroup.add(treadBase);
+    
+    // Running belt
+    const beltGeo = new THREE.BoxGeometry(1.4, 0.05, 3);
+    const belt = new THREE.Mesh(beltGeo, MATERIALS.treadmillBelt);
+    belt.position.set(0, 0.32, 0);
+    treadmillGroup.add(belt);
+    
+    // Side rails
+    const railGeo = new THREE.BoxGeometry(0.15, 0.1, 3);
+    const leftRail = new THREE.Mesh(railGeo, MATERIALS.treadmillFrame);
+    leftRail.position.set(-0.8, 0.35, 0);
+    treadmillGroup.add(leftRail);
+    
+    const rightRail = new THREE.Mesh(railGeo, MATERIALS.treadmillFrame);
+    rightRail.position.set(0.8, 0.35, 0);
+    treadmillGroup.add(rightRail);
+    
+    // Console/Display
+    const consolePoleGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.2);
+    const consolePole = new THREE.Mesh(consolePoleGeo, MATERIALS.treadmillFrame);
+    consolePole.position.set(0, 0.9, -1.4);
+    treadmillGroup.add(consolePole);
+    
+    const displayGeo = new THREE.BoxGeometry(1, 0.6, 0.3);
+    const display = new THREE.Mesh(displayGeo, MATERIALS.blackPlastic);
+    display.position.set(0, 1.5, -1.4);
+    treadmillGroup.add(display);
+    
+    // Screen
+    const screenGeo = new THREE.PlaneGeometry(0.8, 0.4);
+    const screenMat = new THREE.MeshStandardMaterial({ 
+        color: 0x00FF00, 
+        emissive: 0x00FF00, 
+        emissiveIntensity: 0.3 
+    });
+    const screen = new THREE.Mesh(screenGeo, screenMat);
+    screen.position.set(0, 1.5, -1.25);
+    treadmillGroup.add(screen);
+    
+    // Handrails
+    const handrailGeo = new THREE.CylinderGeometry(0.04, 0.04, 2.5);
+    const leftHandrail = new THREE.Mesh(handrailGeo, MATERIALS.treadmillFrame);
+    leftHandrail.rotation.x = Math.PI / 2;
+    leftHandrail.position.set(-0.8, 1.2, -0.2);
+    treadmillGroup.add(leftHandrail);
+    
+    const rightHandrail = new THREE.Mesh(handrailGeo, MATERIALS.treadmillFrame);
+    rightHandrail.rotation.x = Math.PI / 2;
+    rightHandrail.position.set(0.8, 1.2, -0.2);
+    treadmillGroup.add(rightHandrail);
+    
+    treadmillGroup.position.set(-2, 0, 0);
+    treadmillGroup.rotation.y = Math.PI / 2;
+    gymGroup.add(treadmillGroup);
+
+    // === DUMBBELL RACK ===
+    const rackGroup = new THREE.Group();
+    rackGroup.name = 'dumbbellRack';
+    
+    // Rack frame
+    const rackFrameGeo = new THREE.BoxGeometry(2.5, 1.5, 0.8);
+    const rackFrame = new THREE.Mesh(rackFrameGeo, MATERIALS.metal);
+    rackFrame.position.y = 0.75;
+    rackFrame.castShadow = true;
+    rackGroup.add(rackFrame);
+    
+    // Shelves
+    for (let i = 0; i < 3; i++) {
+        const shelfGeo = new THREE.BoxGeometry(2.3, 0.05, 0.7);
+        const shelf = new THREE.Mesh(shelfGeo, MATERIALS.blackPlastic);
+        shelf.position.set(0, 0.4 + i * 0.5, 0);
+        rackGroup.add(shelf);
+        
+        // Dumbbells on each shelf
+        const dumbbellSizes = [0.08, 0.1, 0.12]; // Different sizes
+        const numDumbbells = 4;
+        
+        for (let j = 0; j < numDumbbells; j++) {
+            const dbGroup = new THREE.Group();
+            
+            // Handle
+            const handleGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4);
+            const handle = new THREE.Mesh(handleGeo, MATERIALS.chrome);
+            handle.rotation.z = Math.PI / 2;
+            dbGroup.add(handle);
+            
+            // Weights
+            const weightRadius = dumbbellSizes[i] + (j * 0.015);
+            const weightGeo = new THREE.CylinderGeometry(weightRadius, weightRadius, 0.15, 12);
+            const weightMat = i === 0 ? MATERIALS.weightSilver : MATERIALS.weightBlack;
+            
+            const leftWeight = new THREE.Mesh(weightGeo, weightMat);
+            leftWeight.rotation.z = Math.PI / 2;
+            leftWeight.position.x = -0.25;
+            dbGroup.add(leftWeight);
+            
+            const rightWeight = new THREE.Mesh(weightGeo, weightMat);
+            rightWeight.rotation.z = Math.PI / 2;
+            rightWeight.position.x = 0.25;
+            dbGroup.add(rightWeight);
+            
+            dbGroup.position.set(
+                -0.8 + j * 0.55,
+                0.4 + i * 0.5 + weightRadius,
+                0
+            );
+            rackGroup.add(dbGroup);
+        }
+    }
+    
+    rackGroup.position.set(2, 0, -1);
+    rackGroup.rotation.y = -Math.PI / 2;
+    gymGroup.add(rackGroup);
+
+    // === BENCH PRESS ===
+    const benchGroup = new THREE.Group();
+    benchGroup.name = 'benchPress';
+    
+    // Bench pad
+    const benchPadGeo = new THREE.BoxGeometry(1.2, 0.15, 2.5);
+    const benchPad = new THREE.Mesh(benchPadGeo, MATERIALS.leatherBlack);
+    benchPad.position.y = 0.5;
+    benchPad.castShadow = true;
+    benchGroup.add(benchPad);
+    
+    // Bench legs
+    const benchLegGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.5);
+    const legPositions = [[-0.5, -1], [0.5, -1], [-0.5, 1], [0.5, 1]];
+    legPositions.forEach(pos => {
+        const leg = new THREE.Mesh(benchLegGeo, MATERIALS.metal);
+        leg.position.set(pos[0], 0.25, pos[1]);
+        benchGroup.add(leg);
+    });
+    
+    // Barbell rack (uprights)
+    const uprightGeo = new THREE.BoxGeometry(0.1, 1.8, 0.1);
+    const leftUpright = new THREE.Mesh(uprightGeo, MATERIALS.metal);
+    leftUpright.position.set(-0.7, 0.9, -1.2);
+    benchGroup.add(leftUpright);
+    
+    const rightUpright = new THREE.Mesh(uprightGeo, MATERIALS.metal);
+    rightUpright.position.set(0.7, 0.9, -1.2);
+    benchGroup.add(rightUpright);
+    
+    // Barbell hooks
+    const hookGeo = new THREE.BoxGeometry(0.15, 0.05, 0.2);
+    const leftHook = new THREE.Mesh(hookGeo, MATERIALS.weightSilver);
+    leftHook.position.set(-0.7, 1.5, -1.1);
+    benchGroup.add(leftHook);
+    
+    const rightHook = new THREE.Mesh(hookGeo, MATERIALS.weightSilver);
+    rightHook.position.set(0.7, 1.5, -1.1);
+    benchGroup.add(rightHook);
+    
+    // Barbell
+    const barGeo = new THREE.CylinderGeometry(0.025, 0.025, 2.2);
+    const bar = new THREE.Mesh(barGeo, MATERIALS.chrome);
+    bar.rotation.z = Math.PI / 2;
+    bar.position.set(0, 1.55, -1.2);
+    benchGroup.add(bar);
+    
+    // Weight plates on barbell
+    const plateGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.05, 16);
+    const platePositions = [-0.9, -0.8, 0.8, 0.9];
+    platePositions.forEach((x, i) => {
+        const plate = new THREE.Mesh(plateGeo, MATERIALS.weightBlack);
+        plate.rotation.z = Math.PI / 2;
+        plate.position.set(x, 1.55, -1.2);
+        benchGroup.add(plate);
+    });
+    
+    benchGroup.position.set(0, 0, 2);
+    gymGroup.add(benchGroup);
+
+    // === EXERCISE MAT ===
+    const matGroup = new THREE.Group();
+    matGroup.name = 'exerciseMat';
+    
+    // Main mat
+    const matGeo = new THREE.BoxGeometry(1.5, 0.03, 2.5);
+    const mat = new THREE.Mesh(matGeo, MATERIALS.gymMat);
+    mat.position.y = 0.015;
+    mat.receiveShadow = true;
+    matGroup.add(mat);
+    
+    // Rolled mat in corner
+    const rolledMatGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.5);
+    const rolledMat = new THREE.Mesh(rolledMatGeo, MATERIALS.gymMat);
+    rolledMat.rotation.z = Math.PI / 2;
+    rolledMat.position.set(1.2, 0.08, -0.8);
+    matGroup.add(rolledMat);
+    
+    // Yoga block
+    const blockGeo = new THREE.BoxGeometry(0.2, 0.15, 0.35);
+    const block = new THREE.Mesh(blockGeo, new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
+    block.position.set(-0.5, 0.075, 0.5);
+    matGroup.add(block);
+    
+    matGroup.position.set(2.5, 0, 2);
+    matGroup.rotation.y = Math.PI / 4;
+    gymGroup.add(matGroup);
+
+    // === WATER FOUNTAIN ===
+    const fountainGroup = new THREE.Group();
+    fountainGroup.name = 'waterFountain';
+    fountainGroup.userData = { type: 'waterFountain', clickable: true };
+    
+    // Base
+    const fountainBaseGeo = new THREE.BoxGeometry(0.8, 1.2, 0.6);
+    const fountainBase = new THREE.Mesh(fountainBaseGeo, MATERIALS.whitePlastic);
+    fountainBase.position.y = 0.6;
+    fountainBase.castShadow = true;
+    fountainGroup.add(fountainBase);
+    
+    // Basin
+    const basinGeo = new THREE.BoxGeometry(0.6, 0.15, 0.4);
+    const basin = new THREE.Mesh(basinGeo, MATERIALS.ceramic);
+    basin.position.set(0, 1.1, 0.1);
+    fountainGroup.add(basin);
+    
+    // Spout
+    const spoutGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.15);
+    const spout = new THREE.Mesh(spoutGeo, MATERIALS.chrome);
+    spout.position.set(0, 1.25, 0.1);
+    fountainGroup.add(spout);
+    
+    // Push button
+    const buttonGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.05);
+    const button = new THREE.Mesh(buttonGeo, MATERIALS.bluePlastic);
+    button.position.set(0.15, 1.15, 0.25);
+    fountainGroup.add(button);
+    
+    // Water stream (animated)
+    const waterStreamGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.1);
+    const waterStreamMat = new THREE.MeshStandardMaterial({ 
+        color: 0x87CEEB, 
+        transparent: true, 
+        opacity: 0.7 
+    });
+    const waterStream = new THREE.Mesh(waterStreamGeo, waterStreamMat);
+    waterStream.position.set(0, 1.18, 0.1);
+    waterStream.visible = false;
+    waterStream.name = 'waterStream';
+    fountainGroup.add(waterStream);
+    
+    fountainGroup.position.set(-3, 0, 0);
+    fountainGroup.rotation.y = Math.PI / 2;
+    gymGroup.add(fountainGroup);
+
+    // === TOWEL RACK ===
+    const towelRackGroup = new THREE.Group();
+    
+    // Rack frame
+    const rackPoleGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.8);
+    const leftPole = new THREE.Mesh(rackPoleGeo, MATERIALS.chrome);
+    leftPole.position.set(-0.4, 0.9, 0);
+    towelRackGroup.add(leftPole);
+    
+    const rightPole = new THREE.Mesh(rackPoleGeo, MATERIALS.chrome);
+    rightPole.position.set(0.4, 0.9, 0);
+    towelRackGroup.add(rightPole);
+    
+    // Crossbar
+    const crossBarGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.9);
+    const crossBar = new THREE.Mesh(crossBarGeo, MATERIALS.chrome);
+    crossBar.rotation.z = Math.PI / 2;
+    crossBar.position.set(0, 1.7, 0);
+    towelRackGroup.add(crossBar);
+    
+    // Towels
+    for (let i = 0; i < 3; i++) {
+        const towelGeo = new THREE.BoxGeometry(0.15, 0.4, 0.05);
+        const towel = new THREE.Mesh(towelGeo, MATERIALS.towel);
+        towel.position.set(-0.25 + i * 0.25, 1.5, 0);
+        towel.rotation.z = (Math.random() - 0.5) * 0.2;
+        towelRackGroup.add(towel);
+    }
+    
+    towelRackGroup.position.set(3, 0, 2.5);
+    towelRackGroup.rotation.y = -Math.PI / 4;
+    gymGroup.add(towelRackGroup);
+
+    // === SMALL TV ON WALL ===
+    const tvGroup = new THREE.Group();
+    
+    // TV frame
+    const tvFrameGeo = new THREE.BoxGeometry(2, 1.2, 0.08);
+    const tvFrame = new THREE.Mesh(tvFrameGeo, MATERIALS.blackPlastic);
+    tvFrame.position.set(0, 5, -3.9);
+    gymGroup.add(tvFrame);
+    
+    // TV screen
+    const tvScreenGeo = new THREE.PlaneGeometry(1.8, 1);
+    const tvScreenMat = new THREE.MeshStandardMaterial({ 
+        color: 0x111111,
+        emissive: 0x3366FF,
+        emissiveIntensity: 0.2
+    });
+    const tvScreen = new THREE.Mesh(tvScreenGeo, tvScreenMat);
+    tvScreen.position.set(0, 5, -3.85);
+    gymGroup.add(tvScreen);
+    
+    // TV mount
+    const mountGeo = new THREE.BoxGeometry(0.3, 0.3, 0.2);
+    const mount = new THREE.Mesh(mountGeo, MATERIALS.metal);
+    mount.position.set(0, 5, -3.95);
+    gymGroup.add(mount);
+
+    // === "GYM ZONE" SIGN ===
+    const signCanvas = document.createElement('canvas');
+    const signCtx = signCanvas.getContext('2d');
+    signCanvas.width = 512;
+    signCanvas.height = 128;
+    
+    // Background
+    signCtx.fillStyle = '#1a1a1a';
+    signCtx.fillRect(0, 0, 512, 128);
+    
+    // Border
+    signCtx.strokeStyle = '#39FF14';
+    signCtx.lineWidth = 8;
+    signCtx.strokeRect(4, 4, 504, 120);
+    
+    // Text
+    signCtx.fillStyle = '#39FF14';
+    signCtx.font = 'bold 72px Arial';
+    signCtx.textAlign = 'center';
+    signCtx.textBaseline = 'middle';
+    signCtx.fillText('GYM ZONE', 256, 64);
+    
+    const signTexture = new THREE.CanvasTexture(signCanvas);
+    const signMat = new THREE.MeshBasicMaterial({ map: signTexture });
+    const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.75), signMat);
+    signMesh.position.set(0, 7, -3.9);
+    gymGroup.add(signMesh);
+
+    // Position gym in far corner (opposite from coffee station)
+    // Coffee station is at x: -28, z: 0, so gym goes to x: 20, z: -20
+    gymGroup.position.set(20, 0, -20);
+    
+    scene.add(gymGroup);
+    officeItems.gymArea = gymGroup;
+    
+    console.log('[AvatarWorld] Gym area created at position:', gymGroup.position);
+}
+
 function createFilingCabinets() {
     // Create multiple filing cabinets
     const cabinetPositions = [
@@ -3168,6 +3594,14 @@ function handleOfficeItemClick(itemData) {
         case 'door':
             nameEl.textContent = 'Office Entrance';
             descEl.textContent = 'Welcome to Tap Rush HQ!';
+            break;
+        case 'gym':
+            nameEl.textContent = 'Gym Zone 💪';
+            descEl.textContent = 'Office gym with treadmill, weights, bench press, and yoga mats. Stay fit!';
+            break;
+        case 'waterFountain':
+            nameEl.textContent = 'Water Fountain';
+            descEl.textContent = 'Stay hydrated during your workout!';
             break;
     }
 }

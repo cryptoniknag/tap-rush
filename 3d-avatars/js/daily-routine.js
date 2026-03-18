@@ -35,7 +35,12 @@ const PHASE_TARGETS = {
         fin:   { x: -26, z: 0, rot: Math.PI / 2 },
         betty: { x: -26, z: 2, rot: Math.PI / 2 }
     },
-    4: { // Back to desks
+    4: { // Gym workout - optional fitness break
+        groot: { x: 18, z: -18, rot: -Math.PI / 2 },   // At treadmill
+        fin:   { x: 20, z: -22, rot: 0 },              // At bench press
+        betty: { x: 23, z: -22, rot: Math.PI / 4 }    // At exercise mat
+    },
+    5: { // Back to desks
         groot: { x: -10, z: -8, rot: Math.PI / 4 },
         fin:   { x: 0, z: -12, rot: 0 },
         betty: { x: 10, z: -8, rot: -Math.PI / 4 }
@@ -128,7 +133,8 @@ function createUI() {
             <div>Phase 2: Return to Desks</div>
             <div>Phase 3: Conference Table</div>
             <div>Phase 4: Coffee Station</div>
-            <div>Phase 5: Back to Work</div>
+            <div>Phase 5: Gym Workout 💪</div>
+            <div>Phase 6: Back to Work</div>
         </div>
     `;
     
@@ -199,6 +205,7 @@ function runPhase(phaseNum) {
         'Returning to Desks',
         'Conference Table Meeting',
         'Coffee Break',
+        'Gym Workout 💪',
         'Back to Work'
     ];
     
@@ -209,7 +216,7 @@ function runPhase(phaseNum) {
     moveAllAgentsToPhase(phaseNum);
     
     // Schedule next phase (8 seconds per phase)
-    if (phaseNum < 4) {
+    if (phaseNum < 5) {
         phaseTimer = setTimeout(() => {
             if (isRunning) {
                 runPhase(phaseNum + 1);
