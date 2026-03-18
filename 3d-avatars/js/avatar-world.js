@@ -37,13 +37,13 @@ const OFFICE_ZONES = {
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
     standupCircle: { x: 0, y: 0, z: 1.5, rot: Math.PI },      // In front of kanban board
     kanbanBoard: { x: 0, y: 0, z: -2, rot: 0 },           // Freestanding at z: -2
-    // Gym area - moved closer to center for visibility
-    gymArea: { x: 10, y: 0, z: -10, rot: 0 },
-    treadmill: { x: 8, y: 0, z: -8, rot: -Math.PI / 2 },
-    dumbbellRack: { x: 12, y: 0, z: -8, rot: Math.PI / 2 },
-    benchPress: { x: 10, y: 0, z: -12, rot: 0 },
-    exerciseMat: { x: 13, y: 0, z: -12, rot: Math.PI / 4 },
-    waterFountain: { x: 6, y: 0, z: -10, rot: Math.PI / 2 }
+    // Gym area - far corner of the room
+    gymArea: { x: 22, y: 0, z: -18, rot: 0 },
+    treadmill: { x: 20, y: 0, z: -16, rot: -Math.PI / 2 },
+    dumbbellRack: { x: 24, y: 0, z: -16, rot: Math.PI / 2 },
+    benchPress: { x: 22, y: 0, z: -20, rot: 0 },
+    exerciseMat: { x: 25, y: 0, z: -20, rot: Math.PI / 4 },
+    waterFountain: { x: 18, y: 0, z: -18, rot: Math.PI / 2 }
 };
 
 // Agent configurations
