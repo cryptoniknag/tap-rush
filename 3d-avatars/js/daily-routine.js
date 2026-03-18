@@ -1,1036 +1,310 @@
 /**
- * Daily Routine Feature for Agent Avatar World
- * Scripted daily routine with 5 phases and animated interactions
+ * Simple Daily Routine - Agents move between office locations
+ * Completely rewritten for reliability
  */
 
-// Daily Routine State
-const DailyRoutine = {
-    isRunning: false,
-    currentPhase: 0,
-    phaseStartTime: 0,
-    phases: [
-        { name: 'Stand-up at Kanban', duration: 120, id: 'standup' },
-        { name: 'Return to Desks', duration: 60, id: 'returndesks' },
-        { name: 'Conference Room Meeting', duration: 180, id: 'meeting' },
-        { name: 'Coffee Break', duration: 120, id: 'coffee' },
-        { name: 'Back to Work', duration: 30, id: 'work' }
-    ],
-    speechBubbles: [],
-    steamParticles: [],
-    typingEffects: [],
-    phaseTimer: null,
-    uiPanel: null
+// Store the agents object reference
+let localAgents = {};
+let isRunning = false;
+let currentPhase = 0;
+let phaseTimer = null;
+
+// Movement targets for each phase
+const PHASE_TARGETS = {
+    0: { // Standup at Kanban
+        groot: { x: 10, z: -15, rot: -Math.PI / 2 },
+        fin:   { x: 12, z: -15, rot: -Math.PI / 2 },
+        betty: { x: 14, z: -15, rot: -Math.PI / 2 }
+    },
+    1: { // Return to desks
+        groot: { x: -10, z: -8, rot: Math.PI / 4 },
+        fin:   { x: 0, z: -12, rot: 0 },
+        betty: { x: 10, z: -8, rot: -Math.PI / 4 }
+    },
+    2: { // Conference table
+        groot: { x: -3, z: 0, rot: 0 },
+        fin:   { x: 0, z: 0, rot: 0 },
+        betty: { x: 3, z: 0, rot: 0 }
+    },
+    3: { // Coffee station
+        groot: { x: -5, z: -5, rot: Math.PI / 2 },
+        fin:   { x: -3, z: -5, rot: Math.PI / 2 },
+        betty: { x: -1, z: -5, rot: Math.PI / 2 }
+    },
+    4: { // Back to desks
+        groot: { x: -10, z: -8, rot: Math.PI / 4 },
+        fin:   { x: 0, z: -12, rot: 0 },
+        betty: { x: 10, z: -8, rot: -Math.PI / 4 }
+    }
 };
 
-// Stand-up messages for each agent
-const STANDUP_MESSAGES = {
-    groot: [
-        "Working on tree optimization 🌳",
-        "Root system upgraded!",
-        "Growing new branches...",
-        "Photosynthesis efficiency +15%",
-        "I am Groot! 🌱"
-    ],
-    fin: [
-        "Analyzing market data 📊",
-        "Q3 projections look strong",
-        "New strategy drafted",
-        "ROI up 23% this quarter",
-        "Time to pivot! 📈"
-    ],
-    betty: [
-        "Building new game level 🎮",
-        "Pixel art looking cute!",
-        "Testing collision detection",
-        "Added 50 new sprites ✨",
-        "Beta launch next week! 🚀"
-    ]
-};
+// Simple linear interpolation
+function lerp(start, end, t) {
+    return start + (end - start) * t;
+}
 
-// Coffee chat messages
-const COFFEE_CHATS = [
-    "Great coffee today! ☕",
-    "Did you see the new update?",
-    "Weekend plans? 🌟",
-    "That meeting was productive",
-    "Love this new espresso blend",
-    "The weather's nice outside",
-    "Anyone up for lunch? 🍕"
-];
-
-// Meeting discussion topics
-const MEETING_TOPICS = [
-    { speaker: 'fin', message: "Welcome to our daily sync! 📊" },
-    { speaker: 'groot', message: "I am Groot! 🌳" },
-    { speaker: 'betty', message: "The new level designs are ready! 🎮" },
-    { speaker: 'fin', message: "Market analysis shows strong growth 📈" },
-    { speaker: 'groot', message: "Tree optimization complete! 🌿" },
-    { speaker: 'betty', message: "Beta testing starts tomorrow 🚀" },
-    { speaker: 'fin', message: "Let's crush Q3 goals! 💪" }
-];
-
-/**
- * Initialize the Daily Routine feature
- */
-function initDailyRoutine() {
-    createDailyRoutineUI();
-    console.log('Daily Routine feature initialized');
+// Get shortest angle difference for rotation
+function angleDifference(current, target) {
+    let diff = target - current;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    return diff;
 }
 
 /**
- * Create the Daily Routine UI Panel
+ * Initialize the daily routine system
  */
-function createDailyRoutineUI() {
-    const container = document.getElementById('ui-container');
+function initDailyRoutine() {
+    console.log('[DailyRoutine] Initializing...');
     
-    // Create Daily Routine panel
+    // Wait a moment for agents to be created
+    setTimeout(() => {
+        localAgents = window.agents || {};
+        console.log('[DailyRoutine] Agents loaded:', Object.keys(localAgents));
+        
+        // Log each agent's position
+        Object.entries(localAgents).forEach(([key, agent]) => {
+            console.log(`[DailyRoutine] Agent ${key} at:`, {
+                x: agent.position.x.toFixed(2),
+                z: agent.position.z.toFixed(2)
+            });
+        });
+        
+        createUI();
+    }, 1000);
+}
+
+/**
+ * Create simple UI controls
+ */
+function createUI() {
+    const container = document.getElementById('ui-container');
+    if (!container) {
+        console.error('[DailyRoutine] UI container not found');
+        return;
+    }
+    
     const panel = document.createElement('div');
     panel.className = 'daily-routine-panel';
-    panel.id = 'daily-routine-panel';
+    panel.style.cssText = `
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-family: Arial, sans-serif;
+    `;
+    
     panel.innerHTML = `
-        <h3>📅 Daily Routine</h3>
-        <div class="routine-status">
-            <div class="phase-indicator" id="routine-phase">Ready to start</div>
-            <div class="progress-container">
-                <div class="progress-bar" id="routine-progress" style="width: 0%"></div>
-            </div>
-            <div class="time-remaining" id="routine-timer">--:--</div>
-        </div>
-        <div class="routine-controls">
-            <button id="btn-start-routine" class="routine-btn primary">▶️ Start Daily Routine</button>
-            <button id="btn-skip-phase" class="routine-btn secondary" style="display: none;">⏭️ Skip Phase</button>
-            <button id="btn-stop-routine" class="routine-btn danger" style="display: none;">⏹️ Stop</button>
-        </div>
-        <div class="routine-phases">
-            <div class="phase-item" data-phase="0">📋 Stand-up</div>
-            <div class="phase-item" data-phase="1">💻 To Desks</div>
-            <div class="phase-item" data-phase="2">🏢 Meeting</div>
-            <div class="phase-item" data-phase="3">☕ Coffee</div>
-            <div class="phase-item" data-phase="4">🔙 Work</div>
+        <h3 style="margin: 0 0 10px 0;">🚶 Daily Routine</h3>
+        <div id="routine-status" style="margin-bottom: 10px; color: #aaa;">Ready</div>
+        <button id="btn-start-routine" style="
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+        ">▶️ Start Routine</button>
+        <button id="btn-stop-routine" style="
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        ">⏹️ Stop</button>
+        <div id="phase-list" style="margin-top: 10px; font-size: 12px; color: #888;">
+            <div>Phase 1: Kanban Board</div>
+            <div>Phase 2: Return to Desks</div>
+            <div>Phase 3: Conference Table</div>
+            <div>Phase 4: Coffee Station</div>
+            <div>Phase 5: Back to Work</div>
         </div>
     `;
     
     container.appendChild(panel);
-    DailyRoutine.uiPanel = panel;
     
-    // Add event listeners
-    document.getElementById('btn-start-routine').addEventListener('click', startDailyRoutine);
-    document.getElementById('btn-skip-phase').addEventListener('click', skipToNextPhase);
-    document.getElementById('btn-stop-routine').addEventListener('click', stopDailyRoutine);
+    document.getElementById('btn-start-routine').addEventListener('click', startRoutine);
+    document.getElementById('btn-stop-routine').addEventListener('click', stopRoutine);
+    
+    console.log('[DailyRoutine] UI created');
 }
 
 /**
- * Start the Daily Routine
+ * Start the daily routine sequence
  */
-function startDailyRoutine() {
-    if (DailyRoutine.isRunning) return;
+function startRoutine() {
+    if (isRunning) return;
     
-    DailyRoutine.isRunning = true;
-    DailyRoutine.currentPhase = 0;
+    console.log('[DailyRoutine] Starting routine...');
+    isRunning = true;
+    currentPhase = 0;
     
     // Update UI
-    updateRoutineUI('start');
+    document.getElementById('btn-start-routine').style.display = 'none';
+    document.getElementById('btn-stop-routine').style.display = 'inline-block';
     
-    // Start first phase
+    // Start phase 1
     runPhase(0);
-    
-    console.log('Daily Routine started');
 }
 
 /**
- * Stop the Daily Routine
+ * Stop the routine
  */
-function stopDailyRoutine() {
-    if (!DailyRoutine.isRunning) return;
+function stopRoutine() {
+    console.log('[DailyRoutine] Stopping routine...');
+    isRunning = false;
     
-    DailyRoutine.isRunning = false;
-    
-    // Clear timers
-    if (DailyRoutine.phaseTimer) {
-        clearTimeout(DailyRoutine.phaseTimer);
+    if (phaseTimer) {
+        clearTimeout(phaseTimer);
+        phaseTimer = null;
     }
     
-    // Clean up all effects
-    clearAllEffects();
-    
-    // Return agents to their desks
-    returnAgentsToDesks();
+    // Return agents to desks
+    moveAllAgentsToPhase(1);
     
     // Update UI
-    updateRoutineUI('stop');
-    
-    console.log('Daily Routine stopped');
+    document.getElementById('btn-start-routine').style.display = 'inline-block';
+    document.getElementById('btn-stop-routine').style.display = 'none';
+    document.getElementById('routine-status').textContent = 'Stopped';
 }
 
 /**
- * Skip to the next phase
+ * Run a specific phase
  */
-function skipToNextPhase() {
-    if (!DailyRoutine.isRunning) return;
+function runPhase(phaseNum) {
+    if (!isRunning) return;
     
-    // Clear current phase timer
-    if (DailyRoutine.phaseTimer) {
-        clearTimeout(DailyRoutine.phaseTimer);
-    }
+    currentPhase = phaseNum;
+    console.log(`[DailyRoutine] Starting Phase ${phaseNum + 1}`);
     
-    // Move to next phase
-    DailyRoutine.currentPhase++;
-    
-    if (DailyRoutine.currentPhase >= DailyRoutine.phases.length) {
-        stopDailyRoutine();
-        return;
-    }
-    
-    // Clear effects from previous phase
-    clearAllEffects();
-    
-    // Run next phase
-    runPhase(DailyRoutine.currentPhase);
-}
-
-/**
- * Run a specific phase of the routine
- */
-function runPhase(phaseIndex) {
-    const phase = DailyRoutine.phases[phaseIndex];
-    DailyRoutine.phaseStartTime = Date.now();
-    
-    // Update UI
-    updatePhaseUI(phaseIndex);
-    
-    // Execute phase-specific logic
-    switch(phase.id) {
-        case 'standup':
-            runStandupPhase();
-            break;
-        case 'returndesks':
-            runReturnDesksPhase();
-            break;
-        case 'meeting':
-            runMeetingPhase();
-            break;
-        case 'coffee':
-            runCoffeePhase();
-            break;
-        case 'work':
-            runWorkPhase();
-            break;
-    }
-    
-    // Start progress update
-    updateProgressBar(phase.duration);
-    
-    // Schedule next phase
-    DailyRoutine.phaseTimer = setTimeout(() => {
-        if (DailyRoutine.isRunning) {
-            DailyRoutine.currentPhase++;
-            if (DailyRoutine.currentPhase < DailyRoutine.phases.length) {
-                clearAllEffects();
-                runPhase(DailyRoutine.currentPhase);
-            } else {
-                stopDailyRoutine();
-            }
-        }
-    }, phase.duration * 1000);
-}
-
-/**
- * Phase 1: Stand-up at Kanban
- */
-function runStandupPhase() {
-    console.log('Phase: Stand-up at Kanban');
-    
-    // Access agents from window object
-    const agents = window.agents;
-    console.log('Agents:', Object.keys(agents || {}));
-    
-    if (!agents || Object.keys(agents).length === 0) {
-        console.error('No agents found!');
-        return;
-    }
-    
-    // Move all agents to kanban board in a semi-circle
-    const kanbanPositions = [
-        { x: 13, z: -18, rot: -Math.PI / 2 },
-        { x: 15, z: -19, rot: -Math.PI / 2 },
-        { x: 17, z: -18, rot: -Math.PI / 2 }
+    const phaseNames = [
+        'Moving to Kanban Board',
+        'Returning to Desks',
+        'Conference Table Meeting',
+        'Coffee Break',
+        'Back to Work'
     ];
     
-    const agentKeys = Object.keys(agents);
-    agentKeys.forEach((key, i) => {
-        const agent = agents[key];
-        const pos = kanbanPositions[i];
+    document.getElementById('routine-status').textContent = 
+        `Phase ${phaseNum + 1}: ${phaseNames[phaseNum]}`;
+    
+    // Move agents to their targets for this phase
+    moveAllAgentsToPhase(phaseNum);
+    
+    // Schedule next phase (8 seconds per phase)
+    if (phaseNum < 4) {
+        phaseTimer = setTimeout(() => {
+            if (isRunning) {
+                runPhase(phaseNum + 1);
+            }
+        }, 8000);
+    } else {
+        // Last phase - auto-stop after delay
+        phaseTimer = setTimeout(() => {
+            if (isRunning) {
+                console.log('[DailyRoutine] Routine complete');
+                stopRoutine();
+            }
+        }, 8000);
+    }
+}
+
+/**
+ * Move all agents to positions for a specific phase
+ */
+function moveAllAgentsToPhase(phaseNum) {
+    const targets = PHASE_TARGETS[phaseNum];
+    if (!targets) {
+        console.error('[DailyRoutine] No targets for phase', phaseNum);
+        return;
+    }
+    
+    console.log(`[DailyRoutine] Phase ${phaseNum + 1} - Moving agents to:`, targets);
+    
+    Object.entries(targets).forEach(([agentKey, target]) => {
+        const agent = localAgents[agentKey];
         if (agent) {
-            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
+            console.log(`[DailyRoutine] Moving ${agentKey} to (${target.x}, ${target.z})`);
+            moveAgent(agent, target.x, target.z, target.rot);
+        } else {
+            console.warn(`[DailyRoutine] Agent ${agentKey} not found`);
         }
     });
-    
-    // Show speech bubbles after agents arrive
-    setTimeout(() => {
-        showStandupSpeechBubbles();
-    }, 2500);
-    
-    // Continue showing speech bubbles throughout the phase
-    const bubbleInterval = setInterval(() => {
-        if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 0) {
-            clearInterval(bubbleInterval);
-            return;
-        }
-        showStandupSpeechBubbles();
-    }, 4000);
 }
 
 /**
- * Show stand-up speech bubbles
+ * Move a single agent to a target position
  */
-function showStandupSpeechBubbles() {
-    if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 0) return;
-    
-    const agents = window.agents;
-    if (!agents) return;
-    
-    Object.keys(agents).forEach((key, i) => {
-        setTimeout(() => {
-            if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 0) return;
-            
-            const agent = agents[key];
-            if (!agent) return;
-            
-            const messages = STANDUP_MESSAGES[key];
-            if (!messages) return;
-            
-            const message = messages[Math.floor(Math.random() * messages.length)];
-            showSpeechBubble(agent, message, 3000);
-        }, i * 600);
-    });
-}
-
-/**
- * Phase 2: Return to Desks
- */
-function runReturnDesksPhase() {
-    console.log('Phase: Return to Desks');
-    
-    const agents = window.agents;
-    const AGENT_CONFIGS = window.AGENT_CONFIGS;
-    
-    if (!agents || !AGENT_CONFIGS) {
-        console.error('Agents or AGENT_CONFIGS not found!');
-        return;
-    }
-    
-    // Move each agent to their desk
-    Object.keys(AGENT_CONFIGS).forEach((key, i) => {
-        setTimeout(() => {
-            const config = AGENT_CONFIGS[key];
-            const agent = agents[key];
-            if (agent && config) {
-                moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
-            }
-        }, i * 500);
-    });
-    
-    // After arriving, start typing animations
-    setTimeout(() => {
-        if (DailyRoutine.isRunning && DailyRoutine.currentPhase === 1) {
-            Object.keys(agents).forEach(key => {
-                if (agents[key]) {
-                    startTypingAnimation(agents[key]);
-                }
-            });
-        }
-    }, 3000);
-}
-
-/**
- * Phase 3: Conference Room Meeting
- */
-function runMeetingPhase() {
-    console.log('Phase: Conference Room Meeting');
-    
-    const agents = window.agents;
-    
-    if (!agents) {
-        console.error('Agents not found!');
-        return;
-    }
-    
-    // Move agents to conference table positions
-    const meetingPositions = [
-        { x: -3, z: 8, rot: 0 },
-        { x: 0, z: 8, rot: 0 },
-        { x: 3, z: 8, rot: 0 }
-    ];
-    
-    const agentKeys = Object.keys(agents);
-    agentKeys.forEach((key, i) => {
-        const agent = agents[key];
-        const pos = meetingPositions[i];
-        if (agent) {
-            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
-        }
-    });
-    
-    // After arriving, start discussion
-    setTimeout(() => {
-        runMeetingDiscussion();
-    }, 2500);
-    
-    // Show charts on whiteboard
-    showWhiteboardCharts(true);
-}
-
-/**
- * Run meeting discussion with gestures and speech bubbles
- */
-function runMeetingDiscussion() {
-    if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 2) return;
-    
-    const agents = window.agents;
-    if (!agents) return;
-    
-    let topicIndex = 0;
-    
-    const discussionInterval = setInterval(() => {
-        if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 2) {
-            clearInterval(discussionInterval);
-            return;
-        }
-        
-        const topic = MEETING_TOPICS[topicIndex % MEETING_TOPICS.length];
-        const agent = agents[topic.speaker];
-        
-        if (!agent) return;
-        
-        // Show speech bubble
-        showSpeechBubble(agent, topic.message, 3000);
-        
-        // Gesture animation
-        animateAgentGesture(agent);
-        
-        topicIndex++;
-    }, 2500);
-}
-
-/**
- * Animate agent gesturing
- */
-function animateAgentGesture(agent) {
-    if (!agent.userData.rightArm) return;
-    
-    const originalRot = agent.userData.rightArm.rotation.z;
-    let gestureCount = 0;
-    
-    const gestureInterval = setInterval(() => {
-        if (gestureCount > 8) {
-            clearInterval(gestureInterval);
-            if (agent.userData.rightArm) {
-                agent.userData.rightArm.rotation.z = originalRot;
-            }
-            return;
-        }
-        
-        if (agent.userData.rightArm) {
-            agent.userData.rightArm.rotation.z = originalRot + Math.sin(gestureCount * 0.5) * 0.4;
-        }
-        gestureCount++;
-    }, 150);
-}
-
-/**
- * Phase 4: Coffee Break
- */
-function runCoffeePhase() {
-    console.log('Phase: Coffee Break');
-    
-    const agents = window.agents;
-    
-    if (!agents) {
-        console.error('Agents not found!');
-        return;
-    }
-    
-    // Move agents to coffee station
-    const coffeePositions = [
-        { x: 13, z: 11, rot: -Math.PI / 2 },
-        { x: 15, z: 10, rot: -Math.PI / 2 },
-        { x: 14, z: 12, rot: -Math.PI / 2 }
-    ];
-    
-    const agentKeys = Object.keys(agents);
-    agentKeys.forEach((key, i) => {
-        const agent = agents[key];
-        const pos = coffeePositions[i];
-        if (agent) {
-            moveAgentToPosition(agent, pos.x, pos.z, pos.rot);
-        }
-    });
-    
-    // After arriving, show coffee mugs and steam
-    setTimeout(() => {
-        if (DailyRoutine.isRunning && DailyRoutine.currentPhase === 3) {
-            Object.keys(agents).forEach((key, i) => {
-                setTimeout(() => {
-                    if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 3) return;
-                    const agent = agents[key];
-                    if (!agent) return;
-                    
-                    showCoffeeMug(agent);
-                    createSteamEffectAtPosition(
-                        agent.position.x + 0.5,
-                        agent.position.y + 1.5,
-                        agent.position.z + 0.3
-                    );
-                    
-                    // Show casual chat
-                    const chat = COFFEE_CHATS[Math.floor(Math.random() * COFFEE_CHATS.length)];
-                    showSpeechBubble(agent, chat, 2500);
-                }, i * 800);
-            });
-        }
-    }, 2500);
-    
-    // Continue casual chatting
-    const chatInterval = setInterval(() => {
-        if (!DailyRoutine.isRunning || DailyRoutine.currentPhase !== 3) {
-            clearInterval(chatInterval);
-            return;
-        }
-        
-        const agentKeys = Object.keys(agents);
-        const randomKey = agentKeys[Math.floor(Math.random() * agentKeys.length)];
-        const randomAgent = agents[randomKey];
-        if (randomAgent) {
-            const chat = COFFEE_CHATS[Math.floor(Math.random() * COFFEE_CHATS.length)];
-            showSpeechBubble(randomAgent, chat, 2000);
-        }
-    }, 4000);
-}
-
-/**
- * Show coffee mug for an agent
- */
-function showCoffeeMug(agent) {
-    // Create a temporary coffee mug
-    const mugGroup = new THREE.Group();
-    
-    // Mug body
-    const mugGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.18, 12);
-    const mugMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
-    const mug = new THREE.Mesh(mugGeo, mugMat);
-    mugGroup.add(mug);
-    
-    // Mug handle
-    const handleGeo = new THREE.TorusGeometry(0.04, 0.015, 4, 8, Math.PI);
-    const handle = new THREE.Mesh(handleGeo, mugMat);
-    handle.rotation.z = -Math.PI / 2;
-    handle.position.set(-0.08, 0, 0);
-    mugGroup.add(handle);
-    
-    // Position in hand
-    mugGroup.position.set(-0.6, 1.0, 0.3);
-    mugGroup.name = 'coffeeMug';
-    
-    // Add to agent's right hand
-    if (agent.userData.rightArm) {
-        agent.userData.rightArm.add(mugGroup);
-    }
-}
-
-/**
- * Create steam effect at a position
- */
-function createSteamEffectAtPosition(x, y, z) {
-    const scene = window.scene;
-    if (!scene) {
-        console.error('Scene not available');
-        return;
-    }
-    
-    const steamCount = 5;
-    const steamGroup = [];
-    
-    for (let i = 0; i < steamCount; i++) {
-        const steamGeo = new THREE.SphereGeometry(0.02 + i * 0.015, 6, 6);
-        const steamMat = new THREE.MeshBasicMaterial({ 
-            color: 0xFFFFFF, 
-            transparent: true, 
-            opacity: 0.4 - i * 0.06 
-        });
-        const steam = new THREE.Mesh(steamGeo, steamMat);
-        steam.position.set(
-            x + (Math.random() - 0.5) * 0.05, 
-            y + i * 0.08, 
-            z + (Math.random() - 0.5) * 0.05
-        );
-        
-        steam.userData = {
-            baseY: y + i * 0.08,
-            offset: Math.random() * Math.PI * 2,
-            speed: 0.8 + Math.random() * 0.5,
-            initialX: x,
-            initialZ: z
-        };
-        
-        scene.add(steam);
-        steamGroup.push(steam);
-    }
-    
-    DailyRoutine.steamParticles.push(...steamGroup);
-    return steamGroup;
-}
-
-/**
- * Phase 5: Back to Work
- */
-function runWorkPhase() {
-    console.log('Phase: Back to Work');
-    
-    const agents = window.agents;
-    const AGENT_CONFIGS = window.AGENT_CONFIGS;
-    
-    if (!agents || !AGENT_CONFIGS) {
-        console.error('Agents or AGENT_CONFIGS not found!');
-        return;
-    }
-    
-    // Remove coffee mugs
-    Object.values(agents).forEach(agent => {
-        if (agent && agent.userData.rightArm) {
-            const mug = agent.userData.rightArm.getObjectByName('coffeeMug');
-            if (mug) {
-                agent.userData.rightArm.remove(mug);
-            }
-        }
-    });
-    
-    // Move agents back to desks
-    Object.keys(AGENT_CONFIGS).forEach((key, i) => {
-        setTimeout(() => {
-            const config = AGENT_CONFIGS[key];
-            const agent = agents[key];
-            if (agent && config) {
-                moveAgentToPosition(agent, config.position.x, config.position.z, config.position.rot);
-            }
-        }, i * 400);
-    });
-    
-    // Start typing animations after arriving
-    setTimeout(() => {
-        if (DailyRoutine.isRunning && DailyRoutine.currentPhase === 4) {
-            Object.keys(agents).forEach(key => {
-                if (agents[key]) {
-                    startTypingAnimation(agents[key]);
-                }
-            });
-        }
-    }, 2500);
-    
-    // Auto-end after phase duration
-    setTimeout(() => {
-        if (DailyRoutine.isRunning && agents.fin) {
-            showSpeechBubble(agents.fin, "Back to work! Let's crush it! 💪", 2000);
-        }
-    }, 5000);
-}
-
-/**
- * Move agent to a specific position with walking animation
- */
-function moveAgentToPosition(agent, x, z, rot) {
+function moveAgent(agent, targetX, targetZ, targetRot) {
     if (!agent) {
-        console.error('moveAgentToPosition: agent is null');
-        return;
-    }
-    console.log('Moving agent', agent.userData?.id, 'to:', x, z, rot, 'Current pos:', agent.position);
-    agent.userData.targetPosition = { x, y: 0, z, rot };
-    agent.userData.isWalking = true;
-    agent.userData.action = 'walk';
-}
-
-/**
- * Start typing animation for an agent
- */
-function startTypingAnimation(agent) {
-    if (!agent.userData.leftArm || !agent.userData.rightArm) return;
-    
-    const typingGroup = {
-        agent: agent,
-        leftArm: agent.userData.leftArm,
-        rightArm: agent.userData.rightArm,
-        baseLeftRot: agent.userData.leftArm.rotation.x,
-        baseRightRot: agent.userData.rightArm.rotation.x,
-        startTime: Date.now()
-    };
-    
-    DailyRoutine.typingEffects.push(typingGroup);
-}
-
-/**
- * Animate typing effects
- */
-function animateTyping() {
-    const agents = window.agents;
-    if (!agents) return;
-    
-    const now = Date.now();
-    
-    DailyRoutine.typingEffects = DailyRoutine.typingEffects.filter(typing => {
-        const elapsed = (now - typing.startTime) / 1000;
-        const speed = 15;
-        
-        // Random typing motion
-        if (typing.leftArm) {
-            typing.leftArm.rotation.x = typing.baseLeftRot + Math.sin(elapsed * speed) * 0.1 + (Math.random() - 0.5) * 0.05;
-        }
-        if (typing.rightArm) {
-            typing.rightArm.rotation.x = typing.baseRightRot + Math.cos(elapsed * speed * 1.3) * 0.1 + (Math.random() - 0.5) * 0.05;
-        }
-        
-        // Keep typing if still in relevant phases
-        return DailyRoutine.isRunning && (DailyRoutine.currentPhase === 1 || DailyRoutine.currentPhase === 4);
-    });
-}
-
-/**
- * Show speech bubble above an agent
- */
-function showSpeechBubble(agent, text, duration = 3000) {
-    // Remove existing speech bubble for this agent
-    removeSpeechBubble(agent);
-    
-    // Create canvas for speech bubble
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    // Measure text
-    const fontSize = 24;
-    context.font = `${fontSize}px Arial`;
-    const textWidth = context.measureText(text).width;
-    const padding = 20;
-    const bubbleWidth = Math.max(textWidth + padding * 2, 100);
-    const bubbleHeight = fontSize + padding * 2;
-    
-    canvas.width = bubbleWidth;
-    canvas.height = bubbleHeight + 15; // Extra for tail
-    
-    // Draw bubble
-    context.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    context.strokeStyle = '#333';
-    context.lineWidth = 2;
-    
-    // Rounded rect
-    const radius = 10;
-    context.beginPath();
-    context.moveTo(radius, 0);
-    context.lineTo(bubbleWidth - radius, 0);
-    context.quadraticCurveTo(bubbleWidth, 0, bubbleWidth, radius);
-    context.lineTo(bubbleWidth, bubbleHeight - radius);
-    context.quadraticCurveTo(bubbleWidth, bubbleHeight, bubbleWidth - radius, bubbleHeight);
-    context.lineTo(bubbleWidth / 2 + 10, bubbleHeight);
-    context.lineTo(bubbleWidth / 2, bubbleHeight + 15);
-    context.lineTo(bubbleWidth / 2 - 10, bubbleHeight);
-    context.lineTo(radius, bubbleHeight);
-    context.quadraticCurveTo(0, bubbleHeight, 0, bubbleHeight - radius);
-    context.lineTo(0, radius);
-    context.quadraticCurveTo(0, 0, radius, 0);
-    context.closePath();
-    context.fill();
-    context.stroke();
-    
-    // Draw text
-    context.fillStyle = '#333';
-    context.font = `${fontSize}px Arial`;
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(text, bubbleWidth / 2, bubbleHeight / 2);
-    
-    // Create texture and sprite
-    const texture = new THREE.CanvasTexture(canvas);
-    const material = new THREE.SpriteMaterial({ map: texture });
-    const sprite = new THREE.Sprite(material);
-    
-    sprite.position.set(0, 3.5, 0);
-    sprite.scale.set(bubbleWidth / 30, bubbleHeight / 30, 1);
-    
-    agent.add(sprite);
-    
-    const bubbleData = { agent, sprite };
-    DailyRoutine.speechBubbles.push(bubbleData);
-    
-    // Auto-remove after duration
-    setTimeout(() => {
-        removeSpeechBubble(agent);
-    }, duration);
-}
-
-/**
- * Remove speech bubble from an agent
- */
-function removeSpeechBubble(agent) {
-    const index = DailyRoutine.speechBubbles.findIndex(b => b.agent === agent);
-    if (index >= 0) {
-        const bubble = DailyRoutine.speechBubbles[index];
-        if (bubble.sprite && bubble.sprite.parent) {
-            bubble.sprite.parent.remove(bubble.sprite);
-        }
-        DailyRoutine.speechBubbles.splice(index, 1);
-    }
-}
-
-/**
- * Clear all effects
- */
-function clearAllEffects() {
-    // Clear speech bubbles
-    DailyRoutine.speechBubbles.forEach(bubble => {
-        if (bubble.sprite && bubble.sprite.parent) {
-            bubble.sprite.parent.remove(bubble.sprite);
-        }
-    });
-    DailyRoutine.speechBubbles = [];
-    
-    // Clear steam particles
-    DailyRoutine.steamParticles.forEach(steam => {
-        if (steam.parent) {
-            steam.parent.remove(steam);
-        }
-    });
-    DailyRoutine.steamParticles = [];
-    
-    // Clear typing effects
-    DailyRoutine.typingEffects.forEach(typing => {
-        if (typing.leftArm) {
-            typing.leftArm.rotation.x = typing.baseLeftRot || 0;
-        }
-        if (typing.rightArm) {
-            typing.rightArm.rotation.x = typing.baseRightRot || 0;
-        }
-    });
-    DailyRoutine.typingEffects = [];
-    
-    // Hide whiteboard charts
-    showWhiteboardCharts(false);
-}
-
-/**
- * Show/hide whiteboard charts
- */
-function showWhiteboardCharts(show) {
-    const scene = window.scene;
-    if (!scene) return;
-    
-    // Find or create charts
-    let chartsGroup = scene.getObjectByName('whiteboardCharts');
-    
-    if (!chartsGroup && show) {
-        chartsGroup = new THREE.Group();
-        chartsGroup.name = 'whiteboardCharts';
-        
-        // Create some chart visualizations
-        const chartPositions = [
-            { x: -2, y: 6, color: 0x3498db },
-            { x: 0, y: 7, color: 0xe74c3c },
-            { x: 2, y: 6.5, color: 0x2ecc71 }
-        ];
-        
-        chartPositions.forEach((pos, i) => {
-            const barHeight = 1 + Math.random() * 1.5;
-            const barGeo = new THREE.BoxGeometry(0.8, barHeight, 0.05);
-            const barMat = new THREE.MeshBasicMaterial({ color: pos.color });
-            const bar = new THREE.Mesh(barGeo, barMat);
-            bar.position.set(pos.x, pos.y + barHeight / 2 - 0.5, -29.35);
-            chartsGroup.add(bar);
-        });
-        
-        scene.add(chartsGroup);
-    }
-    
-    if (chartsGroup) {
-        chartsGroup.visible = show;
-    }
-}
-
-/**
- * Return agents to their desks
- */
-function returnAgentsToDesks() {
-    const agents = window.agents;
-    const AGENT_CONFIGS = window.AGENT_CONFIGS;
-    
-    if (!agents || !AGENT_CONFIGS) {
-        console.error('Agents or AGENT_CONFIGS not found!');
+        console.error('[DailyRoutine] Cannot move null agent');
         return;
     }
     
-    Object.keys(AGENT_CONFIGS).forEach(key => {
-        const config = AGENT_CONFIGS[key];
-        const agent = agents[key];
+    const startX = agent.position.x;
+    const startZ = agent.position.z;
+    const startRot = agent.rotation.y;
+    
+    const distance = Math.sqrt(
+        Math.pow(targetX - startX, 2) + 
+        Math.pow(targetZ - startZ, 2)
+    );
+    
+    // Movement duration based on distance (2 seconds per 10 units)
+    const duration = Math.max(2000, distance * 200);
+    const startTime = performance.now();
+    
+    console.log(`[DailyRoutine] Move started: distance=${distance.toFixed(2)}, duration=${duration}ms`);
+    
+    function animateMove(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
         
-        if (agent && config) {
-            agent.userData.targetPosition = { ...config.position };
-            agent.userData.isWalking = true;
-            agent.userData.action = null;
+        // Easing function (ease-out)
+        const ease = 1 - Math.pow(1 - progress, 3);
+        
+        // Update position
+        agent.position.x = lerp(startX, targetX, ease);
+        agent.position.z = lerp(startZ, targetZ, ease);
+        
+        // Update rotation
+        const rotDiff = angleDifference(startRot, targetRot);
+        agent.rotation.y = startRot + rotDiff * ease;
+        
+        // Add walking bob effect
+        if (progress < 1) {
+            agent.position.y = Math.abs(Math.sin(elapsed * 0.01)) * 0.1;
+        } else {
+            agent.position.y = 0;
         }
-    });
-    
-    // Reset positions after animation
-    setTimeout(() => {
-        Object.keys(agents).forEach(key => {
-            const config = AGENT_CONFIGS[key];
-            if (agents[key] && config) {
-                agents[key].position.set(config.position.x, config.position.y, config.position.z);
-                agents[key].rotation.y = config.position.rot;
-                agents[key].userData.isWalking = false;
-                resetAgentPose(agents[key]);
-            }
-        });
-    }, 2000);
-}
-
-/**
- * Reset agent pose
- */
-function resetAgentPose(agent) {
-    agent.position.y = agent.userData.originalY || 0;
-    
-    if (agent.userData.leftArm) {
-        agent.userData.leftArm.rotation.set(0, 0, 0);
-    }
-    if (agent.userData.rightArm) {
-        agent.userData.rightArm.rotation.set(0, 0, 0);
-    }
-    if (agent.userData.leftLeg) {
-        agent.userData.leftLeg.rotation.set(0, 0, 0);
-    }
-    if (agent.userData.rightLeg) {
-        agent.userData.rightLeg.rotation.set(0, 0, 0);
-    }
-}
-
-/**
- * Update Routine UI
- */
-function updateRoutineUI(action) {
-    const startBtn = document.getElementById('btn-start-routine');
-    const skipBtn = document.getElementById('btn-skip-phase');
-    const stopBtn = document.getElementById('btn-stop-routine');
-    const phaseEl = document.getElementById('routine-phase');
-    const progressBar = document.getElementById('routine-progress');
-    
-    if (action === 'start') {
-        startBtn.style.display = 'none';
-        skipBtn.style.display = 'inline-block';
-        stopBtn.style.display = 'inline-block';
-    } else if (action === 'stop') {
-        startBtn.style.display = 'inline-block';
-        skipBtn.style.display = 'none';
-        stopBtn.style.display = 'none';
-        phaseEl.textContent = 'Ready to start';
-        progressBar.style.width = '0%';
-        updateTimerDisplay(0);
         
-        // Clear phase highlights
-        document.querySelectorAll('.phase-item').forEach(el => {
-            el.classList.remove('active', 'completed');
-        });
-    }
-}
-
-/**
- * Update phase UI
- */
-function updatePhaseUI(phaseIndex) {
-    const phaseEl = document.getElementById('routine-phase');
-    const phase = DailyRoutine.phases[phaseIndex];
-    
-    phaseEl.textContent = `Phase ${phaseIndex + 1}: ${phase.name}`;
-    
-    // Update phase list
-    document.querySelectorAll('.phase-item').forEach((el, i) => {
-        el.classList.remove('active');
-        if (i < phaseIndex) {
-            el.classList.add('completed');
-        } else if (i === phaseIndex) {
-            el.classList.add('active');
-        }
-    });
-}
-
-/**
- * Update progress bar
- */
-function updateProgressBar(duration) {
-    const progressBar = document.getElementById('routine-progress');
-    const startTime = Date.now();
-    const endTime = startTime + (duration * 1000);
-    
-    function update() {
-        if (!DailyRoutine.isRunning) return;
-        
-        const now = Date.now();
-        const elapsed = now - startTime;
-        const remaining = endTime - now;
-        const progress = Math.min(100, (elapsed / (duration * 1000)) * 100);
-        
-        progressBar.style.width = `${progress}%`;
-        updateTimerDisplay(Math.max(0, Math.ceil(remaining / 1000)));
-        
-        if (remaining > 0) {
-            requestAnimationFrame(update);
+        if (progress < 1) {
+            requestAnimationFrame(animateMove);
+        } else {
+            console.log(`[DailyRoutine] Move complete - agent now at (${agent.position.x.toFixed(2)}, ${agent.position.z.toFixed(2)})`);
         }
     }
     
-    update();
+    requestAnimationFrame(animateMove);
 }
 
 /**
- * Update timer display
- */
-function updateTimerDisplay(seconds) {
-    const timerEl = document.getElementById('routine-timer');
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-/**
- * Animate steam particles
- */
-function animateRoutineSteam() {
-    const time = Date.now() * 0.001;
-    
-    DailyRoutine.steamParticles.forEach(steam => {
-        if (!steam.userData) return;
-        
-        steam.position.y += 0.005 * steam.userData.speed;
-        steam.position.x = steam.userData.initialX + Math.sin(time * 2 + steam.userData.offset) * 0.02;
-        steam.position.z = steam.userData.initialZ + Math.cos(time * 1.5 + steam.userData.offset) * 0.02;
-        
-        const height = steam.position.y - steam.userData.baseY;
-        steam.material.opacity = Math.max(0, 0.4 - height * 0.5);
-        
-        if (steam.position.y > steam.userData.baseY + 0.5) {
-            steam.position.y = steam.userData.baseY;
-            steam.material.opacity = 0.4;
-        }
-    });
-}
-
-/**
- * Update routine animations
+ * Update function called from main animation loop
  */
 function updateDailyRoutineAnimations() {
-    if (!DailyRoutine.isRunning) return;
-    
-    animateTyping();
-    animateRoutineSteam();
+    // Any continuous animations can go here
+    // The movement is handled by requestAnimationFrame in moveAgent
 }
 
-// Export functions for use in main script
-window.DailyRoutine = DailyRoutine;
+// Export functions
 window.initDailyRoutine = initDailyRoutine;
+window.startDailyRoutine = startRoutine;
+window.stopDailyRoutine = stopRoutine;
 window.updateDailyRoutineAnimations = updateDailyRoutineAnimations;
-window.startDailyRoutine = startDailyRoutine;
-window.stopDailyRoutine = stopDailyRoutine;
-window.skipToNextPhase = skipToNextPhase;
+window.moveAgentToPosition = moveAgent; // For compatibility

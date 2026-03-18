@@ -2140,6 +2140,7 @@ function createParticles() {
 }
 
 function createAgents() {
+    console.log('[AvatarWorld] Creating agents...');
     Object.keys(AGENT_CONFIGS).forEach(key => {
         const config = AGENT_CONFIGS[key];
         const agent = createAgent(config);
@@ -2156,7 +2157,14 @@ function createAgents() {
         };
         scene.add(agent);
         agents[key] = agent;
+        console.log(`[AvatarWorld] Created agent ${key} at (${config.position.x}, ${config.position.z})`);
     });
+    
+    // Export to global scope for daily routine
+    window.agents = agents;
+    window.AGENT_CONFIGS = AGENT_CONFIGS;
+    window.scene = scene;
+    console.log('[AvatarWorld] Agents exported to window.agents:', Object.keys(window.agents));
 }
 
 function createAgent(config) {
@@ -3033,11 +3041,6 @@ function animate() {
     // Render
     renderer.render(scene, camera);
 }
-
-// Export agents for daily routine
-window.agents = agents;
-window.AGENT_CONFIGS = AGENT_CONFIGS;
-window.scene = scene;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
