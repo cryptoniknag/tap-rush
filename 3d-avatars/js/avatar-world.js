@@ -2635,15 +2635,14 @@ function createGymArea() {
     zoneSignMesh.position.set(0, 7, -3.9);
     gymGroup.add(zoneSignMesh);
 
-    // Position gym in a MORE VISIBLE location (closer to center)
-    // Changed from (20, 0, -20) to (10, 0, -10) to be in camera view
-    gymGroup.position.set(10, 0, -10);
+    // Position gym at OFFICE_ZONES location (behind conference room)
+    gymGroup.position.set(OFFICE_ZONES.gymArea.x, OFFICE_ZONES.gymArea.y, OFFICE_ZONES.gymArea.z);
     
     scene.add(gymGroup);
     officeItems.gymArea = gymGroup;
     
     console.log('[AvatarWorld] Gym area created at position:', gymGroup.position);
-    console.log('[GYM] Gym is now at (10, 0, -10) - closer to center for visibility');
+    console.log('[GYM] Gym is now at (' + OFFICE_ZONES.gymArea.x + ', ' + OFFICE_ZONES.gymArea.y + ', ' + OFFICE_ZONES.gymArea.z + ') - behind conference room');
     console.log('[GYM] Features: checkerboard floor, neon sign, spotlights, bright equipment');
 }
 
