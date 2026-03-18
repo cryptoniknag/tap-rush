@@ -11,10 +11,12 @@ let phaseTimer = null;
 
 // Movement targets for each phase
 const PHASE_TARGETS = {
-    0: { // Standup at Kanban (outside conference room)
-        groot: { x: -2, z: -3, rot: 0 },
-        fin:   { x: 0, z: -3, rot: 0 },
-        betty: { x: 2, z: -3, rot: 0 }
+    0: { // Standup at Kanban Board - agents stand in semi-circle facing the board
+        // Kanban board is at z: -2, standup circle at z: 1.5
+        // Agents face the board (rot: Math.PI means facing negative Z)
+        groot: { x: -2.5, z: 2.0, rot: Math.PI },   // Left position, facing board
+        fin:   { x: 0, z: 1.5, rot: Math.PI },      // Center position, facing board  
+        betty: { x: 2.5, z: 2.0, rot: Math.PI }    // Right position, facing board
     },
     1: { // Return to desks
         groot: { x: -10, z: -8, rot: Math.PI / 4 },

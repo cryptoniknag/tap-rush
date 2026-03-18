@@ -1721,162 +1721,320 @@ function createKanbanBoard() {
     group.name = 'kanbanBoard';
     group.userData = { type: 'kanban', clickable: true };
 
-    // Main whiteboard surface
+    // Board dimensions
     const boardWidth = 8;
-    const boardHeight = 4;
-    const boardGeo = new THREE.BoxGeometry(boardWidth, boardHeight, 0.1);
+    const boardHeight = 4.5;
+    
+    // Main whiteboard surface - positioned as freestanding
+    const boardGeo = new THREE.BoxGeometry(boardWidth, boardHeight, 0.15);
     const board = new THREE.Mesh(boardGeo, MATERIALS.kanbanBoard);
-    board.position.y = 6;
+    board.position.y = 5.5;
     board.castShadow = true;
     board.receiveShadow = true;
     group.add(board);
 
-    // Board frame
-    const frameGeo = new THREE.BoxGeometry(boardWidth + 0.2, boardHeight + 0.2, 0.15);
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    // Board frame - wooden style
+    const frameThickness = 0.25;
+    const frameDepth = 0.25;
+    const frameGeo = new THREE.BoxGeometry(boardWidth + frameThickness * 2, boardHeight + frameThickness * 2, frameDepth);
+    const frameMat = new THREE.MeshStandardMaterial({ 
+        color: 0x8B4513,  // Wood color
+        roughness: 0.7,
+        metalness: 0.1
+    });
     const frame = new THREE.Mesh(frameGeo, frameMat);
-    frame.position.y = 6;
+    frame.position.y = 5.5;
+    frame.castShadow = true;
     group.add(frame);
 
-    // Section dividers (black lines)
-    const dividerGeo = new THREE.BoxGeometry(0.05, boardHeight - 0.2, 0.02);
-    const dividerMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    // Section dividers (dark gray lines)
+    const dividerGeo = new THREE.BoxGeometry(0.08, boardHeight - 0.6, 0.02);
+    const dividerMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
     
     // Left divider
     const leftDivider = new THREE.Mesh(dividerGeo, dividerMat);
-    leftDivider.position.set(-boardWidth/3, 6, 0.06);
+    leftDivider.position.set(-boardWidth/3, 5.4, 0.08);
     group.add(leftDivider);
 
     // Right divider
     const rightDivider = new THREE.Mesh(dividerGeo, dividerMat);
-    rightDivider.position.set(boardWidth/3, 6, 0.06);
+    rightDivider.position.set(boardWidth/3, 5.4, 0.08);
     group.add(rightDivider);
 
-    // Section headers
+    // Horizontal header line
+    const headerLineGeo = new THREE.BoxGeometry(boardWidth - 0.2, 0.05, 0.02);
+    const headerLine = new THREE.Mesh(headerLineGeo, dividerMat);
+    headerLine.position.set(0, 7.2, 0.08);
+    group.add(headerLine);
+
+    // Section headers with proper text
     const headerLabels = ['TO DO', 'IN PROGRESS', 'DONE'];
     const headerPositions = [-boardWidth/3, 0, boardWidth/3];
     
     headerLabels.forEach((label, i) => {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = 256;
-        canvas.height = 64;
+        canvas.width = 512;
+        canvas.height = 128;
         
-        context.fillStyle = 'transparent';
-        context.fillRect(0, 0, 256, 64);
+        // Clear background
+        context.fillStyle = 'rgba(240, 240, 240, 0.9)';
+        context.fillRect(0, 0, 512, 128);
         
-        context.font = 'bold 36px Arial';
-        context.fillStyle = '#666666';
+        // Draw border
+        context.strokeStyle = '#999999';
+        context.lineWidth = 4;
+        context.strokeRect(2, 2, 508, 124);
+        
+        context.font = 'bold 48px Arial, sans-serif';
+        context.fillStyle = '#333333';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(label, 128, 32);
+        context.fillText(label, 256, 64);
         
         const texture = new THREE.CanvasTexture(canvas);
         const material = new THREE.MeshBasicMaterial({ 
             map: texture, 
-            transparent: true,
-            opacity: 0.8
+            transparent: true
         });
-        const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 0.5), material);
-        plane.position.set(headerPositions[i], 7.5, 0.06);
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.55), material);
+        plane.position.set(headerPositions[i], 7.8, 0.09);
         group.add(plane);
     });
 
-    // Add sticky notes to each column
-    const stickyConfigs = [
-        { col: -2.5, color: MATERIALS.kanbanTodo, count: 4 },
-        { col: 0, color: MATERIALS.kanbanProgress, count: 3 },
-        { col: 2.5, color: MATERIALS.kanbanDone, count: 5 }
+    // Task cards with text labels
+    const taskCards = [
+        // TO DO column (red/pink sticky notes)
+        { col: -2.7, row: 0, color: MATERIALS.kanbanTodo, text: 'Bug Fix' },
+        { col: -2.7, row: 1, color: MATERIALS.kanbanTodo, text: 'Review' },
+        { col: -2.5, row: 2, color: MATERIALS.kanbanTodo, text: 'Test' },
+        { col: -2.8, row: 3, color: MATERIALS.kanbanTodo, text: 'Deploy' },
+        
+        // IN PROGRESS column (yellow sticky notes)
+        { col: -0.2, row: 0, color: MATERIALS.kanbanProgress, text: 'Feature' },
+        { col: 0.2, row: 1, color: MATERIALS.kanbanProgress, text: 'Code' },
+        { col: -0.1, row: 2, color: MATERIALS.kanbanProgress, text: 'Design' },
+        
+        // DONE column (green sticky notes)
+        { col: 2.5, row: 0, color: MATERIALS.kanbanDone, text: 'Done!' },
+        { col: 2.7, row: 1, color: MATERIALS.kanbanDone, text: 'Ship' },
+        { col: 2.4, row: 2, color: MATERIALS.kanbanDone, text: 'Merge' },
+        { col: 2.6, row: 3, color: MATERIALS.kanbanDone, text: 'Fix' },
+        { col: 2.3, row: 4, color: MATERIALS.kanbanDone, text: 'Test' }
     ];
 
-    stickyConfigs.forEach(config => {
-        for (let i = 0; i < config.count; i++) {
-            const stickyGeo = new THREE.BoxGeometry(0.8, 0.8, 0.02);
-            const sticky = new THREE.Mesh(stickyGeo, config.color);
-            // Randomize position within column
-            const xOffset = config.col + (Math.random() - 0.5) * 0.3;
-            const yOffset = 5.5 - (i * 1.2) + (Math.random() - 0.5) * 0.2;
-            sticky.position.set(xOffset, yOffset, 0.06);
-            sticky.rotation.z = (Math.random() - 0.5) * 0.2; // Slight random rotation
-            sticky.castShadow = true;
-            group.add(sticky);
-        }
+    taskCards.forEach((card, i) => {
+        const cardGroup = new THREE.Group();
+        
+        // Sticky note base
+        const stickyGeo = new THREE.BoxGeometry(1.0, 0.9, 0.03);
+        const sticky = new THREE.Mesh(stickyGeo, card.color);
+        sticky.castShadow = true;
+        cardGroup.add(sticky);
+        
+        // Text on sticky note
+        const textCanvas = document.createElement('canvas');
+        const textCtx = textCanvas.getContext('2d');
+        textCanvas.width = 256;
+        textCanvas.height = 128;
+        
+        textCtx.fillStyle = 'transparent';
+        textCtx.fillRect(0, 0, 256, 128);
+        
+        textCtx.font = 'bold 32px Arial, sans-serif';
+        // Choose text color based on background
+        const textColor = (card.text === 'Bug Fix' || card.text === 'Review') ? '#FFFFFF' : '#333333';
+        textCtx.fillStyle = textColor;
+        textCtx.textAlign = 'center';
+        textCtx.textBaseline = 'middle';
+        textCtx.fillText(card.text, 128, 64);
+        
+        const textTexture = new THREE.CanvasTexture(textCanvas);
+        const textMat = new THREE.MeshBasicMaterial({ 
+            map: textTexture, 
+            transparent: true 
+        });
+        const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), textMat);
+        textPlane.position.set(0, 0, 0.02);
+        cardGroup.add(textPlane);
+        
+        // Position within column
+        const yPos = 6.5 - (card.row * 1.1);
+        cardGroup.position.set(card.col, yPos, 0.09);
+        
+        // Slight random rotation for natural look
+        cardGroup.rotation.z = (Math.random() - 0.5) * 0.15;
+        
+        group.add(cardGroup);
     });
 
-    // Stand legs (freestanding kanban board)
-    const legGeo = new THREE.BoxGeometry(0.15, 5.5, 0.15);
-    const legMat = MATERIALS.metal;
+    // Stand legs (freestanding A-frame style)
+    const legThickness = 0.2;
+    const legHeight = 5;
+    const legSpread = 0.8;
     
-    const leftLeg = new THREE.Mesh(legGeo, legMat);
-    leftLeg.position.set(-3.5, 2.75, -0.3);
-    group.add(leftLeg);
+    const legMat = new THREE.MeshStandardMaterial({ 
+        color: 0x333333,
+        roughness: 0.4,
+        metalness: 0.6
+    });
+    
+    // Left side legs (A-frame)
+    const leftLeg1Geo = new THREE.BoxGeometry(legThickness, legHeight, legThickness);
+    const leftLeg1 = new THREE.Mesh(leftLeg1Geo, legMat);
+    leftLeg1.position.set(-3.8, 2.5, legSpread);
+    leftLeg1.rotation.x = -0.15;
+    group.add(leftLeg1);
+    
+    const leftLeg2 = new THREE.Mesh(leftLeg1Geo, legMat);
+    leftLeg2.position.set(-3.8, 2.5, -legSpread);
+    leftLeg2.rotation.x = 0.15;
+    group.add(leftLeg2);
+    
+    // Right side legs (A-frame)
+    const rightLeg1 = new THREE.Mesh(leftLeg1Geo, legMat);
+    rightLeg1.position.set(3.8, 2.5, legSpread);
+    rightLeg1.rotation.x = -0.15;
+    group.add(rightLeg1);
+    
+    const rightLeg2 = new THREE.Mesh(leftLeg1Geo, legMat);
+    rightLeg2.position.set(3.8, 2.5, -legSpread);
+    rightLeg2.rotation.x = 0.15;
+    group.add(rightLeg2);
 
-    const rightLeg = new THREE.Mesh(legGeo, legMat);
-    rightLeg.position.set(3.5, 2.75, -0.3);
-    group.add(rightLeg);
+    // Crossbar support
+    const crossbarGeo = new THREE.BoxGeometry(8.2, 0.15, 0.15);
+    const crossbar = new THREE.Mesh(crossbarGeo, legMat);
+    crossbar.position.set(0, 1.5, 0);
+    group.add(crossbar);
 
-    // Support feet
-    const footGeo = new THREE.BoxGeometry(1.5, 0.1, 0.8);
-    const footMat = MATERIALS.blackPlastic;
+    // Support feet (wider base for stability)
+    const footGeo = new THREE.BoxGeometry(1.2, 0.15, 2.0);
+    const footMat = new THREE.MeshStandardMaterial({ 
+        color: 0x222222,
+        roughness: 0.5
+    });
     
     const leftFoot = new THREE.Mesh(footGeo, footMat);
-    leftFoot.position.set(-3.5, 0.05, 0);
+    leftFoot.position.set(-3.8, 0.075, 0);
+    leftFoot.castShadow = true;
     group.add(leftFoot);
 
     const rightFoot = new THREE.Mesh(footGeo, footMat);
-    rightFoot.position.set(3.5, 0.05, 0);
+    rightFoot.position.set(3.8, 0.075, 0);
+    rightFoot.castShadow = true;
     group.add(rightFoot);
 
-    // Position outside conference room (conference room is at z:8, back wall is at z:-29.7)
-    // Place it just outside the conference room area
-    group.position.set(0, 0, 0);
+    // Position: Outside conference room, near entrance, good lighting
+    // Conference room is at z:8, place kanban between desks and conference
+    group.position.set(0, 0, -2);
     group.rotation.y = 0;
     
     scene.add(group);
     kanbanBoard = group;
     officeItems.kanbanBoard = group;
+    
+    console.log('[AvatarWorld] Kanban board created at position:', group.position);
 }
 
 function createStandupCircle() {
     const group = new THREE.Group();
     group.name = 'standupCircle';
 
-    // Circle on floor
-    const circleGeo = new THREE.RingGeometry(2, 2.3, 32);
-    const circleMat = new THREE.MeshStandardMaterial({ 
+    // Main standup area - semi-circle in front of kanban board
+    // Board is at z: -2, standup area should be in front (positive z direction)
+    
+    // Outer ring - indicates standing positions
+    const ringGeo = new THREE.RingGeometry(3, 3.5, 32, 1, 0, Math.PI);
+    const ringMat = new THREE.MeshStandardMaterial({ 
         color: 0x4ECDC4,
         emissive: 0x4ECDC4,
-        emissiveIntensity: 0.2,
+        emissiveIntensity: 0.3,
         side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.7
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.rotation.z = Math.PI; // Face the kanban board
+    ring.position.y = 0.03;
+    group.add(ring);
+
+    // Inner fill area
+    const fillGeo = new THREE.RingGeometry(0, 3, 32, 1, 0, Math.PI);
+    const fillMat = new THREE.MeshStandardMaterial({ 
+        color: 0x4ECDC4,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide
+    });
+    const fill = new THREE.Mesh(fillGeo, fillMat);
+    fill.rotation.x = -Math.PI / 2;
+    fill.rotation.z = Math.PI;
+    fill.position.y = 0.02;
+    group.add(fill);
+
+    // Position markers for 3 agents (standing positions)
+    const agentPositions = [
+        { x: -2.5, z: 0.5 },   // Left position
+        { x: 0, z: 0 },        // Center position  
+        { x: 2.5, z: 0.5 }     // Right position
+    ];
+    
+    agentPositions.forEach((pos, i) => {
+        const markerGeo = new THREE.CircleGeometry(0.4, 16);
+        const markerMat = new THREE.MeshStandardMaterial({ 
+            color: 0xFFFFFF,
+            emissive: 0xFFFFFF,
+            emissiveIntensity: 0.4,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8
+        });
+        const marker = new THREE.Mesh(markerGeo, markerMat);
+        marker.rotation.x = -Math.PI / 2;
+        marker.position.set(pos.x, 0.04, pos.z);
+        group.add(marker);
+    });
+
+    // "STAND UP" text on floor
+    const textCanvas = document.createElement('canvas');
+    const ctx = textCanvas.getContext('2d');
+    textCanvas.width = 512;
+    textCanvas.height = 128;
+    
+    ctx.fillStyle = 'rgba(78, 205, 196, 0.3)';
+    ctx.fillRect(0, 0, 512, 128);
+    
+    ctx.font = 'bold 60px Arial, sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DAILY STANDUP', 256, 64);
+    
+    const textTexture = new THREE.CanvasTexture(textCanvas);
+    const textMat = new THREE.MeshBasicMaterial({ 
+        map: textTexture, 
         transparent: true,
         opacity: 0.6
     });
-    const circle = new THREE.Mesh(circleGeo, circleMat);
-    circle.rotation.x = -Math.PI / 2;
-    circle.position.y = 0.02;
-    group.add(circle);
+    const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(4, 1), textMat);
+    textPlane.rotation.x = -Math.PI / 2;
+    textPlane.position.set(0, 0.05, 2.5);
+    group.add(textPlane);
 
-    // Inner circle for better visibility
-    const innerCircleGeo = new THREE.RingGeometry(0, 2, 32);
-    const innerCircleMat = new THREE.MeshStandardMaterial({ 
-        color: 0x4ECDC4,
-        transparent: true,
-        opacity: 0.1,
-        side: THREE.DoubleSide
-    });
-    const innerCircle = new THREE.Mesh(innerCircleGeo, innerCircleMat);
-    innerCircle.rotation.x = -Math.PI / 2;
-    innerCircle.position.y = 0.01;
-    group.add(innerCircle);
-
-    // Position outside conference room, near kanban board
-    group.position.set(0, 0, -5);
+    // Position: In front of kanban board (board at z: -2, standup at z: 1.5)
+    // This gives 3.5 units of space between board and standup positions
+    group.position.set(0, 0, 1.5);
     
     scene.add(group);
     standupCircle = group;
 
-    // Update the standup zone position
-    OFFICE_ZONES.standupCircle = { x: 0, y: 0, z: -5, rot: 0 };
+    // Update the standup zone position - agents face the board (rot: Math.PI)
+    OFFICE_ZONES.standupCircle = { x: 0, y: 0, z: 1.5, rot: Math.PI };
+    OFFICE_ZONES.kanbanBoard = { x: 0, y: 0, z: -2, rot: 0 };
+    
+    console.log('[AvatarWorld] Standup circle created at position:', group.position);
 }
 
 function createFilingCabinets() {
@@ -2687,25 +2845,30 @@ function toggleStandupMode() {
 }
 
 function startStandup() {
-    // Move all agents to standup circle (outside conference room, near kanban)
-    const basePositions = [
-        { x: -2, z: -3, rot: 0 },      // Groot
-        { x: 0, z: -3, rot: 0 },       // Fin
-        { x: 2, z: -3, rot: 0 }        // Betty
+    // Move all agents to standup positions IN FRONT OF the Kanban board
+    // Kanban board is at z: -2, standup circle at z: 1.5
+    // Agents face the board (rot: Math.PI means facing negative Z, toward the board)
+    const standupPositions = [
+        { x: -2.5, z: 2.0, rot: Math.PI },   // Groot - left position, facing board
+        { x: 0, z: 1.5, rot: Math.PI },      // Fin - center position, facing board
+        { x: 2.5, z: 2.0, rot: Math.PI }     // Betty - right position, facing board
     ];
 
     const agentKeys = Object.keys(agents);
     agentKeys.forEach((key, i) => {
-        const pos = basePositions[i];
+        const pos = standupPositions[i];
         const agent = agents[key];
         agent.userData.targetPosition = { x: pos.x, y: 0, z: pos.z, rot: pos.rot };
         agent.userData.isWalking = true;
+        console.log(`[Standup] Moving ${key} to standup position:`, pos);
     });
 
     // Animate standup circle to show it's active
     if (standupCircle) {
-        const circle = standupCircle.children[0];
-        circle.material.emissiveIntensity = 0.5;
+        const ring = standupCircle.children[0];
+        if (ring && ring.material) {
+            ring.material.emissiveIntensity = 0.6;
+        }
     }
 
     // Show discussion after agents arrive
@@ -2722,8 +2885,10 @@ function endStandup() {
 
     // Reset standup circle
     if (standupCircle) {
-        const circle = standupCircle.children[0];
-        circle.material.emissiveIntensity = 0.2;
+        const ring = standupCircle.children[0];
+        if (ring && ring.material) {
+            ring.material.emissiveIntensity = 0.3;
+        }
     }
 
     setTimeout(() => {
