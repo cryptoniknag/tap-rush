@@ -36,8 +36,8 @@ const OFFICE_ZONES = {
     coffeeStation: { x: -28, y: 0, z: 0, rot: Math.PI / 2 },  // EDGE of room (left side)
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
-    standupCircle: { x: 0, y: 0, z: 1.5, rot: Math.PI },      // In front of kanban board
-    kanbanBoard: { x: 0, y: 0, z: -2, rot: 0 },           // Freestanding at z: -2
+    standupCircle: { x: 14, y: 0, z: 10, rot: Math.PI },      // Opposite side of lounge
+    kanbanBoard: { x: 14, y: 0, z: 8, rot: 0 },           // Opposite side of lounge, light blue
     // Gym area - behind conference room
     gymArea: { x: 0, y: 0, z: 18, rot: 0 },
     treadmill: { x: -3, y: 0, z: 16, rot: -Math.PI / 2 },
@@ -132,7 +132,7 @@ const MATERIALS = {
     pinkSticky: new THREE.MeshStandardMaterial({ color: 0xFF69B4, roughness: 0.9 }),
     greenSticky: new THREE.MeshStandardMaterial({ color: 0x90EE90, roughness: 0.9 }),
     whiteboard: new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.9 }),
-    kanbanBoard: new THREE.MeshStandardMaterial({ color: 0xF5F5F5, roughness: 0.8 }),
+    kanbanBoard: new THREE.MeshStandardMaterial({ color: 0x87CEEB, roughness: 0.8 }),  // Light blue
     kanbanTodo: new THREE.MeshStandardMaterial({ color: 0xFF6B6B, roughness: 0.9 }),
     kanbanProgress: new THREE.MeshStandardMaterial({ color: 0xFFE66D, roughness: 0.9 }),
     kanbanDone: new THREE.MeshStandardMaterial({ color: 0x4ECDC4, roughness: 0.9 }),
