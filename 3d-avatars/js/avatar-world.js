@@ -36,8 +36,8 @@ const OFFICE_ZONES = {
     coffeeStation: { x: -28, y: 0, z: 0, rot: Math.PI / 2 },  // EDGE of room (left side)
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
     whiteboard: { x: -5, y: 0, z: 8, rot: Math.PI / 2 },
-    standupCircle: { x: 14, y: 0, z: 10, rot: Math.PI },      // Opposite side of lounge
-    kanbanBoard: { x: 14, y: 0, z: 8, rot: 0 },           // Opposite side of lounge, light blue
+    standupCircle: { x: 3, y: 0, z: 16, rot: Math.PI },      // Next to gym
+    kanbanBoard: { x: 3, y: 0, z: 14, rot: 0 },           // Next to gym, light blue
     // Gym area - behind conference room
     gymArea: { x: 0, y: 0, z: 18, rot: 0 },
     treadmill: { x: -3, y: 0, z: 16, rot: -Math.PI / 2 },
