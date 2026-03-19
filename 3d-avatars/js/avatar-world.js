@@ -2207,10 +2207,9 @@ function createKanbanBoard() {
     
     console.log('Kanban legs positioned at x:', legX);
 
-    // Position: Outside conference room, near entrance, good lighting
-    // Conference room is at z:8, place kanban between desks and conference
-    group.position.set(0, 0, -2);
-    group.rotation.y = 0;
+    // Position: Next to gym
+    group.position.set(OFFICE_ZONES.kanbanBoard.x, OFFICE_ZONES.kanbanBoard.y, OFFICE_ZONES.kanbanBoard.z);
+    group.rotation.y = OFFICE_ZONES.kanbanBoard.rot;
     
     scene.add(group);
     kanbanBoard = group;
@@ -2314,9 +2313,9 @@ function createStandupCircle() {
     scene.add(group);
     standupCircle = group;
 
-    // Update the standup zone position - agents face the board (rot: Math.PI)
-    OFFICE_ZONES.standupCircle = { x: 0, y: 0, z: 1.5, rot: Math.PI };
-    OFFICE_ZONES.kanbanBoard = { x: 0, y: 0, z: -2, rot: 0 };
+    // Update the standup zone position from OFFICE_ZONES
+    OFFICE_ZONES.standupCircle = { x: OFFICE_ZONES.standupCircle.x, y: OFFICE_ZONES.standupCircle.y, z: OFFICE_ZONES.standupCircle.z, rot: OFFICE_ZONES.standupCircle.rot };
+    OFFICE_ZONES.kanbanBoard = { x: OFFICE_ZONES.kanbanBoard.x, y: OFFICE_ZONES.kanbanBoard.y, z: OFFICE_ZONES.kanbanBoard.z, rot: OFFICE_ZONES.kanbanBoard.rot };
     
     console.log('[AvatarWorld] Standup circle created at position:', group.position);
 }
