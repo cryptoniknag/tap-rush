@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Bender - Betty's Puzzle Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        #level-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+        #puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            margin: 20px auto;
+            justify-content: center;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            user-select: none;
+        }
+        .tile:hover {
+            transform: scale(1.05);
+        }
+        .tile.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        .tile.matched {
+            animation: matchPulse 0.5s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        @keyframes matchPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background: #90EE90; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .color-1 { background: #FF6B6B; color: white; }
+        .color-2 { background: #4ECDC4; color: white; }
+        .color-3 { background: #45B7D1; color: white; }
+        .color-4 { background: #96CEB4; color: white; }
+        .color-5 { background: #FECA57; color: #333; }
+        .color-6 { background: #FF9FF3; color: white; }
+        .color-7 { background: #54A0FF; color: white; }
+        .color-8 { background: #48DBFB; color: white; }
+        #controls {
+            margin-top: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #message {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #667eea;
+            min-height: 30px;
+        }
+        #timer {
+            font-size: 20px;
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>🧩 MIND BENDER</h1>
+        <p class="subtitle">Built by Betty 🎮 | Match tiles to clear the board!</p>
+        
+        <div id="level-info">
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">LEVEL</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">SCORE</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="moves">0</div>
+                <div class="stat-label">MOVES</div>
+            </div>
+        </div>
+        
+        <div id="timer">⏱️ 60s</div>
+        
+        <div id="puzzle-grid"></div>
+        
+        <div id="message">Click two matching tiles!</div>
+        
+        <div id="controls">
+            <button onclick="newGame()">🔄 New Game</button>
+            <button onclick="showHint()">💡 Hint</button>
+            <button onclick="shuffleBoard()">🔀 Shuffle</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let level = 1;
+        let score = 0;
+        let moves = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let selectedTile = null;
+        let tiles = [];
+        let isProcessing = false;
+        
+        // Tile symbols
+        const symbols = ['🌟', '🎵', '🔥', '💎', '🌈', '⚡', '🍀', '🎨'];
+        
+        // Initialize game
+        function initGame() {
+            createGrid();
+            startTimer();
+        }
+        
+        function createGrid() {
+            const grid = document.getElementById('puzzle-grid');
+            grid.innerHTML = '';
+            tiles = [];
+            
+            // Create pairs of tiles
+            const pairs = [];
+            const numPairs = 8; // 16 tiles total (4x4 grid)
+            
+            for (let i = 0; i < numPairs; i++) {
+                const symbol = symbols[i % symbols.length];
+                const colorClass = `color-${(i % 8) + 1}`;
+                pairs.push({ symbol, colorClass, id: i });
+                pairs.push({ symbol, colorClass, id: i });
+            }
+            
+            // Shuffle pairs
+            for (let i = pairs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+            }
+            
+            // Create tile elements
+            pairs.forEach((pair, index) => {
+                const tile = document.createElement('div');
+                tile.className = `tile ${pair.colorClass}`;
+                tile.textContent = pair.symbol;
+                tile.dataset.symbol = pair.symbol;
+                tile.dataset.id = pair.id;
+                tile.dataset.index = index;
+                tile.onclick = () => selectTile(tile);
+                grid.appendChild(tile);
+                tiles.push(tile);
+            });
+        }
+        
+        function selectTile(tile) {
+            if (isProcessing || tile.classList.contains('matched')) return;
+            
+            if (!selectedTile) {
+                // First selection
+                selectedTile = tile;
+                tile.classList.add('selected');
+                document.getElementById('message').textContent = 'Now click the matching tile!';
+            } else if (selectedTile === tile) {
+                // Deselect
+                selectedTile.classList.remove('selected');
+                selectedTile = null;
+                document.getElementById('message').textContent = 'Click two matching tiles!';
+            } else {
+                // Second selection - check match
+                checkMatch(selectedTile, tile);
+            }
+        }
+        
+        function checkMatch(tile1, tile2) {
+            isProcessing = true;
+            moves++;
+            document.getElementById('moves').textContent = moves;
+            
+            if (tile1.dataset.symbol === tile2.dataset.symbol) {
+                // Match!
+                tile1.classList.add('matched');
+                tile2.classList.add('matched');
+                tile1.classList.remove('selected');
+                
+                score += 100 * level;
+                document.getElementById('score').textContent = score;
+                document.getElementById('message').textContent = '✨ Match! +' + (100 * level) + ' points!';
+                
+                // Check if level complete
+                const remaining = tiles.filter(t => !t.classList.contains('matched')).length;
+                if (remaining === 0) {
+                    levelComplete();
+                }
+            } else {
+                // No match
+                tile1.classList.remove('selected');
+                tile2.classList.add('selected');
+                selectedTile = tile2;
+                document.getElementById('message').textContent = '❌ No match! Try again!';
+                
+                setTimeout(() => {
+                    tile2.classList.remove('selected');
+                    selectedTile = null;
+                    document.getElementById('message').textContent = 'Click two matching tiles!';
+                }, 1000);
+            }
+            
+            isProcessing = false;
+        }
+        
+        function levelComplete() {
+            clearInterval(timerInterval);
+            level++;
+            document.getElementById('level').textContent = level;
+            document.getElementById('message').textContent = '🎉 Level ' + (level - 1) + ' Complete! Starting next level...';
+            
+            // Bonus points for time remaining
+            const timeBonus = timeLeft * 10;
+            score += timeBonus;
+            document.getElementById('score').textContent = score;
+            
+            setTimeout(() => {
+                timeLeft = Math.max(45, 60 - (level * 5)); // Less time for higher levels
+                moves = 0;
+                document.getElementById('moves').textContent = moves;
+                createGrid();
+                startTimer();
+            }, 2000);
+        }
+        
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = '⏱️ ' + timeLeft + 's';
+                
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').style.color = '#e74c3c';
+                } else {
+                    document.getElementById('timer').style.color = '#333';
+                }
+                
+                if (timeLeft <= 0) {
+                    gameOver();
+                }
+            }, 1000);
+        }
+        
+        function gameOver() {
+            clearInterval(timerInterval);
+            document.getElementById('message').innerHTML = 
+                '😢 Game Over! Final Score: ' + score + '<br><button onclick="newGame()">Try Again</button>';
+        }
+        
+        function newGame() {
+            level = 1;
+            score = 0;
+            moves = 0;
+            timeLeft = 60;
+            selectedTile = null;
+            isProcessing = false;
+            
+            document.getElementById('level').textContent = level;
+            document.getElementById('score').textContent = score;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('timer').textContent = '⏱️ 60s';
+            document.getElementById('message').textContent = 'Click two matching tiles!';
+            
+            createGrid();
+            startTimer();
+        }
+        
+        function showHint() {
+            if (isProcessing) return;
+            
+            // Find first unmatched pair
+            const unmatched = tiles.filter(t => !t.classList.contains('matched'));
+            if (unmatched.length >= 2) {
+                const first = unmatched[0];
+                const match = unmatched.find(t => t !== first && t.dataset.symbol === first.dataset.symbol);
+                
+                if (match) {
+                    first.style.border = '3px solid #FFD700';
+                    match.style.border = '3px solid #FFD700';
+                    
+                    setTimeout(() => {
+                        first.style.border = '';
+                        match.style.border = '';
+                    }, 1500);
+                    
+                    score = Math.max(0, score - 50);
+                    document.getElementById('score').textContent = score;
+                }
+            }
+        }
+        
+        function shuffleBoard() {
+            if (isProcessing) return;
+            
+            const unmatched = tiles.filter(t => !t.classList.contains('matched'));
+            const symbols = unmatched.map(t => t.dataset.symbol);
+            
+            // Shuffle symbols
+            for (let i = symbols.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
+            }
+            
+            // Reassign symbols
+            unmatched.forEach((tile, index) => {
+                tile.dataset.symbol = symbols[index];
+                tile.textContent = symbols[index];
+            });
+            
+            score = Math.max(0, score - 100);
+            document.getElementById('score').textContent = score;
+            selectedTile = null;
+        }
+        
+        // Start game on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
