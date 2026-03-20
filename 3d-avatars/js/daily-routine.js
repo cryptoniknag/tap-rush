@@ -1,322 +1,162 @@
-/**
- * SIMPLE Daily Routine - Just walking from A to B
- * No complex animations, no sitting/standing, just movement
- */
+// Simple working daily routine
+let routineRunning = false;
 
-// Simple routine state
-let routineState = {
-    isActive: false,
-    phase: 0, // 0 = going to Kanban, 1 = going to desks
-    agents: ['groot', 'fin', 'betty', 'smith'],
-    moveSpeed: 2.0 // units per second
-};
+// Kanban position
+const KANBAN_POS = { x: 0, z: 5 };
 
-// Agent movement data
-let agentMoves = {};
-
-// Target locations
-const TARGETS = {
-    kanban: { x: 0, z: 5 },
-    desks: {
+// Desk positions (will be read from AGENT_CONFIGS)
+function getDeskPosition(agentKey) {
+    if (typeof AGENT_CONFIGS !== 'undefined' && AGENT_CONFIGS[agentKey]) {
+        return {
+            x: AGENT_CONFIGS[agentKey].position.x,
+            z: AGENT_CONFIGS[agentKey].position.z
+        };
+    }
+    // Fallback positions
+    const fallbacks = {
         groot: { x: -8, z: -5 },
         fin: { x: -3, z: -5 },
         betty: { x: 3, z: -5 },
         smith: { x: 8, z: -5 }
-    }
-};
+    };
+    return fallbacks[agentKey] || { x: 0, z: 0 };
+}
 
-/**
- * Initialize - just setup the UI
- */
 function initDailyRoutine() {
-    console.log('[SimpleRoutine] Initializing...');
+    console.log('[DailyRoutine] Initializing...');
     
-    if (document.getElementById('simple-routine-panel')) {
-        console.log('[SimpleRoutine] Panel already exists');
-        return;
-    }
+    // Remove existing button if any
+    const existing = document.getElementById('routine-btn');
+    if (existing) existing.remove();
     
-    createPanel();
-    console.log('[SimpleRoutine] Ready!');
-}
-
-/**
- * Create simple control panel
- */
-function createPanel() {
-    const panel = document.createElement('div');
-    panel.id = 'simple-routine-panel';
-    panel.innerHTML = `
-        <div style="background: rgba(0,0,0,0.8); border: 2px solid #0f0; border-radius: 8px; padding: 15px; color: #0f0; font-family: monospace; width: 250px;">
-            <div style="font-weight: bold; margin-bottom: 10px; text-align: center;">🚶 SIMPLE ROUTINE</div>
-            <div id="routine-status" style="margin-bottom: 10px; color: #888; text-align: center;">Ready</div>
-            <button id="btn-start" style="width: 100%; padding: 10px; background: #0f0; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 5px;">▶ START</button>
-            <button id="btn-stop" style="width: 100%; padding: 10px; background: #f00; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" disabled>⏹ STOP</button>
-        </div>
+    // Create button
+    const btn = document.createElement('button');
+    btn.id = 'routine-btn';
+    btn.textContent = 'START';
+    btn.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        background: #00ff00;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     `;
+    btn.onclick = startSimpleRoutine;
+    document.body.appendChild(btn);
     
-    panel.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 10000;';
-    document.body.appendChild(panel);
-    
-    document.getElementById('btn-start').addEventListener('click', startRoutine);
-    document.getElementById('btn-stop').addEventListener('click', stopRoutine);
-    
-    // EMERGENCY FALLBACK: Add inline handler in case event listener fails
-    document.getElementById('btn-start').setAttribute('onclick', "console.log('START clicked (inline)'); if(typeof startRoutine==='function') startRoutine(); else console.error('startRoutine not found');");
-    document.getElementById('btn-stop').setAttribute('onclick', "console.log('STOP clicked (inline)'); if(typeof stopRoutine==='function') stopRoutine(); else console.error('stopRoutine not found');");
-    
-    console.log('[SimpleRoutine] Panel created');
+    console.log('[DailyRoutine] Button created');
 }
 
-/**
- * Start the simple routine
- */
-function startRoutine() {
-    console.log('[SimpleRoutine] STARTING ROUTINE - button clicked!');
-    console.log('[SimpleRoutine] routineState.isActive:', routineState.isActive);
+function startSimpleRoutine() {
+    console.log('[DailyRoutine] START clicked!');
     
-    if (routineState.isActive) {
-        console.log('[SimpleRoutine] Already active, returning');
+    if (routineRunning) {
+        console.log('[DailyRoutine] Already running');
         return;
     }
     
-    // Check agents exist - use window.agents to ensure global access
-    const agents = window.agents;
-    console.log('[SimpleRoutine] window.agents:', agents);
-    
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined!');
-        alert('Agents not loaded yet! Please wait for the world to fully load.');
+    if (!window.agents) {
+        console.error('[DailyRoutine] No agents found');
+        alert('Agents not loaded yet!');
         return;
     }
     
-    if (!agents.groot) {
-        console.error('[SimpleRoutine] ERROR: Agents not fully loaded! window.agents:', window.agents);
-        alert('Wait for agents to load first!');
-        return;
+    routineRunning = true;
+    const btn = document.getElementById('routine-btn');
+    if (btn) {
+        btn.textContent = 'RUNNING...';
+        btn.style.background = '#ffff00';
+        btn.disabled = true;
     }
     
-    routineState.isActive = true;
-    routineState.phase = 0;
+    // Get agent keys
+    const agentKeys = Object.keys(window.agents);
+    console.log('[DailyRoutine] Moving', agentKeys.length, 'agents to Kanban');
     
-    // Initialize movement tracking for each agent
-    routineState.agents.forEach(agentId => {
-        const agent = agents[agentId];
+    // Move all agents to Kanban (spread out)
+    agentKeys.forEach((key, index) => {
+        const agent = window.agents[key];
         if (!agent) return;
         
-        agentMoves[agentId] = {
-            isMoving: false,
-            startPos: null,
-            targetPos: null,
-            progress: 0
-        };
+        // Spread agents at Kanban
+        const offsetX = (index - (agentKeys.length - 1) / 2) * 2;
+        const targetX = KANBAN_POS.x + offsetX;
+        const targetZ = KANBAN_POS.z;
         
-        console.log(`[SimpleRoutine] ${agentId} at:`, agent.position.x.toFixed(1), agent.position.z.toFixed(1));
+        // Animate movement
+        animateAgent(agent, targetX, targetZ, key);
     });
     
-    // Start Phase 0: Go to Kanban
-    startPhase0();
-    
-    // Update UI
-    document.getElementById('btn-start').disabled = true;
-    document.getElementById('btn-stop').disabled = false;
-    document.getElementById('routine-status').textContent = 'Phase 1: Going to Kanban';
-    document.getElementById('routine-status').style.color = '#0f0';
-}
-
-// Add global agents getter for all functions
-const getAgents = () => window.agents;
-
-/**
- * Phase 0: All agents go to Kanban board
- */
-function startPhase0() {
-    console.log('[SimpleRoutine] === PHASE 0: Kanban Board ===');
-    
-    const agents = window.agents;
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined in startPhase0');
-        return;
-    }
-    
-    routineState.agents.forEach((agentId, index) => {
-        const agent = agents[agentId];
-        if (!agent) return;
+    // After 3 seconds, move back
+    setTimeout(() => {
+        console.log('[DailyRoutine] Moving agents back to desks');
         
-        // Spread them out at Kanban
-        const offsetX = (index - 1.5) * 2; // -3, -1, 1, 3
-        const targetX = TARGETS.kanban.x + offsetX;
-        const targetZ = TARGETS.kanban.z;
-        
-        moveAgent(agentId, targetX, targetZ);
-    });
-}
-
-/**
- * Phase 1: All agents go back to desks
- */
-function startPhase1() {
-    console.log('[SimpleRoutine] === PHASE 1: Back to Desks ===');
-    
-    const agents = window.agents;
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined in startPhase1');
-        return;
-    }
-    
-    routineState.agents.forEach(agentId => {
-        const desk = TARGETS.desks[agentId];
-        if (desk) {
-            moveAgent(agentId, desk.x, desk.z);
-        }
-    });
-}
-
-/**
- * Simple move function - just set target and go
- */
-function moveAgent(agentId, targetX, targetZ) {
-    const agents = window.agents;
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined in moveAgent');
-        return;
-    }
-    
-    const agent = agents[agentId];
-    if (!agent) {
-        console.error(`[SimpleRoutine] ERROR: Agent ${agentId} not found`);
-        return;
-    }
-    
-    const move = agentMoves[agentId];
-    if (!move) {
-        console.error(`[SimpleRoutine] ERROR: No move data for ${agentId}`);
-        return;
-    }
-    
-    move.startPos = { x: agent.position.x, z: agent.position.z };
-    move.targetPos = { x: targetX, z: targetZ };
-    move.progress = 0;
-    move.isMoving = true;
-    
-    // Calculate distance for timing
-    const dx = targetX - move.startPos.x;
-    const dz = targetZ - move.startPos.z;
-    const distance = Math.sqrt(dx * dx + dz * dz);
-    move.duration = distance / routineState.moveSpeed; // seconds
-    
-    console.log(`[SimpleRoutine] ${agentId} moving to (${targetX.toFixed(1)}, ${targetZ.toFixed(1)}), distance: ${distance.toFixed(1)}`);
-}
-
-/**
- * Update called every frame
- */
-function updateDailyRoutineAnimations() {
-    if (!routineState.isActive) return;
-    
-    const agents = window.agents;
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined in updateDailyRoutineAnimations');
-        routineState.isActive = false;
-        return;
-    }
-    
-    const delta = (typeof clock !== 'undefined') ? clock.getDelta() : 0.016;
-    const time = (typeof clock !== 'undefined') ? clock.getElapsedTime() : (Date.now() / 1000);
-    
-    let allArrived = true;
-    
-    routineState.agents.forEach(agentId => {
-        const agent = agents[agentId];
-        const move = agentMoves[agentId];
-        
-        if (!agent || !move || !move.isMoving) return;
-        
-        // Update progress
-        move.progress += delta / move.duration;
-        
-        if (move.progress >= 1) {
-            // Arrived!
-            move.progress = 1;
-            move.isMoving = false;
-            agent.position.x = move.targetPos.x;
-            agent.position.z = move.targetPos.z;
-            console.log(`[SimpleRoutine] ${agentId} ARRIVED!`);
-        } else {
-            // Still moving - lerp position
-            allArrived = false;
-            const t = move.progress;
-            agent.position.x = move.startPos.x + (move.targetPos.x - move.startPos.x) * t;
-            agent.position.z = move.startPos.z + (move.targetPos.z - move.startPos.z) * t;
+        agentKeys.forEach(key => {
+            const agent = window.agents[key];
+            if (!agent) return;
             
-            // Face direction of movement
-            const dx = move.targetPos.x - move.startPos.x;
-            const dz = move.targetPos.z - move.startPos.z;
-            agent.rotation.y = Math.atan2(dx, dz);
-            
-            // Simple bobbing walk animation
-            agent.position.y = (agent.userData?.originalY || 0) + Math.abs(Math.sin(time * 10)) * 0.1;
-        }
-    });
-    
-    // Check phase transitions
-    if (allArrived) {
-        if (routineState.phase === 0) {
-            // Finished going to Kanban, wait a bit then go to desks
-            console.log('[SimpleRoutine] All at Kanban! Waiting 3 seconds...');
-            routineState.phase = 0.5; // Waiting state
-            document.getElementById('routine-status').textContent = 'At Kanban - Waiting';
-            
-            setTimeout(() => {
-                if (routineState.isActive) {
-                    routineState.phase = 1;
-                    startPhase1();
-                    document.getElementById('routine-status').textContent = 'Phase 2: Back to Desks';
-                }
-            }, 3000);
-        } else if (routineState.phase === 1) {
-            // Finished going to desks, loop back to Kanban
-            console.log('[SimpleRoutine] All at desks! Looping back...');
-            routineState.phase = 0;
-            startPhase0();
-            document.getElementById('routine-status').textContent = 'Phase 1: Going to Kanban';
-        }
-    }
-}
-
-/**
- * Stop the routine
- */
-function stopRoutine() {
-    console.log('[SimpleRoutine] Stopping...');
-    routineState.isActive = false;
-    
-    const agents = window.agents;
-    if (!agents) {
-        console.error('[SimpleRoutine] ERROR: window.agents is undefined in stopRoutine');
-    } else {
-        // Reset agents to desks
-        routineState.agents.forEach(agentId => {
-            const desk = TARGETS.desks[agentId];
-            const agent = agents[agentId];
-            if (desk && agent) {
-                agent.position.x = desk.x;
-                agent.position.z = desk.z;
-                agent.position.y = agent.userData?.originalY || 0;
-            }
+            const deskPos = getDeskPosition(key);
+            animateAgent(agent, deskPos.x, deskPos.z, key);
         });
+        
+        // Reset button after movement completes
+        setTimeout(() => {
+            routineRunning = false;
+            if (btn) {
+                btn.textContent = 'START';
+                btn.style.background = '#00ff00';
+                btn.disabled = false;
+            }
+            console.log('[DailyRoutine] Complete!');
+        }, 2000);
+        
+    }, 3000);
+}
+
+function animateAgent(agent, targetX, targetZ, name) {
+    const startX = agent.position.x;
+    const startZ = agent.position.z;
+    const duration = 2000; // 2 seconds
+    const startTime = Date.now();
+    
+    console.log(`[DailyRoutine] ${name}: (${startX.toFixed(1)}, ${startZ.toFixed(1)}) -> (${targetX.toFixed(1)}, ${targetZ.toFixed(1)})`);
+    
+    function step() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease out
+        const ease = 1 - Math.pow(1 - progress, 2);
+        
+        agent.position.x = startX + (targetX - startX) * ease;
+        agent.position.z = startZ + (targetZ - startZ) * ease;
+        
+        // Face movement direction
+        const dx = targetX - startX;
+        const dz = targetZ - startZ;
+        if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+            agent.rotation.y = Math.atan2(dx, dz);
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            console.log(`[DailyRoutine] ${name} arrived!`);
+        }
     }
     
-    document.getElementById('btn-start').disabled = false;
-    document.getElementById('btn-stop').disabled = true;
-    document.getElementById('routine-status').textContent = 'Stopped';
-    document.getElementById('routine-status').style.color = '#888';
+    requestAnimationFrame(step);
 }
 
 // Export for global access
 window.initDailyRoutine = initDailyRoutine;
-window.updateDailyRoutineAnimations = updateDailyRoutineAnimations;
-window.startDailyRoutine = startRoutine;
-window.stopDailyRoutine = stopRoutine;
+window.startSimpleRoutine = startSimpleRoutine;
 
-console.log('[SimpleRoutine] Module loaded - SIMPLE VERSION');
+console.log('[DailyRoutine] Module loaded - SIMPLE VERSION');
