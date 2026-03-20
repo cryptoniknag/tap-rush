@@ -80,6 +80,10 @@
     <script src="js/avatar-world.js?v=38" onload="console.log('avatar-world.js loaded successfully')" onerror="console.error('avatar-world.js FAILED to load')">
     </script>
     
+    <!-- Daily Routine System -->
+    <script src="js/daily-routine.js" onload="console.log('daily-routine.js loaded successfully')" onerror="console.error('daily-routine.js FAILED to load')">
+    </script>
+    
     <script>
         console.log('HTML inline script running...');
         
@@ -87,11 +91,20 @@
         window.addEventListener('load', function() {
             console.log('Window load event fired');
             
+            // Initialize Daily Routine system
+            if (typeof initDailyRoutine === 'function') {
+                console.log('Calling initDailyRoutine()...');
+                initDailyRoutine();
+            } else {
+                console.error('initDailyRoutine not found!');
+            }
+            
             // Check if initialization succeeded
             setTimeout(function() {
                 console.log('Checking THREE:', typeof THREE);
                 console.log('Checking init:', typeof init);
                 console.log('Checking window.init:', typeof window.init);
+                console.log('Checking initDailyRoutine:', typeof initDailyRoutine);
                 
                 const loadingScreen = document.getElementById('loading-screen');
                 

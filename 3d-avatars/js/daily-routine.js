@@ -172,8 +172,11 @@ function createRoutinePanel() {
             padding: 15px;
             color: #eee;
             font-family: 'Courier New', monospace;
-            z-index: 100;
+            z-index: 10000 !important;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
         }
         .routine-header {
             display: flex;
@@ -295,6 +298,8 @@ function createRoutinePanel() {
     document.getElementById('btn-pause-routine').addEventListener('click', pauseDailyRoutine);
     document.getElementById('btn-skip-phase').addEventListener('click', skipCurrentPhase);
     document.getElementById('btn-stop-routine').addEventListener('click', stopDailyRoutine);
+    
+    console.log('[DailyRoutine] Panel created and added to DOM');
 }
 
 /**
