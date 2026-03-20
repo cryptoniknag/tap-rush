@@ -71,7 +71,7 @@
     </div>
 
     <!-- EMERGENCY START BUTTON - Always visible -->
-    <button id="emergency-start-btn" onclick="if(typeof startFullRoutine==='function')startFullRoutine();else alert('Loading... please wait 2 seconds and try again')" style="position:fixed;top:10px;right:10px;z-index:99999;padding:20px 30px;font-size:20px;font-weight:bold;background:#00ff00;color:#000;border:4px solid #fff;border-radius:10px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,0,0.8),0 4px 8px rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:2px;">▶️ START ROUTINE</button>
+    <button id="emergency-start-btn" onclick="if(typeof startFullRoutine==='function')startFullRoutine();else alert('Loading... please wait 2 seconds and try again')" disabled style="position:fixed;top:10px;right:10px;z-index:99999;padding:20px 30px;font-size:20px;font-weight:bold;background:#666;color:#ccc;border:4px solid #999;border-radius:10px;cursor:not-allowed;box-shadow:0 4px 8px rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:2px;">Loading...</button>
 
     <div id="canvas-container"></div>
 
@@ -141,6 +141,26 @@
                     e.message + '</p><p>File: ' + (e.filename || 'unknown') + '</p></div>';
             }
         });
+    </script>
+
+    <!-- Button readiness check -->
+    <script>
+        // Wait for everything then enable button
+        function checkReady() {
+            const btn = document.getElementById('emergency-start-btn');
+            if (typeof startFullRoutine === 'function' && window.agents) {
+                btn.textContent = '▶️ START ROUTINE';
+                btn.disabled = false;
+                btn.style.background = '#00ff00';
+                btn.style.color = '#000';
+                btn.style.border = '4px solid #fff';
+                btn.style.cursor = 'pointer';
+                btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
+            } else {
+                setTimeout(checkReady, 500);
+            }
+        }
+        checkReady();
     </script>
 </body>
 </html>
