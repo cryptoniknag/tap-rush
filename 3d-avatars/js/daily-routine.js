@@ -34,29 +34,47 @@ function initDailyRoutine() {
     const existing = document.getElementById('routine-btn');
     if (existing) existing.remove();
     
-    // Create button
+    // Remove emergency button since we're creating the proper one
+    const emergencyBtn = document.getElementById('emergency-start-btn');
+    if (emergencyBtn) emergencyBtn.remove();
+    
+    // Create button - ULTRA VISIBLE VERSION
     const btn = document.createElement('button');
     btn.id = 'routine-btn';
-    btn.textContent = 'START';
+    btn.textContent = '▶️ START ROUTINE';
     btn.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        padding: 15px 30px;
-        font-size: 18px;
+        top: 10px;
+        right: 10px;
+        z-index: 99999;
+        padding: 20px 30px;
+        font-size: 20px;
         font-weight: bold;
-        background: #00ff00;
+        background: linear-gradient(135deg, #00ff00, #00cc00);
         color: #000;
-        border: none;
-        border-radius: 8px;
+        border: 4px solid #fff;
+        border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 0 30px rgba(0,255,0,0.8), 0 6px 12px rgba(0,0,0,0.4);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: pulse-btn 1.5s infinite;
     `;
+    
+    // Add keyframe animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulse-btn {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0,255,0,0.8); }
+            50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(0,255,0,1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
     btn.onclick = startFullRoutine;
     document.body.appendChild(btn);
     
-    console.log('[DailyRoutine] Button created');
+    console.log('[DailyRoutine] Button created - ULTRA VISIBLE');
 }
 
 function startFullRoutine() {
