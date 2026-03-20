@@ -91,13 +91,9 @@
         window.addEventListener('load', function() {
             console.log('Window load event fired');
             
-            // Initialize Daily Routine system
-            if (typeof initDailyRoutine === 'function') {
-                console.log('Calling initDailyRoutine()...');
-                initDailyRoutine();
-            } else {
-                console.error('initDailyRoutine not found!');
-            }
+            // NOTE: initDailyRoutine() is now called from avatar-world.js to avoid duplicate initialization
+            // This prevents multiple routine panels from being created
+            console.log('Daily Routine system will be initialized by avatar-world.js');
             
             // Check if initialization succeeded
             setTimeout(function() {

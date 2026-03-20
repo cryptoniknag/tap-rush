@@ -99,6 +99,35 @@ let routineAgentStates = {};
 function initDailyRoutine() {
     console.log('[DailyRoutine] Initializing...');
     
+    // Prevent duplicate initialization
+    if (document.getElementById('routine-panel')) {
+        console.log('[DailyRoutine] Panel already exists, skipping initialization');
+        return;
+    }
+    
+    // Check if agents exist globally
+    if (typeof agents === 'undefined' || !agents) {
+        console.error('[DailyRoutine] ERROR: agents object not found! Make sure initDailyRoutine is called after agents are created.');
+        return;
+    }
+    
+    // Check if OFFICE_ZONES exist
+    if (typeof OFFICE_ZONES === 'undefined' || !OFFICE_ZONES) {
+        console.error('[DailyRoutine] ERROR: OFFICE_ZONES not found!');
+        return;
+    }
+    
+    // Verify all 4 agents exist
+    const requiredAgents = ['groot', 'fin', 'betty', 'smith'];
+    const missingAgents = requiredAgents.filter(agentId => !agents[agentId]);
+    if (missingAgents.length > 0) {
+        console.error('[DailyRoutine] ERROR: Missing agents:', missingAgents);
+        return;
+    }
+    
+    console.log('[DailyRoutine] All 4 agents found:', Object.keys(agents));
+    console.log('[DailyRoutine] OFFICE_ZONES available:', Object.keys(OFFICE_ZONES).length, 'zones');
+    
     // Initialize agent states
     dailyRoutine.agents.forEach(agentId => {
         routineAgentStates[agentId] = {
@@ -306,7 +335,25 @@ function createRoutinePanel() {
  * Start the daily routine
  */
 function startDailyRoutine() {
-    if (dailyRoutine.isActive) return;
+    console.log('[DailyRoutine] startDailyRoutine() called...');
+    console.log('[DailyRoutine] dailyRoutine.isActive:', dailyRoutine.isActive);
+    
+    if (dailyRoutine.isActive) {
+        console.log('[DailyRoutine] Routine already active, ignoring');
+        return;
+    }
+    
+    // Verify dependencies
+    if (typeof agents === 'undefined') {
+        console.error('[DailyRoutine] ERROR: agents object not available!');
+        alert('Error: Game not fully loaded. Please refresh the page.');
+        return;
+    }
+    
+    if (typeof OFFICE_ZONES === 'undefined') {
+        console.error('[DailyRoutine] ERROR: OFFICE_ZONES not available!');
+        return;
+    }
     
     console.log('[DailyRoutine] Starting daily routine...');
     dailyRoutine.isActive = true;
@@ -321,6 +368,7 @@ function startDailyRoutine() {
     
     // Start the check loop
     dailyRoutine.checkInterval = setInterval(checkRoutineProgress, 100);
+    console.log('[DailyRoutine] Routine started successfully');
 }
 
 /**
