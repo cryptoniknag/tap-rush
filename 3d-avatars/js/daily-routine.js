@@ -97,7 +97,9 @@ let routineAgentStates = {};
  * Initialize Daily Routine system
  */
 function initDailyRoutine() {
-    console.log('[DailyRoutine] Initializing...');
+    console.log('[DailyRoutine] =========================================');
+    console.log('[DailyRoutine] Initializing Daily Routine system...');
+    console.log('[DailyRoutine] =========================================');
     
     // Prevent duplicate initialization
     if (document.getElementById('routine-panel')) {
@@ -127,6 +129,7 @@ function initDailyRoutine() {
     
     console.log('[DailyRoutine] All 4 agents found:', Object.keys(agents));
     console.log('[DailyRoutine] OFFICE_ZONES available:', Object.keys(OFFICE_ZONES).length, 'zones');
+    console.log('[DailyRoutine] Available zones:', Object.keys(OFFICE_ZONES).join(', '));
     
     // Initialize agent states
     dailyRoutine.agents.forEach(agentId => {
@@ -141,13 +144,14 @@ function initDailyRoutine() {
             standProgress: 0,
             exercisePhase: 0
         };
+        console.log(`[DailyRoutine] Initialized state for ${agentId}`);
     });
     
     // Create UI panel
     createRoutinePanel();
     
-    // Start animation loop integration
     console.log('[DailyRoutine] Initialized successfully');
+    console.log('[DailyRoutine] =========================================');
 }
 
 /**
@@ -355,10 +359,36 @@ function startDailyRoutine() {
         return;
     }
     
+    // Check if agents exist
+    console.log('[DailyRoutine] Checking agents...');
+    console.log('[DailyRoutine] agents object:', agents);
+    console.log('[DailyRoutine] agents keys:', Object.keys(agents));
+    
+    // Verify all 4 agents exist
+    const requiredAgents = ['groot', 'fin', 'betty', 'smith'];
+    const missingAgents = requiredAgents.filter(agentId => !agents[agentId]);
+    if (missingAgents.length > 0) {
+        console.error('[DailyRoutine] ERROR: Missing agents:', missingAgents);
+        alert('Error: Some agents are missing: ' + missingAgents.join(', '));
+        return;
+    }
+    
+    console.log('[DailyRoutine] All 4 agents found:', Object.keys(agents));
+    console.log('[DailyRoutine] OFFICE_ZONES available:', Object.keys(OFFICE_ZONES).length, 'zones');
+    
+    // Log agent positions
+    requiredAgents.forEach(agentId => {
+        const agent = agents[agentId];
+        console.log(`[DailyRoutine] ${agentId} current position: (${agent.position.x.toFixed(2)}, ${agent.position.y.toFixed(2)}, ${agent.position.z.toFixed(2)}), sitting: ${agent.userData.isSitting}`);
+    });
+    
     console.log('[DailyRoutine] Starting daily routine...');
     dailyRoutine.isActive = true;
     dailyRoutine.currentPhase = 0;
     dailyRoutine.isPaused = false;
+    
+    // Reset debug flag
+    window._routineDebugLogged = false;
     
     // Update UI
     updateRoutineUI('start');
@@ -377,6 +407,7 @@ function startDailyRoutine() {
 function startPhase(phaseIndex) {
     if (phaseIndex >= DAILY_PHASES.length) {
         // Routine complete - loop back to start
+        console.log('[DailyRoutine] All phases complete, looping back to phase 0');
         dailyRoutine.currentPhase = 0;
         phaseIndex = 0;
     }
@@ -385,13 +416,18 @@ function startPhase(phaseIndex) {
     dailyRoutine.currentPhase = phaseIndex;
     dailyRoutine.phaseStartTime = Date.now();
     
+    console.log(`[DailyRoutine] =========================================`);
     console.log(`[DailyRoutine] Starting Phase ${phaseIndex + 1}: ${phase.name}`);
+    console.log(`[DailyRoutine] Description: ${phase.description}`);
+    console.log(`[DailyRoutine] Action: ${phase.action}`);
+    console.log(`[DailyRoutine] =========================================`);
     
     // Update UI
     document.getElementById('routine-phase-name').textContent = phase.name;
     updatePhaseList(phaseIndex);
     
     // Move agents to their positions
+    let agentsMoved = 0;
     dailyRoutine.agents.forEach(agentId => {
         const locConfig = phase.locations[agentId];
         if (locConfig) {
@@ -404,11 +440,20 @@ function startPhase(phaseIndex) {
                     rot: locConfig.rot !== null ? locConfig.rot : zone.rot
                 };
                 
+                console.log(`[DailyRoutine] ${agentId} target: zone=${locConfig.zone}, offset=(${locConfig.offset.x}, ${locConfig.offset.z}), final=(${targetPos.x.toFixed(2)}, ${targetPos.z.toFixed(2)})`);
+                
                 // Start movement
                 startAgentMovement(agentId, targetPos, phase.action);
+                agentsMoved++;
+            } else {
+                console.error(`[DailyRoutine] ERROR: Zone ${locConfig.zone} not found in OFFICE_ZONES!`);
             }
+        } else {
+            console.warn(`[DailyRoutine] WARNING: No location config for ${agentId} in phase ${phaseIndex}`);
         }
     });
+    
+    console.log(`[DailyRoutine] ${agentsMoved} agents assigned to move in phase ${phaseIndex + 1}`);
     
     // Camera focus on the main activity area
     focusCameraOnPhase(phaseIndex);
@@ -419,9 +464,21 @@ function startPhase(phaseIndex) {
  */
 function startAgentMovement(agentId, targetPos, action) {
     const agent = agents[agentId];
-    if (!agent) return;
+    if (!agent) {
+        console.error(`[DailyRoutine] ERROR: Agent ${agentId} not found!`);
+        return;
+    }
     
     const state = routineAgentStates[agentId];
+    
+    // Make sure agent is standing before walking
+    if (agent.userData.isSitting) {
+        console.log(`[DailyRoutine] ${agentId} was sitting, standing up first`);
+        agent.userData.isSitting = false;
+        // Reset position to standing height
+        agent.position.y = agent.userData.originalY;
+    }
+    
     state.startPos = agent.position.clone();
     state.targetPos = targetPos;
     state.isMoving = true;
@@ -434,9 +491,10 @@ function startAgentMovement(agentId, targetPos, action) {
     const distance = Math.sqrt(dx * dx + dz * dz);
     
     // Speed: units per second (agents walk at ~3 units/sec)
-    state.moveSpeed = 3 / distance; // Progress per second
+    // Avoid division by zero
+    state.moveSpeed = distance > 0.1 ? (3 / distance) : 1; // Progress per second
     
-    console.log(`[DailyRoutine] Moving ${agentId} to ${targetPos.x}, ${targetPos.z} for ${action}`);
+    console.log(`[DailyRoutine] Moving ${agentId} from (${state.startPos.x.toFixed(2)}, ${state.startPos.z.toFixed(2)}) to (${targetPos.x.toFixed(2)}, ${targetPos.z.toFixed(2)}) for ${action}, distance: ${distance.toFixed(2)}, speed: ${state.moveSpeed.toFixed(4)}`);
 }
 
 /**
@@ -487,20 +545,39 @@ function checkRoutineProgress() {
  * Called from main animation loop
  */
 function updateDailyRoutineAnimations() {
-    if (!dailyRoutine.isActive) return;
+    if (!dailyRoutine.isActive) {
+        console.log('[DailyRoutine] Not active, skipping animation update');
+        return;
+    }
     
-    const delta = clock.getDelta();
-    const time = clock.getElapsedTime();
+    // Use global clock from avatar-world.js or create our own
+    const delta = (typeof clock !== 'undefined') ? clock.getDelta() : 0.016;
+    const time = (typeof clock !== 'undefined') ? clock.getElapsedTime() : (Date.now() / 1000);
+    
+    // Debug: Log first update
+    if (!window._routineDebugLogged) {
+        console.log('[DailyRoutine] Animation update running - delta:', delta, 'time:', time);
+        console.log('[DailyRoutine] Agents:', dailyRoutine.agents);
+        window._routineDebugLogged = true;
+    }
     const phase = DAILY_PHASES[dailyRoutine.currentPhase];
     
     dailyRoutine.agents.forEach(agentId => {
         const agent = agents[agentId];
         const state = routineAgentStates[agentId];
-        if (!agent || !state) return;
+        if (!agent || !state) {
+            console.warn(`[DailyRoutine] Agent ${agentId} not found or no state`);
+            return;
+        }
         
         // Handle movement
         if (state.isMoving && state.targetPos) {
             state.moveProgress += state.moveSpeed * delta;
+            
+            // Debug: Log movement progress every 10%
+            if (Math.floor(state.moveProgress * 10) > Math.floor((state.moveProgress - state.moveSpeed * delta) * 10)) {
+                console.log(`[DailyRoutine] ${agentId} moving: ${(state.moveProgress * 100).toFixed(0)}% complete, pos: (${agent.position.x.toFixed(2)}, ${agent.position.z.toFixed(2)})`);
+            }
             
             if (state.moveProgress >= 1) {
                 // Arrived at destination
@@ -512,6 +589,8 @@ function updateDailyRoutineAnimations() {
                     state.targetPos.z
                 );
                 agent.rotation.y = state.targetPos.rot;
+                
+                console.log(`[DailyRoutine] ${agentId} ARRIVED at destination (${state.targetPos.x.toFixed(2)}, ${state.targetPos.z.toFixed(2)})`);
                 
                 // Start action (sit/stand/exercise)
                 if (state.currentAction === 'sit') {
@@ -563,8 +642,9 @@ function animateAgentWalking(agent, time, agentId) {
     const walkRange = 0.4;
     const agentOffset = agent.userData.walkOffset || 0;
     
-    // Bobbing motion
-    agent.position.y = agent.userData.originalY + Math.abs(Math.sin((time + agentOffset) * walkSpeed)) * 0.15;
+    // Bobbing motion - use originalY for reference
+    const baseY = agent.userData.originalY || 0;
+    agent.position.y = baseY + Math.abs(Math.sin((time + agentOffset) * walkSpeed)) * 0.15;
     
     // Arm swinging
     if (agent.userData.leftArm) {
