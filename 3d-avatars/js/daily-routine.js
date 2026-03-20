@@ -1,8 +1,13 @@
-// Simple working daily routine
+// Full 6-phase daily routine
 let routineRunning = false;
 
-// Kanban position
-const KANBAN_POS = { x: 0, z: 5 };
+// Office zone positions
+const OFFICE_ZONES = {
+    kanbanBoard: { x: 0, z: -2 },
+    conferenceTable: { x: 0, z: 8 },
+    gymArea: { x: 0, z: 18 },
+    coffeeStation: { x: -28, z: 0 }
+};
 
 // Desk positions (will be read from AGENT_CONFIGS)
 function getDeskPosition(agentKey) {
@@ -48,13 +53,13 @@ function initDailyRoutine() {
         cursor: pointer;
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     `;
-    btn.onclick = startSimpleRoutine;
+    btn.onclick = startFullRoutine;
     document.body.appendChild(btn);
     
     console.log('[DailyRoutine] Button created');
 }
 
-function startSimpleRoutine() {
+function startFullRoutine() {
     console.log('[DailyRoutine] START clicked!');
     
     if (routineRunning) {
@@ -78,46 +83,78 @@ function startSimpleRoutine() {
     
     // Get agent keys
     const agentKeys = Object.keys(window.agents);
-    console.log('[DailyRoutine] Moving', agentKeys.length, 'agents to Kanban');
+    console.log('[DailyRoutine] Starting 6-phase routine with', agentKeys.length, 'agents');
     
-    // Move all agents to Kanban (spread out)
+    // Phase 1: Kanban board (assemble)
+    console.log('[DailyRoutine] Phase 1: Kanban board');
+    moveAgentsToZone(agentKeys, OFFICE_ZONES.kanbanBoard, 'kanban');
+    
+    // Phase 2: Desks (work) - after 5 seconds
+    setTimeout(() => {
+        console.log('[DailyRoutine] Phase 2: Desks');
+        moveAgentsToDesks(agentKeys);
+        
+        // Phase 3: Conference room (sit) - after 5 seconds
+        setTimeout(() => {
+            console.log('[DailyRoutine] Phase 3: Conference room');
+            moveAgentsToZone(agentKeys, OFFICE_ZONES.conferenceTable, 'conference');
+            
+            // Phase 4: Gym (workout) - after 5 seconds
+            setTimeout(() => {
+                console.log('[DailyRoutine] Phase 4: Gym');
+                moveAgentsToZone(agentKeys, OFFICE_ZONES.gymArea, 'gym');
+                
+                // Phase 5: Coffee station (break) - after 5 seconds
+                setTimeout(() => {
+                    console.log('[DailyRoutine] Phase 5: Coffee station');
+                    moveAgentsToZone(agentKeys, OFFICE_ZONES.coffeeStation, 'coffee');
+                    
+                    // Phase 6: Back to desks - after 5 seconds
+                    setTimeout(() => {
+                        console.log('[DailyRoutine] Phase 6: Back to desks');
+                        moveAgentsToDesks(agentKeys);
+                        
+                        // Reset button after movement completes
+                        setTimeout(() => {
+                            routineRunning = false;
+                            if (btn) {
+                                btn.textContent = 'START';
+                                btn.style.background = '#00ff00';
+                                btn.disabled = false;
+                            }
+                            console.log('[DailyRoutine] Complete!');
+                        }, 2000);
+                        
+                    }, 5000);
+                }, 5000);
+            }, 5000);
+        }, 5000);
+    }, 5000);
+}
+
+function moveAgentsToZone(agentKeys, zonePos, zoneName) {
     agentKeys.forEach((key, index) => {
         const agent = window.agents[key];
         if (!agent) return;
         
-        // Spread agents at Kanban
+        // Spread agents at the zone
         const offsetX = (index - (agentKeys.length - 1) / 2) * 2;
-        const targetX = KANBAN_POS.x + offsetX;
-        const targetZ = KANBAN_POS.z;
+        const targetX = zonePos.x + offsetX;
+        const targetZ = zonePos.z;
         
         // Animate movement
         animateAgent(agent, targetX, targetZ, key);
     });
-    
-    // After 3 seconds, move back
-    setTimeout(() => {
-        console.log('[DailyRoutine] Moving agents back to desks');
+}
+
+function moveAgentsToDesks(agentKeys) {
+    agentKeys.forEach(key => {
+        const agent = window.agents[key];
+        if (!agent) return;
         
-        agentKeys.forEach(key => {
-            const agent = window.agents[key];
-            if (!agent) return;
-            
-            const deskPos = getDeskPosition(key);
-            animateAgent(agent, deskPos.x, deskPos.z, key);
-        });
-        
-        // Reset button after movement completes
-        setTimeout(() => {
-            routineRunning = false;
-            if (btn) {
-                btn.textContent = 'START';
-                btn.style.background = '#00ff00';
-                btn.disabled = false;
-            }
-            console.log('[DailyRoutine] Complete!');
-        }, 2000);
-        
-    }, 3000);
+        const deskPos = getDeskPosition(key);
+        animateAgent(agent, deskPos.x, deskPos.z, key);
+    });
 }
 
 function animateAgent(agent, targetX, targetZ, name) {
@@ -157,6 +194,6 @@ function animateAgent(agent, targetX, targetZ, name) {
 
 // Export for global access
 window.initDailyRoutine = initDailyRoutine;
-window.startSimpleRoutine = startSimpleRoutine;
+window.startFullRoutine = startFullRoutine;
 
-console.log('[DailyRoutine] Module loaded - SIMPLE VERSION');
+console.log('[DailyRoutine] Module loaded - FULL 6-PHASE VERSION');
