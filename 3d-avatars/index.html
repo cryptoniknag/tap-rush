@@ -71,7 +71,7 @@
     </div>
 
     <!-- EMERGENCY START BUTTON - Always visible -->
-    <button id="emergency-start-btn" onclick="if(typeof startFullRoutine==='function')startFullRoutine();else alert('Loading... please wait 2 seconds and try again')" disabled style="position:fixed;top:10px;right:10px;z-index:99999;padding:20px 30px;font-size:20px;font-weight:bold;background:#666;color:#ccc;border:4px solid #999;border-radius:10px;cursor:not-allowed;box-shadow:0 4px 8px rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:2px;">Loading...</button>
+    <button id="emergency-start-btn" onclick="if(typeof startFullRoutine==='function')startFullRoutine();else alert('Loading... please wait 2 seconds and try again')" style="position:fixed;top:10px;right:10px;z-index:99999;padding:20px 30px;font-size:20px;font-weight:bold;background:#00ff00;color:#000;border:4px solid #fff;border-radius:10px;cursor:pointer;box-shadow:0 0 20px rgba(0,255,0,0.8),0 4px 8px rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:2px;">▶️ START ROUTINE</button>
 
     <div id="canvas-container"></div>
 
@@ -79,12 +79,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     
-    <!-- Daily Routine System - MUST LOAD FIRST -->
-    <script src="js/daily-routine.js?v=3" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
+    <!-- Main application - MUST LOAD FIRST -->
+    <script src="js/avatar-world.js?v=40" onload="console.log('✅ avatar-world.js loaded successfully')" onerror="console.error('❌ avatar-world.js FAILED to load')">
     </script>
     
-    <!-- Main application -->
-    <script src="js/avatar-world.js?v=40" onload="console.log('✅ avatar-world.js loaded successfully')" onerror="console.error('❌ avatar-world.js FAILED to load')">
+    <!-- Daily Routine System - loads AFTER avatar-world.js -->
+    <script src="js/daily-routine.js?v=3" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
     </script>
     
     <!-- EMERGENCY DEBUG + LOAD CHECK -->
@@ -126,54 +126,6 @@
                     e.message + '</p><p>File: ' + (e.filename || 'unknown') + '</p></div>';
             }
         });
-    </script>
-
-    <!-- BUTTON READINESS CHECK -->
-    <script>
-        // Wait for everything then enable button
-        function checkReady() {
-            const btn = document.getElementById('emergency-start-btn');
-            if (!btn) {
-                console.log('🔥 Button not found, retrying...');
-                setTimeout(checkReady, 100);
-                return;
-            }
-            
-            // Check BOTH conditions
-            const hasStartFunction = typeof startFullRoutine === 'function';
-            const hasAgents = window.agents && Object.keys(window.agents).length > 0;
-            
-            console.log('🔥 checkReady: startFullRoutine=' + hasStartFunction + ', agents=' + hasAgents);
-            
-            if (hasStartFunction && hasAgents) {
-                console.log('🔥 BUTTON READY! Enabling...');
-                btn.textContent = '▶️ START ROUTINE';
-                btn.disabled = false;
-                btn.style.background = '#00ff00';
-                btn.style.color = '#000';
-                btn.style.border = '4px solid #fff';
-                btn.style.cursor = 'pointer';
-                btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
-                btn.onclick = startFullRoutine; // Direct binding
-            } else {
-                // Update button text to show what's missing
-                if (!hasStartFunction) {
-                    btn.textContent = 'Loading routine...';
-                } else if (!hasAgents) {
-                    btn.textContent = 'Loading agents...';
-                }
-                setTimeout(checkReady, 500);
-            }
-        }
-        
-        // Start checking after DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(checkReady, 500);
-            });
-        } else {
-            setTimeout(checkReady, 500);
-        }
     </script>
 </body>
 </html>
