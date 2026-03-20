@@ -72,9 +72,10 @@ function startRoutine() {
     
     if (routineState.isActive) return;
     
-    // Check agents exist
-    if (typeof agents === 'undefined' || !agents.groot) {
-        console.error('[SimpleRoutine] ERROR: Agents not loaded!');
+    // Check agents exist - use window.agents to ensure global access
+    const agents = window.agents;
+    if (!agents || !agents.groot) {
+        console.error('[SimpleRoutine] ERROR: Agents not loaded! window.agents:', window.agents);
         alert('Wait for agents to load first!');
         return;
     }
@@ -107,11 +108,20 @@ function startRoutine() {
     document.getElementById('routine-status').style.color = '#0f0';
 }
 
+// Add global agents getter for all functions
+const getAgents = () => window.agents;
+
 /**
  * Phase 0: All agents go to Kanban board
  */
 function startPhase0() {
     console.log('[SimpleRoutine] === PHASE 0: Kanban Board ===');
+    
+    const agents = window.agents;
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined in startPhase0');
+        return;
+    }
     
     routineState.agents.forEach((agentId, index) => {
         const agent = agents[agentId];
@@ -132,6 +142,12 @@ function startPhase0() {
 function startPhase1() {
     console.log('[SimpleRoutine] === PHASE 1: Back to Desks ===');
     
+    const agents = window.agents;
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined in startPhase1');
+        return;
+    }
+    
     routineState.agents.forEach(agentId => {
         const desk = TARGETS.desks[agentId];
         if (desk) {
@@ -144,10 +160,24 @@ function startPhase1() {
  * Simple move function - just set target and go
  */
 function moveAgent(agentId, targetX, targetZ) {
+    const agents = window.agents;
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined in moveAgent');
+        return;
+    }
+    
     const agent = agents[agentId];
-    if (!agent) return;
+    if (!agent) {
+        console.error(`[SimpleRoutine] ERROR: Agent ${agentId} not found`);
+        return;
+    }
     
     const move = agentMoves[agentId];
+    if (!move) {
+        console.error(`[SimpleRoutine] ERROR: No move data for ${agentId}`);
+        return;
+    }
+    
     move.startPos = { x: agent.position.x, z: agent.position.z };
     move.targetPos = { x: targetX, z: targetZ };
     move.progress = 0;
@@ -167,6 +197,13 @@ function moveAgent(agentId, targetX, targetZ) {
  */
 function updateDailyRoutineAnimations() {
     if (!routineState.isActive) return;
+    
+    const agents = window.agents;
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined in updateDailyRoutineAnimations');
+        routineState.isActive = false;
+        return;
+    }
     
     const delta = (typeof clock !== 'undefined') ? clock.getDelta() : 0.016;
     const time = (typeof clock !== 'undefined') ? clock.getElapsedTime() : (Date.now() / 1000);
@@ -202,7 +239,7 @@ function updateDailyRoutineAnimations() {
             agent.rotation.y = Math.atan2(dx, dz);
             
             // Simple bobbing walk animation
-            agent.position.y = (agent.userData.originalY || 0) + Math.abs(Math.sin(time * 10)) * 0.1;
+            agent.position.y = (agent.userData?.originalY || 0) + Math.abs(Math.sin(time * 10)) * 0.1;
         }
     });
     
@@ -238,16 +275,21 @@ function stopRoutine() {
     console.log('[SimpleRoutine] Stopping...');
     routineState.isActive = false;
     
-    // Reset agents to desks
-    routineState.agents.forEach(agentId => {
-        const desk = TARGETS.desks[agentId];
-        const agent = agents[agentId];
-        if (desk && agent) {
-            agent.position.x = desk.x;
-            agent.position.z = desk.z;
-            agent.position.y = agent.userData.originalY || 0;
-        }
-    });
+    const agents = window.agents;
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined in stopRoutine');
+    } else {
+        // Reset agents to desks
+        routineState.agents.forEach(agentId => {
+            const desk = TARGETS.desks[agentId];
+            const agent = agents[agentId];
+            if (desk && agent) {
+                agent.position.x = desk.x;
+                agent.position.z = desk.z;
+                agent.position.y = agent.userData?.originalY || 0;
+            }
+        });
+    }
     
     document.getElementById('btn-start').disabled = false;
     document.getElementById('btn-stop').disabled = true;
