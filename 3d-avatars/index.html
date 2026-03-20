@@ -87,6 +87,12 @@
     <script>
         console.log('HTML inline script running...');
         
+        // EMERGENCY DEBUGGING
+        console.log('=== DEBUG ===');
+        console.log('daily-routine loaded:', typeof initDailyRoutine);
+        console.log('window.agents:', typeof window.agents);
+        console.log('agents:', typeof agents);
+        
         // Wait for everything to load
         window.addEventListener('load', function() {
             console.log('Window load event fired');

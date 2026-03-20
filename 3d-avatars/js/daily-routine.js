@@ -61,6 +61,10 @@ function createPanel() {
     document.getElementById('btn-start').addEventListener('click', startRoutine);
     document.getElementById('btn-stop').addEventListener('click', stopRoutine);
     
+    // EMERGENCY FALLBACK: Add inline handler in case event listener fails
+    document.getElementById('btn-start').setAttribute('onclick', "console.log('START clicked (inline)'); if(typeof startRoutine==='function') startRoutine(); else console.error('startRoutine not found');");
+    document.getElementById('btn-stop').setAttribute('onclick', "console.log('STOP clicked (inline)'); if(typeof stopRoutine==='function') stopRoutine(); else console.error('stopRoutine not found');");
+    
     console.log('[SimpleRoutine] Panel created');
 }
 
@@ -68,14 +72,26 @@ function createPanel() {
  * Start the simple routine
  */
 function startRoutine() {
-    console.log('[SimpleRoutine] STARTING ROUTINE');
+    console.log('[SimpleRoutine] STARTING ROUTINE - button clicked!');
+    console.log('[SimpleRoutine] routineState.isActive:', routineState.isActive);
     
-    if (routineState.isActive) return;
+    if (routineState.isActive) {
+        console.log('[SimpleRoutine] Already active, returning');
+        return;
+    }
     
     // Check agents exist - use window.agents to ensure global access
     const agents = window.agents;
-    if (!agents || !agents.groot) {
-        console.error('[SimpleRoutine] ERROR: Agents not loaded! window.agents:', window.agents);
+    console.log('[SimpleRoutine] window.agents:', agents);
+    
+    if (!agents) {
+        console.error('[SimpleRoutine] ERROR: window.agents is undefined!');
+        alert('Agents not loaded yet! Please wait for the world to fully load.');
+        return;
+    }
+    
+    if (!agents.groot) {
+        console.error('[SimpleRoutine] ERROR: Agents not fully loaded! window.agents:', window.agents);
         alert('Wait for agents to load first!');
         return;
     }
