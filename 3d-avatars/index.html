@@ -79,61 +79,46 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     
+    <!-- Daily Routine System - MUST LOAD FIRST -->
+    <script src="js/daily-routine.js?v=3" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
+    </script>
+    
     <!-- Main application -->
-    <script src="js/avatar-world.js?v=39" onload="console.log('avatar-world.js loaded successfully')" onerror="console.error('avatar-world.js FAILED to load')">
+    <script src="js/avatar-world.js?v=40" onload="console.log('✅ avatar-world.js loaded successfully')" onerror="console.error('❌ avatar-world.js FAILED to load')">
     </script>
     
-    <!-- Daily Routine System -->
-    <script src="js/daily-routine.js?v=2" onload="console.log('daily-routine.js loaded successfully')" onerror="console.error('daily-routine.js FAILED to load')">
-    </script>
-    
+    <!-- EMERGENCY DEBUG + LOAD CHECK -->
     <script>
-        console.log('HTML inline script running...');
+        // IMMEDIATE DEBUG - Log before anything loads
+        console.log('🔥 INDEX.HTML INLINE SCRIPT: Starting...');
+        console.log('🔥 THREE:', typeof THREE); // Should be 'undefined' at this point
         
-        // EMERGENCY DEBUGGING
-        console.log('=== DEBUG ===');
-        console.log('daily-routine loaded:', typeof initDailyRoutine);
-        console.log('window.agents:', typeof window.agents);
-        console.log('agents:', typeof agents);
-        
-        // Wait for everything to load
+        // GLOBAL LOAD CHECK
         window.addEventListener('load', function() {
-            console.log('Window load event fired');
+            console.log('🔥 WINDOW LOAD EVENT FIRED');
             
-            // NOTE: initDailyRoutine() is now called from avatar-world.js to avoid duplicate initialization
-            // This prevents multiple routine panels from being created
-            console.log('Daily Routine system will be initialized by avatar-world.js');
-            
-            // Check if initialization succeeded
+            // Emergency debug output
             setTimeout(function() {
-                console.log('Checking THREE:', typeof THREE);
-                console.log('Checking init:', typeof init);
-                console.log('Checking window.init:', typeof window.init);
-                console.log('Checking initDailyRoutine:', typeof initDailyRoutine);
+                console.log('🔥 === LOAD CHECK ===');
+                console.log('🔥 THREE:', typeof THREE);
+                console.log('🔥 window.init:', typeof window.init);
+                console.log('🔥 initDailyRoutine:', typeof initDailyRoutine);
+                console.log('🔥 startFullRoutine:', typeof startFullRoutine);
+                console.log('🔥 window.agents:', typeof window.agents);
+                console.log('🔥 agents:', typeof agents);
                 
-                const loadingScreen = document.getElementById('loading-screen');
-                
-                if (typeof THREE === 'undefined') {
-                    console.error('Three.js failed to load');
-                    if (loadingScreen) {
-                        loadingScreen.innerHTML = 
-                            '<div style="color:red;padding:20px;"><h3>Three.js failed to load</h3><p>Check internet connection</p></div>';
-                    }
-                } else if (typeof init === 'undefined' && typeof window.init === 'undefined') {
-                    console.error('init() function not found');
-                    if (loadingScreen) {
-                        loadingScreen.innerHTML = 
-                            '<div style="color:red;padding:20px;"><h3>init() not found</h3><p>Script may have failed to load. Check console.</p></div>';
-                    }
-                } else {
-                    console.log('All checks passed, init should have run');
+                if (typeof startFullRoutine !== 'function') {
+                    console.error('🔥 CRITICAL: startFullRoutine not loaded!');
                 }
-            }, 1500);
+                if (!window.agents) {
+                    console.error('🔥 CRITICAL: window.agents not created!');
+                }
+            }, 2000);
         });
         
         // Global error handler
         window.addEventListener('error', function(e) {
-            console.error('Global error:', e.message, 'at', e.filename, 'line', e.lineno);
+            console.error('💥 GLOBAL ERROR:', e.message, 'at', e.filename, 'line', e.lineno);
             const loadingScreen = document.getElementById('loading-screen');
             if (loadingScreen && loadingScreen.style.display !== 'none') {
                 loadingScreen.innerHTML = 
@@ -143,12 +128,25 @@
         });
     </script>
 
-    <!-- Button readiness check -->
+    <!-- BUTTON READINESS CHECK -->
     <script>
         // Wait for everything then enable button
         function checkReady() {
             const btn = document.getElementById('emergency-start-btn');
-            if (typeof startFullRoutine === 'function' && window.agents) {
+            if (!btn) {
+                console.log('🔥 Button not found, retrying...');
+                setTimeout(checkReady, 100);
+                return;
+            }
+            
+            // Check BOTH conditions
+            const hasStartFunction = typeof startFullRoutine === 'function';
+            const hasAgents = window.agents && Object.keys(window.agents).length > 0;
+            
+            console.log('🔥 checkReady: startFullRoutine=' + hasStartFunction + ', agents=' + hasAgents);
+            
+            if (hasStartFunction && hasAgents) {
+                console.log('🔥 BUTTON READY! Enabling...');
                 btn.textContent = '▶️ START ROUTINE';
                 btn.disabled = false;
                 btn.style.background = '#00ff00';
@@ -156,11 +154,26 @@
                 btn.style.border = '4px solid #fff';
                 btn.style.cursor = 'pointer';
                 btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
+                btn.onclick = startFullRoutine; // Direct binding
             } else {
+                // Update button text to show what's missing
+                if (!hasStartFunction) {
+                    btn.textContent = 'Loading routine...';
+                } else if (!hasAgents) {
+                    btn.textContent = 'Loading agents...';
+                }
                 setTimeout(checkReady, 500);
             }
         }
-        checkReady();
+        
+        // Start checking after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(checkReady, 500);
+            });
+        } else {
+            setTimeout(checkReady, 500);
+        }
     </script>
 </body>
 </html>

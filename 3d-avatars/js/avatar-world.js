@@ -4238,9 +4238,10 @@ console.log('avatar-world.js loaded, init() defined:', typeof init);
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM ready, starting init...');
-    console.log('init() available:', typeof window.init);
-    console.log('THREE available:', typeof THREE);
+    console.log('[AvatarWorld] DOM ready, starting init...');
+    console.log('[AvatarWorld] init() available:', typeof window.init);
+    console.log('[AvatarWorld] THREE available:', typeof THREE);
+    console.log('[AvatarWorld] initDailyRoutine available:', typeof initDailyRoutine);
     
     try {
         if (typeof THREE === 'undefined') {
@@ -4250,16 +4251,21 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error('init() function not found');
         }
         
+        // Run init (this creates agents and exports window.agents)
         init();
         
-        // Initialize Daily Routine feature
+        // Initialize Daily Routine feature AFTER agents are created
         if (typeof initDailyRoutine === 'function') {
+            console.log('[AvatarWorld] Calling initDailyRoutine...');
             initDailyRoutine();
+            console.log('[AvatarWorld] initDailyRoutine complete, window.agents:', typeof window.agents);
+        } else {
+            console.error('[AvatarWorld] initDailyRoutine not found! Check script loading order.');
         }
         
-        console.log('Init completed successfully');
+        console.log('[AvatarWorld] Init completed successfully');
     } catch (err) {
-        console.error('Init failed:', err);
+        console.error('[AvatarWorld] Init failed:', err);
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
             loadingScreen.innerHTML = 
