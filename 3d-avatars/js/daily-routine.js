@@ -6,10 +6,10 @@ function startRoutine() {
         return;
     }
     
-    // Stand to the LEFT of the Kanban board, not right at it
-    // Kanban is at (18, 16), so agents stand at (10, 16) - to the left side
-    const standX = 10;  // To the left of kanban
-    const standZ = 16;  // Same Z as kanban
+    // Stand at the CENTER of the office where the yellow arrow points
+    // Arrow points to center area near the benches
+    const standX = 0;   // Center of office
+    const standZ = 0;   // Center of office
     
     // Move each agent to stand LEFT of the Kanban board
     Object.keys(window.agents).forEach((key, i) => {
