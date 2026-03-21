@@ -70,8 +70,9 @@
         </div>
     </div>
 
-    <!-- START BUTTON - Enabled only when ready -->
-    <button id="start-btn" disabled style="position:fixed;top:10px;right:10px;z-index:99999;padding:20px 30px;font-size:20px;font-weight:bold;background:#666;color:#999;border:4px solid #fff;border-radius:10px;cursor:not-allowed;box-shadow:0 4px 8px rgba(0,0,0,0.5);text-transform:uppercase;letter-spacing:2px;transition:all 0.3s;">⏳ LOADING...</button>
+    <!-- SIMPLE START BUTTON -->
+    <button id="start-btn" onclick="if(typeof startRoutine==='function')startRoutine();else alert('Please wait, loading...')" 
+        style="position:fixed;top:20px;right:20px;z-index:10000;padding:15px 30px;font-size:18px;background:#00ff00;color:#000;font-weight:bold;border:none;border-radius:8px;cursor:pointer;">▶️ START ROUTINE</button>
 
     <div id="canvas-container"></div>
 
@@ -79,90 +80,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"></script>
     
-    <!-- Main application - MUST LOAD FIRST -->
-    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/avatar-world.js?v=41" onload="console.log('✅ avatar-world.js loaded successfully')" onerror="console.error('❌ avatar-world.js FAILED to load')">
-    </script>
+    <!-- Main application -->
+    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/avatar-world.js"></script>
     
-    <!-- Daily Routine System - loads AFTER avatar-world.js -->
-    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/daily-routine.js?v=5" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
-    </script>
+    <!-- Daily Routine System -->
+    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/daily-routine.js"></script>
     
-    <!-- EMERGENCY DEBUG + LOAD CHECK -->
     <script>
-        // IMMEDIATE DEBUG - Log before anything loads
-        console.log('🔥 INDEX.HTML INLINE SCRIPT: Starting...');
-        console.log('🔥 THREE:', typeof THREE); // Should be 'undefined' at this point
-        
-        // GLOBAL LOAD CHECK
+        // Hide loading screen when ready
         window.addEventListener('load', function() {
-            console.log('🔥 WINDOW LOAD EVENT FIRED');
-            
-            // Emergency debug output
             setTimeout(function() {
-                console.log('🔥 === LOAD CHECK ===');
-                console.log('🔥 THREE:', typeof THREE);
-                console.log('🔥 window.init:', typeof window.init);
-                console.log('🔥 initDailyRoutine:', typeof initDailyRoutine);
-                console.log('🔥 startFullRoutine:', typeof startFullRoutine);
-                console.log('🔥 window.agents:', typeof window.agents);
-                console.log('🔥 agents:', typeof agents);
-                
-                if (typeof startFullRoutine !== 'function') {
-                    console.error('🔥 CRITICAL: startFullRoutine not loaded!');
-                }
-                if (!window.agents) {
-                    console.error('🔥 CRITICAL: window.agents not created!');
-                }
-            }, 2000);
-            
-            // Check if ready and enable button
-            checkReady();
-        });
-        
-        // Check if functions are actually ready
-        function checkReady() {
-            const btn = document.getElementById('start-btn');
-            if (!btn) return;
-            
-            // Check ACTUAL readiness: 4 agents loaded AND startFullRoutine exists
-            const hasAgents = window.agents && Object.keys(window.agents).length === 4;
-            const hasRoutine = typeof startFullRoutine === 'function';
-            
-            // DEBUG: Log current state
-            console.log('CHECKING:', {
-                hasAgents: hasAgents,
-                agentCount: window.agents ? Object.keys(window.agents).length : 0,
-                hasRoutine: hasRoutine
-            });
-            
-            if (hasAgents && hasRoutine) {
-                // Actually ready - enable button
-                btn.disabled = false;
-                btn.innerHTML = '▶️ START ROUTINE';
-                btn.style.background = '#00ff00';
-                btn.style.color = '#000';
-                btn.style.cursor = 'pointer';
-                btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
-                btn.onclick = startFullRoutine;
-                console.log('✅ Button enabled - routine ready');
-            } else {
-                // Not ready yet - keep button disabled and check again
-                btn.disabled = true;
-                btn.innerHTML = '⏳ LOADING...';
-                console.log('⏳ Waiting for agents and routine...');
-                setTimeout(checkReady, 500);
-            }
-        }
-        
-        // Global error handler
-        window.addEventListener('error', function(e) {
-            console.error('💥 GLOBAL ERROR:', e.message, 'at', e.filename, 'line', e.lineno);
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen && loadingScreen.style.display !== 'none') {
-                loadingScreen.innerHTML = 
-                    '<div style="color:red;padding:20px;"><h3>JavaScript Error</h3><p>' + 
-                    e.message + '</p><p>File: ' + (e.filename || 'unknown') + '</p></div>';
-            }
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) loadingScreen.style.display = 'none';
+            }, 1000);
         });
     </script>
 </body>
