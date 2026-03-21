@@ -6,16 +6,16 @@ function startRoutine() {
         return;
     }
     
-    // Move to RED BOX position (upper right, near benches)
-    const standX = 15;   // Right side
-    const standZ = -12;  // Upper/back area
+    // Move to Kanban board position
+    const standX = 18;
+    const standZ = 16;
     
-    // Move each agent to the red box position, spread out side by side
+    // Spread agents in FRONT of Kanban
     Object.keys(window.agents).forEach((key, i) => {
         const agent = window.agents[key];
-        // Spread agents out side by side at the red box
-        const targetX = standX + (i - 1.5) * 3; // More spacing
-        const targetZ = standZ;
+        // Stand in front of Kanban, spread left-to-right
+        const targetX = standX + (i - 1.5) * 2;
+        const targetZ = standZ + 3; // 3 units in front of board
         
         const startX = agent.position.x;
         const startZ = agent.position.z;
