@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Office Script Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #4ECDC4;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #FFE66D;
+            margin-bottom: 15px;
+        }
+        .log {
+            background: #0f0f1a;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid;
+        }
+        .log-success { border-color: #4ECDC4; color: #4ECDC4; }
+        .log-error { border-color: #FF6B6B; color: #FF6B6B; }
+        .log-warn { border-color: #FFE66D; color: #FFE66D; }
+        .log-info { border-color: #888; color: #888; }
+        #test-canvas {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border: 2px solid #333;
+            margin-top: 10px;
+        }
+        .btn {
+            background: #4ECDC4;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .btn:hover { background: #3DBDB4; }
+        .btn:disabled { background: #666; cursor: not-allowed; }
+        .status-box {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .status-ok { background: rgba(78, 205, 196, 0.2); border: 2px solid #4ECDC4; }
+        .status-fail { background: rgba(255, 107, 107, 0.2); border: 2px solid #FF6B6B; }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ECDC4, #FFE66D);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 3D Office Script Loader Test</h1>
+    
+    <div class="section">
+        <h2>Test Progress</h2>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress">0%</div>
+        </div>
+        <div id="status-box" class="status-box" style="display:none;">
+            Running tests...
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Test Controls</h2>
+        <button class="btn" onclick="runTest()">▶️ Run Full Test</button>
+        <button class="btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+        <button class="btn" onclick="location.reload()">🔄 Reload Page</button>
+        <button class="btn" onclick="window.location.href='./3d-avatars/'">🏢 Go to 3D Office</button>
+    </div>
+
+    <div class="section">
+        <h2>Load Test Log</h2>
+        <div id="test-log" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>3D Canvas Test</h2>
+        <canvas id="test-canvas"></canvas>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"
+        onload="log('Three.js CDN loaded successfully', 'success')"
+        onerror="log('Three.js CDN FAILED to load', 'error')"></script>
+
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.133.0/examples/js/controls/OrbitControls.js"
+        onload="log('OrbitControls loaded successfully', 'success')"
+        onerror="log('OrbitControls FAILED to load', 'error')"></script>
+
+    <!-- Avatar World - the main script -->
+    <script src="3d-avatars/js/avatar-world.js?v=test"
+        onload="log('avatar-world.js loaded successfully', 'success')"
+        onerror="log('avatar-world.js FAILED to load', 'error')"></script>
+
+    <!-- Daily Routine -->
+    <script src="3d-avatars/js/daily-routine.js?v=test"
+        onload="log('daily-routine.js loaded successfully', 'success')"
+        onerror="log('daily-routine.js FAILED to load', 'error')"></script>
+
+    <script>
+        const logs = [];
+        let testRunning = false;
+        let testProgress = 0;
+
+        function log(message, type = 'info') {
+            const entry = {
+                time: new Date().toLocaleTimeString(),
+                message: message,
+                type: type
+            };
+            logs.push(entry);
+            
+            const logDiv = document.getElementById('test-log');
+            const entryDiv = document.createElement('div');
+            entryDiv.className = `log-entry log-${type}`;
+            entryDiv.innerHTML = `[${entry.time}] ${message}`;
+            logDiv.appendChild(entryDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            
+            // Also log to console
+            if (type === 'error') console.error(message);
+            else if (type === 'warn') console.warn(message);
+            else console.log(message);
+        }
+
+        function clearLogs() {
+            logs.length = 0;
+            document.getElementById('test-log').innerHTML = '';
+        }
+
+        function updateProgress(percent, message) {
+            const progress = document.getElementById('progress');
+            progress.style.width = percent + '%';
+            progress.textContent = percent + '%';
+            if (message) log(message);
+        }
+
+        async function runTest() {
+            if (testRunning) return;
+            testRunning = true;
+            clearLogs();
+            
+            const statusBox = document.getElementById('status-box');
+            statusBox.style.display = 'block';
+            statusBox.className = 'status-box';
+            statusBox.textContent = 'Running tests...';
+
+            try {
+                // Test 1: Basic libraries
+                updateProgress(10, 'Testing basic libraries...');
+                await sleep(500);
+                
+                if (typeof THREE === 'undefined') {
+                    throw new Error('Three.js not loaded');
+                }
+                log(`Three.js version: r${THREE.REVISION}`, 'success');
+
+                // Test 2: Three.js components
+                updateProgress(20, 'Testing Three.js components...');
+                await sleep(500);
+                
+                const tests = [
+                    { name: 'Scene', fn: () => new THREE.Scene() },
+                    { name: 'Camera', fn: () => new THREE.PerspectiveCamera(75, 1, 0.1, 1000) },
+                    { name: 'WebGLRenderer', fn: () => new THREE.WebGLRenderer() },
+                    { name: 'BoxGeometry', fn: () => new THREE.BoxGeometry(1, 1, 1) },
+                    { name: 'MeshBasicMaterial', fn: () => new THREE.MeshBasicMaterial({ color: 0xffffff }) },
+                    { name: 'Mesh', fn: () => new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshBasicMaterial()) }
+                ];
+
+                for (const test of tests) {
+                    try {
+                        test.fn();
+                        log(`✅ ${test.name} working`, 'success');
+                    } catch (e) {
+                        log(`❌ ${test.name} failed: ${e.message}`, 'error');
+                    }
+                }
+
+                // Test 3: Canvas rendering
+                updateProgress(40, 'Testing canvas rendering...');
+                await sleep(500);
+                
+                const canvas = document.getElementById('test-canvas');
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+                renderer.setSize(canvas.width, canvas.height);
+                
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const material = new THREE.MeshBasicMaterial({ color: 0x4ECDC4 });
+                const cube = new THREE.Mesh(geometry, material);
+                scene.add(cube);
+                camera.position.z = 3;
+                
+                // Animate
+                let frames = 0;
+                function animate() {
+                    requestAnimationFrame(animate);
+                    cube.rotation.x += 0.01;
+                    cube.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                    frames++;
+                }
+                animate();
+                log('✅ Canvas rendering test passed (cube should be spinning)', 'success');
+
+                // Test 4: Check avatar-world.js exports
+                updateProgress(60, 'Checking avatar-world.js functions...');
+                await sleep(500);
+                
+                const expectedFunctions = [
+                    'init', 'createAgents', 'createOfficeEnvironment', 
+                    'setupLighting', 'animate', 'onWindowResize'
+                ];
+                
+                expectedFunctions.forEach(fnName => {
+                    if (typeof window[fnName] === 'function') {
+                        log(`✅ Function ${fnName}() found`, 'success');
+                    } else {
+                        log(`❌ Function ${fnName}() NOT found`, 'error');
+                    }
+                });
+
+                // Test 5: Check daily-routine.js exports
+                updateProgress(80, 'Checking daily-routine.js functions...');
+                await sleep(500);
+                
+                const routineFunctions = [
+                    'initDailyRoutine', 'startFullRoutine', 'moveAgentsToZone',
+                    'moveAgentsToDesks', 'animateAgent'
+                ];
+                
+                routineFunctions.forEach(fnName => {
+                    if (typeof window[fnName] === 'function') {
+                        log(`✅ Function ${fnName}() found`, 'success');
+                    } else {
+                        log(`❌ Function ${fnName}() NOT found`, 'warn');
+                    }
+                });
+
+                // Test 6: Check global variables
+                updateProgress(90, 'Checking global variables...');
+                await sleep(500);
+                
+                const globals = ['scene', 'camera', 'renderer', 'agents', 'controls'];
+                globals.forEach(varName => {
+                    if (window[varName] !== undefined) {
+                        log(`✅ Global ${varName} exists`, 'success');
+                    } else {
+                        log(`⚠️ Global ${varName} not initialized (expected - init() not called)`, 'info');
+                    }
+                });
+
+                // Final result
+                updateProgress(100, 'Test complete!');
+                await sleep(500);
+                
+                const errors = logs.filter(l => l.type === 'error').length;
+                const warns = logs.filter(l => l.type === 'warn').length;
+                
+                if (errors === 0) {
+                    statusBox.className = 'status-box status-ok';
+                    statusBox.innerHTML = `
+                        ✅ ALL TESTS PASSED!<br>
+                        <small>${warns} warnings</small><br><br>
+                        The 3D office should work. Try opening it:<br>
+                        <button class="btn" onclick="window.location.href='./3d-avatars/'">Open 3D Office</button>
+                    `;
+                } else {
+                    statusBox.className = 'status-box status-fail';
+                    statusBox.innerHTML = `
+                        ❌ TESTS FAILED<br>
+                        <small>${errors} errors, ${warns} warnings</small><br><br>
+                        Please check the error log above.
+                    `;
+                }
+
+            } catch (e) {
+                log(`CRITICAL ERROR: ${e.message}`, 'error');
+                console.error(e);
+                statusBox.className = 'status-box status-fail';
+                statusBox.textContent = '❌ Critical error: ' + e.message;
+            }
+            
+            testRunning = false;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            log('Page loaded, waiting for scripts...');
+            setTimeout(() => {
+                if (typeof THREE !== 'undefined') {
+                    log('Three.js detected in global scope', 'success');
+                }
+                runTest();
+            }, 2000);
+        });
+
+        // Capture errors
+        window.onerror = function(msg, url, line, col, error) {
+            log(`ERROR: ${msg} at ${url}:${line}:${col}`, 'error');
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Office Diagnostic - Tap Rush</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #4ECDC4;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #FFE66D;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+        }
+        .status-icon {
+            font-size: 20px;
+            margin-right: 10px;
+            width: 30px;
+        }
+        .pass { color: #4ECDC4; }
+        .fail { color: #FF6B6B; }
+        .warn { color: #FFE66D; }
+        .code {
+            background: #0f0f1a;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        .code pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .error-log {
+            color: #FF6B6B;
+            background: #1a0a0a;
+        }
+        .success-log {
+            color: #4ECDC4;
+            background: #0a1a0a;
+        }
+        #canvas-test {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .btn {
+            background: #4ECDC4;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background: #3DBDB4;
+        }
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th {
+            color: #FFE66D;
+        }
+        .summary {
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+        }
+        .summary.pass { background: rgba(78, 205, 196, 0.2); }
+        .summary.fail { background: rgba(255, 107, 107, 0.2); }
+    </style>
+</head>
+<body>
+    <h1>🔧 3D Office Diagnostic Tool</h1>
+
+    <div class="section">
+        <h2>📊 Test Results Summary</h2>
+        <div id="summary" class="summary">
+            Running tests...
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>1️⃣ Library Loading Status</h2>
+        <div id="library-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>2️⃣ Script Loading Status</h2>
+        <div id="script-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>3️⃣ Global Variables Check</h2>
+        <div id="global-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>4️⃣ Function Availability</h2>
+        <div id="function-status"></div>
+    </div>
+
+    <div class="section">
+        <h2>5️⃣ Console Error Capture</h2>
+        <div class="code" id="console-output">
+            <pre>Waiting for page load...</pre>
+        </div>
+        <button class="btn" onclick="clearConsole()">Clear Console Log</button>
+    </div>
+
+    <div class="section">
+        <h2>6️⃣ Canvas/WebGL Test</h2>
+        <div id="canvas-status"></div>
+        <canvas id="canvas-test"></canvas>
+    </div>
+
+    <div class="section">
+        <h2>7️⃣ Network Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Resource</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="network-status"></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>8️⃣ Browser Information</h2>
+        <div id="browser-info"></div>
+    </div>
+
+    <div class="section">
+        <h2>🚀 Quick Actions</h2>
+        <button class="btn" onclick="window.location.href='./3d-avatars/'">Go to 3D Office</button>
+        <button class="btn" onclick="location.reload()">Reload Page</button>
+        <button class="btn" onclick="clearCacheAndReload()">Clear Cache & Reload</button>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r133/three.min.js"></script>
+
+    <!-- Test Scripts -->
+    <script>
+        // Console log capture
+        const consoleLogs = [];
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+
+        console.log = function(...args) {
+            consoleLogs.push({ type: 'log', msg: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalConsole.log.apply(console, args);
+            updateConsoleDisplay();
+        };
+
+        console.error = function(...args) {
+            consoleLogs.push({ type: 'error', msg: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalConsole.error.apply(console, args);
+            updateConsoleDisplay();
+        };
+
+        console.warn = function(...args) {
+            consoleLogs.push({ type: 'warn', msg: args.join(' '), time: new Date().toLocaleTimeString() });
+            originalConsole.warn.apply(console, args);
+            updateConsoleDisplay();
+        };
+
+        window.onerror = function(msg, url, line, col, error) {
+            consoleLogs.push({ 
+                type: 'error', 
+                msg: `ERROR: ${msg} at ${url}:${line}:${col}`, 
+                time: new Date().toLocaleTimeString() 
+            });
+            updateConsoleDisplay();
+            return false;
+        };
+
+        function updateConsoleDisplay() {
+            const output = document.getElementById('console-output');
+            if (consoleLogs.length === 0) {
+                output.innerHTML = '<pre>No console messages captured yet</pre>';
+                return;
+            }
+            
+            const html = consoleLogs.map(log => {
+                const className = log.type === 'error' ? 'error-log' : (log.type === 'warn' ? 'warn-log' : 'success-log');
+                return `<div class="${className}">[${log.time}] ${log.msg}</div>`;
+            }).join('');
+            
+            output.innerHTML = html;
+        }
+
+        function clearConsole() {
+            consoleLogs.length = 0;
+            updateConsoleDisplay();
+        }
+
+        // Network monitoring
+        const networkRequests = [];
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            const startTime = performance.now();
+            networkRequests.push({ url: url, status: 'pending', time: '-' });
+            updateNetworkDisplay();
+            
+            return originalFetch.apply(this, args).then(response => {
+                const endTime = performance.now();
+                const lastReq = networkRequests.find(r => r.url === url && r.status === 'pending');
+                if (lastReq) {
+                    lastReq.status = response.status + (response.ok ? ' ✓' : ' ✗');
+                    lastReq.time = (endTime - startTime).toFixed(2) + 'ms';
+                }
+                updateNetworkDisplay();
+                return response;
+            }).catch(err => {
+                const lastReq = networkRequests.find(r => r.url === url && r.status === 'pending');
+                if (lastReq) {
+                    lastReq.status = 'FAILED';
+                    lastReq.time = 'error';
+                }
+                updateNetworkDisplay();
+                throw err;
+            });
+        };
+
+        function updateNetworkDisplay() {
+            const tbody = document.getElementById('network-status');
+            tbody.innerHTML = networkRequests.map(req => `
+                <tr>
+                    <td>${req.url}</td>
+                    <td class="${req.status.includes('✓') ? 'pass' : (req.status.includes('✗') || req.status === 'FAILED' ? 'fail' : 'warn')}">${req.status}</td>
+                    <td>${req.time}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Run all tests
+        async function runDiagnostics() {
+            let passCount = 0;
+            let failCount = 0;
+
+            // 1. Library Status
+            const libStatus = document.getElementById('library-status');
+            const threeLoaded = typeof THREE !== 'undefined';
+            const threeVersion = threeLoaded ? THREE.REVISION : 'N/A';
+            
+            if (threeLoaded) {
+                libStatus.innerHTML = createStatusItem('✅', 'Three.js loaded', 'pass', `Version: r${threeVersion}`);
+                passCount++;
+            } else {
+                libStatus.innerHTML = createStatusItem('❌', 'Three.js NOT loaded', 'fail', 'Check CDN connection');
+                failCount++;
+            }
+
+            // 2. Script Status - Check if avatar-world.js functions exist
+            const scriptStatus = document.getElementById('script-status');
+            const hasInit = typeof init === 'function';
+            const hasCreateAgents = typeof createAgents === 'function';
+            const hasAnimate = typeof animate === 'function';
+            
+            let scriptHtml = '';
+            if (hasInit) {
+                scriptHtml += createStatusItem('✅', 'avatar-world.js functions', 'pass', 'init() found');
+                passCount++;
+            } else {
+                scriptHtml += createStatusItem('❌', 'avatar-world.js NOT loaded', 'fail', 'init() not found');
+                failCount++;
+            }
+            scriptStatus.innerHTML = scriptHtml;
+
+            // 3. Global Variables
+            const globalStatus = document.getElementById('global-status');
+            const checks = [
+                { name: 'window.scene', val: typeof window.scene },
+                { name: 'window.camera', val: typeof window.camera },
+                { name: 'window.renderer', val: typeof window.renderer },
+                { name: 'window.agents', val: typeof window.agents },
+                { name: 'window.controls', val: typeof window.controls }
+            ];
+            
+            let globalHtml = '';
+            checks.forEach(check => {
+                const isDefined = check.val !== 'undefined';
+                if (isDefined) passCount++; else failCount++;
+                globalHtml += createStatusItem(
+                    isDefined ? '✅' : '❌',
+                    check.name,
+                    isDefined ? 'pass' : 'fail',
+                    `Type: ${check.val}`
+                );
+            });
+            globalStatus.innerHTML = globalHtml;
+
+            // 4. Function Availability
+            const funcStatus = document.getElementById('function-status');
+            const funcChecks = [
+                { name: 'startFullRoutine', type: typeof startFullRoutine },
+                { name: 'initDailyRoutine', type: typeof initDailyRoutine },
+                { name: 'moveAgentsToZone', type: typeof moveAgentsToZone },
+                { name: 'animateAgent', type: typeof animateAgent }
+            ];
+            
+            let funcHtml = '';
+            funcChecks.forEach(check => {
+                const isFunc = check.type === 'function';
+                if (isFunc) passCount++; else failCount++;
+                funcHtml += createStatusItem(
+                    isFunc ? '✅' : '❌',
+                    check.name,
+                    isFunc ? 'pass' : 'fail',
+                    check.type
+                );
+            });
+            funcStatus.innerHTML = funcHtml;
+
+            // 5. Canvas Test
+            const canvasStatus = document.getElementById('canvas-status');
+            const canvas = document.getElementById('canvas-test');
+            try {
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    canvasStatus.innerHTML = createStatusItem('✅', 'WebGL supported', 'pass', 'Canvas context created successfully');
+                    passCount++;
+                    
+                    // Try a simple Three.js render
+                    const testScene = new THREE.Scene();
+                    const testCamera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+                    const testRenderer = new THREE.WebGLRenderer({ canvas: canvas });
+                    testRenderer.setSize(canvas.width, canvas.height);
+                    
+                    const geometry = new THREE.BoxGeometry(1, 1, 1);
+                    const material = new THREE.MeshBasicMaterial({ color: 0x4ECDC4 });
+                    const cube = new THREE.Mesh(geometry, material);
+                    testScene.add(cube);
+                    testCamera.position.z = 2;
+                    
+                    function animateCube() {
+                        requestAnimationFrame(animateCube);
+                        cube.rotation.x += 0.01;
+                        cube.rotation.y += 0.01;
+                        testRenderer.render(testScene, testCamera);
+                    }
+                    animateCube();
+                } else {
+                    canvasStatus.innerHTML = createStatusItem('❌', 'WebGL NOT supported', 'fail', 'Your browser does not support WebGL');
+                    failCount++;
+                }
+            } catch (e) {
+                canvasStatus.innerHTML = createStatusItem('❌', 'WebGL Error', 'fail', e.message);
+                failCount++;
+            }
+
+            // 6. Browser Info
+            const browserInfo = document.getElementById('browser-info');
+            browserInfo.innerHTML = `
+                <div class="code"><pre>
+User Agent: ${navigator.userAgent}
+Platform: ${navigator.platform}
+Language: ${navigator.language}
+Online: ${navigator.onLine}
+Cookies Enabled: ${navigator.cookieEnabled}
+Screen: ${screen.width}x${screen.height}
+Window: ${window.innerWidth}x${window.innerHeight}
+Device Pixel Ratio: ${window.devicePixelRatio}
+                </pre></div>
+            `;
+
+            // Summary
+            const summary = document.getElementById('summary');
+            const total = passCount + failCount;
+            const pct = Math.round((passCount / total) * 100);
+            
+            if (failCount === 0) {
+                summary.className = 'summary pass';
+                summary.innerHTML = `✅ ALL TESTS PASSED<br><small>${passCount}/${total} checks passed (${pct}%)</small>`;
+            } else if (failCount > passCount) {
+                summary.className = 'summary fail';
+                summary.innerHTML = `❌ MAJOR ISSUES DETECTED<br><small>${passCount}/${total} checks passed (${pct}%)</small>`;
+            } else {
+                summary.className = 'summary warn';
+                summary.innerHTML = `⚠️ SOME ISSUES FOUND<br><small>${passCount}/${total} checks passed (${pct}%)</small>`;
+            }
+
+            console.log('Diagnostic complete:', { pass: passCount, fail: failCount });
+        }
+
+        function createStatusItem(icon, label, statusClass, detail) {
+            return `
+                <div class="status">
+                    <span class="status-icon ${statusClass}">${icon}</span>
+                    <div>
+                        <strong>${label}</strong>
+                        <div style="color: #888; font-size: 12px;">${detail}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearCacheAndReload() {
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+            location.reload(true);
+        }
+
+        // Run on load
+        window.addEventListener('load', () => {
+            console.log('Diagnostic page loaded');
+            setTimeout(runDiagnostics, 500);
+        });
+    </script>
+</body>
+</html>
