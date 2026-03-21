@@ -4255,13 +4255,20 @@ document.addEventListener('DOMContentLoaded', function() {
         init();
         
         // Initialize Daily Routine feature AFTER agents are created
-        if (typeof initDailyRoutine === 'function') {
-            console.log('[AvatarWorld] Calling initDailyRoutine...');
-            initDailyRoutine();
-            console.log('[AvatarWorld] initDailyRoutine complete, window.agents:', typeof window.agents);
-        } else {
-            console.error('[AvatarWorld] initDailyRoutine not found! Check script loading order.');
+        // Wait for initDailyRoutine to be available (daily-routine.js loads after avatar-world.js)
+        function waitForDailyRoutine(attempts = 0) {
+            if (typeof initDailyRoutine === 'function') {
+                console.log('[AvatarWorld] Calling initDailyRoutine...');
+                initDailyRoutine();
+                console.log('[AvatarWorld] initDailyRoutine complete, window.agents:', typeof window.agents);
+            } else if (attempts < 50) { // Wait up to 5 seconds
+                console.log('[AvatarWorld] Waiting for initDailyRoutine... attempt #' + (attempts + 1));
+                setTimeout(() => waitForDailyRoutine(attempts + 1), 100);
+            } else {
+                console.error('[AvatarWorld] initDailyRoutine not found after 5 seconds! Check script loading order.');
+            }
         }
+        waitForDailyRoutine();
         
         console.log('[AvatarWorld] Init completed successfully');
     } catch (err) {
