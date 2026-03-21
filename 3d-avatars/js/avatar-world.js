@@ -3335,17 +3335,6 @@ function createGrootAvatar(group, config) {
     group.add(rightArm);
     group.userData.rightArm = rightArm;
 
-    // Small branches on arms
-    const branchGeo = new THREE.CylinderGeometry(0.04, 0.06, 0.4);
-    const branchMat = new THREE.MeshStandardMaterial({ color: config.color });
-    
-    [-0.7, 0.7].forEach(x => {
-        const branch = new THREE.Mesh(branchGeo, branchMat);
-        branch.position.set(x, 1.8, 0.3);
-        branch.rotation.x = -Math.PI / 4;
-        group.add(branch);
-    });
-
     // Leaves on head
     const leavesGeometry = new THREE.SphereGeometry(0.3, 6, 6);
     const leavesMaterial = new THREE.MeshStandardMaterial({ color: config.secondaryColor });

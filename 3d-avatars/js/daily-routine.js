@@ -6,11 +6,15 @@ function startRoutine() {
         return;
     }
     
+    // Kanban position from OFFICE_ZONES
+    const kanbanX = 18;
+    const kanbanZ = 16;
+    
     // Move each agent to Kanban
     Object.keys(window.agents).forEach((key, i) => {
         const agent = window.agents[key];
-        const targetX = -3 + i * 2;
-        const targetZ = -2;
+        const targetX = kanbanX + (i - 1.5) * 2; // Spread around kanban
+        const targetZ = kanbanZ;
         
         const startX = agent.position.x;
         const startZ = agent.position.z;
