@@ -84,7 +84,7 @@
     </script>
     
     <!-- Daily Routine System - loads AFTER avatar-world.js -->
-    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/daily-routine.js?v=4" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
+    <script src="https://cryptoniknag.github.io/tap-rush/3d-avatars/js/daily-routine.js?v=5" onload="console.log('✅ daily-routine.js loaded successfully')" onerror="console.error('❌ daily-routine.js FAILED to load')">
     </script>
     
     <!-- EMERGENCY DEBUG + LOAD CHECK -->
@@ -120,58 +120,36 @@
         });
         
         // Check if functions are actually ready
-        let checkCount = 0;
         function checkReady() {
             const btn = document.getElementById('start-btn');
             if (!btn) return;
             
-            checkCount++;
+            // Check ACTUAL readiness: 4 agents loaded AND startFullRoutine exists
+            const hasAgents = window.agents && Object.keys(window.agents).length === 4;
+            const hasRoutine = typeof startFullRoutine === 'function';
             
             // DEBUG: Log current state
             console.log('CHECKING:', {
-                checkCount: checkCount,
-                startFullRoutine: typeof startFullRoutine,
-                agents: typeof window.agents,
+                hasAgents: hasAgents,
                 agentCount: window.agents ? Object.keys(window.agents).length : 0,
-                agentKeys: window.agents ? Object.keys(window.agents) : 'none'
+                hasRoutine: hasRoutine
             });
             
-            try {
-                // Test if agents exist and have content
-                if (window.agents && Object.keys(window.agents).length > 0 && typeof startFullRoutine === 'function') {
-                    // Actually works - enable button
-                    btn.disabled = false;
-                    btn.innerHTML = '▶️ START ROUTINE';
-                    btn.style.background = '#00ff00';
-                    btn.style.color = '#000';
-                    btn.style.cursor = 'pointer';
-                    btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
-                    btn.onclick = startFullRoutine;
-                    console.log('✅ Button enabled - functions ready');
-                } else if (checkCount > 20) {
-                    // FALLBACK: Force enable after 20 checks (10 seconds)
-                    console.log('Forcing enable after 20 checks - agents may not be fully loaded');
-                    btn.disabled = false;
-                    btn.innerHTML = '▶️ START ROUTINE';
-                    btn.style.background = '#ffaa00';
-                    btn.style.color = '#000';
-                    btn.style.cursor = 'pointer';
-                    btn.style.boxShadow = '0 0 20px rgba(255,170,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
-                    btn.onclick = function() {
-                        if (typeof startFullRoutine === 'function') {
-                            startFullRoutine();
-                        } else {
-                            alert('Routine not ready yet. Please wait a moment and try again.');
-                        }
-                    };
-                } else {
-                    // Not ready yet - keep checking
-                    console.log('⏳ Waiting for functions... check #' + checkCount);
-                    setTimeout(checkReady, 500);
-                }
-            } catch(e) {
-                // Not ready - keep checking
-                console.log('⏳ Waiting for functions...', e.message);
+            if (hasAgents && hasRoutine) {
+                // Actually ready - enable button
+                btn.disabled = false;
+                btn.innerHTML = '▶️ START ROUTINE';
+                btn.style.background = '#00ff00';
+                btn.style.color = '#000';
+                btn.style.cursor = 'pointer';
+                btn.style.boxShadow = '0 0 20px rgba(0,255,0,0.8), 0 4px 8px rgba(0,0,0,0.5)';
+                btn.onclick = startFullRoutine;
+                console.log('✅ Button enabled - routine ready');
+            } else {
+                // Not ready yet - keep button disabled and check again
+                btn.disabled = true;
+                btn.innerHTML = '⏳ LOADING...';
+                console.log('⏳ Waiting for agents and routine...');
                 setTimeout(checkReady, 500);
             }
         }
