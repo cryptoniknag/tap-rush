@@ -3299,7 +3299,33 @@ function createGrootAvatar(group, config) {
     head.castShadow = true;
     group.add(head);
 
-    // Groot's face - natural tree texture (no facial features)
+    // Eyes - use dark brown instead of black
+    const eyeGeometry = new THREE.SphereGeometry(0.06, 8, 8);
+    const eyeMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x3d2817,  // Dark brown (bark color)
+        roughness: 0.8 
+    });
+    
+    // Left eye
+    const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    leftEye.position.set(-0.15, 2.3, 0.4);
+    group.add(leftEye);
+    
+    // Right eye  
+    const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+    rightEye.position.set(0.15, 2.3, 0.4);
+    group.add(rightEye);
+    
+    // Mouth - carved bark look
+    const mouthGeometry = new THREE.CylinderGeometry(0.08, 0.2, 0.4, 8);
+    const mouthMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x2a1a0f,  // Darker brown for mouth
+        roughness: 0.9 
+    });
+    const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+    mouth.rotation.z = Math.PI / 2;
+    mouth.position.set(0, 2.1, 0.45);
+    group.add(mouth);
 
     // Arms (branches)
     const armGeometry = new THREE.CylinderGeometry(0.1, 0.15, 1.2, 6);
