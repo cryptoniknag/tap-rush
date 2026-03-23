@@ -59,28 +59,65 @@ async function moveToKanban() {
     await Promise.all(promises);
 }
 
+// Test function for debugging
+window.testDeskMovement = function() {
+    console.log('=== TEST DESK MOVEMENT ===');
+    console.log('Testing desk movement...');
+    console.log('Agents:', Object.keys(window.agents || {}));
+    
+    const deskPositions = {
+        groot: { x: -8, z: -5 },
+        fin: { x: -8, z: 0 },
+        betty: { x: -8, z: 5 },
+        smith: { x: -8, z: 10 }
+    };
+    
+    Object.keys(window.agents || {}).forEach((key, i) => {
+        const agent = window.agents[key];
+        console.log(`Agent ${key} at:`, agent.position.x, agent.position.z);
+        
+        // Direct position change (no animation)
+        const pos = deskPositions[key];
+        if (pos) {
+            agent.position.x = pos.x;
+            agent.position.z = pos.z;
+            console.log(`Moved ${key} to desk at ${pos.x}, ${pos.z}`);
+        }
+    });
+    console.log('=== END TEST ===');
+};
+
 async function moveToDesks() {
-    const agents = window.agents;
-    const agentNames = Object.keys(agents);
+    if (!window.agents) {
+        console.error('No agents found');
+        return;
+    }
     
-    // Debug: Log agent keys and desk keys
-    console.log('Agent keys:', agentNames);
-    console.log('Desk keys:', Object.keys(POSITIONS.desks));
+    const deskPositions = {
+        groot: { x: -8, z: -5 },
+        fin: { x: -8, z: 0 },
+        betty: { x: -8, z: 5 },
+        smith: { x: -8, z: 10 }
+    };
     
-    const promises = [];
-    agentNames.forEach((key) => {
-        const agent = agents[key];
-        const deskPos = POSITIONS.desks[key];
-        if (deskPos) {
-            console.log(`Moving ${key} to desk at ${deskPos.x}, ${deskPos.z}`);
-            promises.push(moveAgentTo(agent, deskPos.x, deskPos.z, 2000));
+    console.log('=== MOVING TO DESKS ===');
+    console.log('Agent keys:', Object.keys(window.agents));
+    
+    // Move each agent with animation
+    Object.keys(window.agents).forEach(key => {
+        const agent = window.agents[key];
+        const pos = deskPositions[key];
+        if (pos && agent) {
+            console.log(`Moving ${key} to desk at ${pos.x}, ${pos.z}`);
+            moveAgentTo(agent, pos.x, pos.z, 2000);
         } else {
-            console.warn(`No desk position found for agent: ${key}`);
+            console.warn(`No desk position or agent found for: ${key}`);
         }
     });
     
-    await Promise.all(promises);
-    console.log('All agents at desks');
+    // Wait for all to complete
+    await wait(2500);
+    console.log('=== DESK MOVEMENT COMPLETE ===');
 }
 
 async function moveToConference() {
