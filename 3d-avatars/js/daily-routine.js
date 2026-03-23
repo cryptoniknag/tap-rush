@@ -186,4 +186,18 @@ function wait(ms) {
 }
 
 window.startRoutine = startRoutine;
-console.log('daily-routine.js loaded, startRoutine defined');
+
+// Initialize function called by avatar-world.js
+function initDailyRoutine() {
+    console.log('[DailyRoutine] Initializing daily routine system...');
+    console.log('[DailyRoutine] window.agents available:', !!window.agents);
+    if (window.agents) {
+        console.log('[DailyRoutine] Agent keys:', Object.keys(window.agents));
+    }
+    console.log('[DailyRoutine] Daily routine system ready');
+}
+
+// Export to global scope
+window.initDailyRoutine = initDailyRoutine;
+
+console.log('daily-routine.js loaded, startRoutine and initDailyRoutine defined');
