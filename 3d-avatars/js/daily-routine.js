@@ -72,14 +72,20 @@ async function moveToDesks() {
 
 async function moveToConference() {
     const agents = window.agents;
-    const confX = POSITIONS.conference.x;
-    const confZ = POSITIONS.conference.z;
+    const agentKeys = Object.keys(agents);
     
-    const promises = Object.keys(agents).map((key, i) => {
+    // Position around conference table (0, 8)
+    const promises = agentKeys.map((key, i) => {
         const agent = agents[key];
-        // Spread around conference table
-        const targetX = confX + (i - 1.5) * 1.5;
-        const targetZ = confZ;
+        // Spread around table: left, right, front, back
+        const angle = (i / agentKeys.length) * Math.PI * 2;
+        const tableX = 0;
+        const tableZ = 8;
+        const radius = 3; // Distance from table center
+        
+        const targetX = tableX + Math.cos(angle) * radius;
+        const targetZ = tableZ + Math.sin(angle) * radius;
+        
         return moveAgentTo(agent, targetX, targetZ, 2000);
     });
     
