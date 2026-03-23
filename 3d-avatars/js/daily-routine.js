@@ -36,6 +36,11 @@ async function startRoutine() {
     // Phase 4: Gym
     console.log('Phase 4: Gym workout');
     await moveToGym();
+    await wait(4000);
+    
+    // Phase 5: Return to desks
+    console.log('Phase 5: Return to desks');
+    await moveToDesks();
 }
 
 async function moveToKanban() {
@@ -58,16 +63,24 @@ async function moveToDesks() {
     const agents = window.agents;
     const agentNames = Object.keys(agents);
     
-    const promises = agentNames.map((key) => {
+    // Debug: Log agent keys and desk keys
+    console.log('Agent keys:', agentNames);
+    console.log('Desk keys:', Object.keys(POSITIONS.desks));
+    
+    const promises = [];
+    agentNames.forEach((key) => {
         const agent = agents[key];
         const deskPos = POSITIONS.desks[key];
         if (deskPos) {
-            return moveAgentTo(agent, deskPos.x, deskPos.z, 2000);
+            console.log(`Moving ${key} to desk at ${deskPos.x}, ${deskPos.z}`);
+            promises.push(moveAgentTo(agent, deskPos.x, deskPos.z, 2000));
+        } else {
+            console.warn(`No desk position found for agent: ${key}`);
         }
-        return Promise.resolve();
     });
     
     await Promise.all(promises);
+    console.log('All agents at desks');
 }
 
 async function moveToConference() {
