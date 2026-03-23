@@ -50,43 +50,47 @@ const OFFICE_ZONES = {
 // Agent configurations
 const AGENT_CONFIGS = {
     groot: {
-        name: 'Groot',
+        name: 'groot',
         description: 'The Digital Ent - Rooted in code, growing with knowledge',
-        color: 0x8B4513,
-        secondaryColor: 0x228B22,
-        position: OFFICE_ZONES.grootDesk,
+        color: 0x5D4037,
+        secondaryColor: 0x4CAF50,
+        position: { x: -8, z: -5 },
+        rot: Math.PI / 2,
         scale: 1.2,
         type: 'tree',
         workstation: 'grootDesk'
     },
     fin: {
-        name: 'Fin',
+        name: 'fin',
         description: 'The Strategist - Sharp mind, sharper style',
-        color: 0x2C3E50,
-        secondaryColor: 0xF5F5DC,
-        position: OFFICE_ZONES.finDesk,
+        color: 0x1E3A8A,
+        secondaryColor: 0xFFFFFF,
+        position: { x: -8, z: 0 },
+        rot: Math.PI / 2,
         scale: 1,
-        type: 'human',
+        type: 'professional',
         workstation: 'finDesk'
     },
     betty: {
-        name: 'Betty',
+        name: 'betty',
         description: 'The Creative - Pink pixels and endless imagination',
-        color: 0xFF69B4,
-        secondaryColor: 0xFFB6C1,
-        position: OFFICE_ZONES.bettyDesk,
+        color: 0xEC4899,
+        secondaryColor: 0xFCD34D,
+        position: { x: -8, z: 5 },
+        rot: Math.PI / 2,
         scale: 0.9,
         type: 'voxel',
         workstation: 'bettyDesk'
     },
     smith: {
-        name: 'Agent Smith',
+        name: 'smith',
         description: 'The Coder - Spawns Claude Code, builds the future',
-        color: 0x000000,
-        secondaryColor: 0x00FF00,
-        position: OFFICE_ZONES.smithDesk,
+        color: 0x374151,
+        secondaryColor: 0x10B981,
+        position: { x: -8, z: 10 },
+        rot: Math.PI / 2,
         scale: 1.0,
-        type: 'human',
+        type: 'tech',
         workstation: 'smithDesk'
     }
 };
@@ -3233,20 +3237,21 @@ function createAgents() {
     Object.keys(AGENT_CONFIGS).forEach(key => {
         const config = AGENT_CONFIGS[key];
         const agent = createAgent(config);
-        agent.position.set(config.position.x, config.position.y, config.position.z);
-        agent.rotation.y = config.position.rot;
-        agent.scale.setScalar(config.scale);
-        agent.userData = { 
-            id: key, 
+        // Position agents sitting at their desks (y: -0.4 for sitting height)
+        agent.position.set(config.position.x, -0.4, config.position.z);
+        agent.rotation.y = config.rot;
+        agent.userData = {
+            id: key,
             config: config,
-            originalY: config.position.y,
+            originalY: -0.4,  // Sitting height
             walkOffset: Math.random() * Math.PI * 2,
             targetPosition: null,
-            isWalking: false
+            isWalking: false,
+            isSitting: true  // Start sitting at desk
         };
         scene.add(agent);
         agents[key] = agent;
-        console.log(`[AvatarWorld] Created agent ${key} at (${config.position.x}, ${config.position.z})`);
+        console.log(`[AvatarWorld] Created agent ${key} sitting at desk (${config.position.x}, ${config.position.z})`);
     });
     
     // Export to global scope for daily routine
@@ -3656,8 +3661,8 @@ function toggleMeetingMode() {
         setTimeout(() => {
             Object.keys(agents).forEach(key => {
                 const config = AGENT_CONFIGS[key];
-                agents[key].position.set(config.position.x, config.position.y, config.position.z);
-                agents[key].rotation.y = config.position.rot;
+                agents[key].position.set(config.position.x, -0.4, config.position.z);
+                agents[key].rotation.y = config.rot;
                 agents[key].userData.isWalking = false;
                 agents[key].userData.action = null;
                 agents[key].userData.isSitting = false;
@@ -3728,8 +3733,8 @@ function endStandup() {
     setTimeout(() => {
         Object.keys(agents).forEach(key => {
             const config = AGENT_CONFIGS[key];
-            agents[key].position.set(config.position.x, config.position.y, config.position.z);
-            agents[key].rotation.y = config.position.rot;
+            agents[key].position.set(config.position.x, -0.4, config.position.z);
+            agents[key].rotation.y = config.rot;
             agents[key].userData.isWalking = false;
             agents[key].userData.action = null;
         });
@@ -3824,7 +3829,7 @@ function animateDance(agent, time) {
 }
 
 function resetAnimation(agent) {
-    agent.rotation.y = agent.userData.config.position.rot;
+    agent.rotation.y = agent.userData.config.rot;
     agent.position.y = agent.userData.originalY;
     
     if (agent.userData.leftArm) {
