@@ -1,37 +1,132 @@
-function startRoutine() {
-    console.log('Starting routine...');
+// Define positions
+const POSITIONS = {
+    kanban: { x: 18, z: 19 },
+    desks: {
+        groot: { x: -8, z: -5 },
+        fin: { x: -8, z: 0 },
+        betty: { x: -8, z: 5 },
+        smith: { x: -8, z: 10 }
+    },
+    conference: { x: 0, z: 8 },
+    gym: { x: 0, z: 18 }
+};
+
+async function startRoutine() {
     if (!window.agents) {
         console.error('Agents not ready');
         alert('Agents not ready yet, please wait');
         return;
     }
+
+    // Phase 1: Kanban (already there)
+    console.log('Phase 1: Kanban Standup');
+    await moveToKanban();
+    await wait(3000);
     
-    // Move to Kanban board position
-    const standX = 18;
-    const standZ = 16;
+    // Phase 2: Desks
+    console.log('Phase 2: Working at desks');
+    await moveToDesks();
+    await wait(5000);
     
-    // Spread agents in FRONT of Kanban
-    Object.keys(window.agents).forEach((key, i) => {
-        const agent = window.agents[key];
-        // Stand in front of Kanban, spread left-to-right
+    // Phase 3: Conference
+    console.log('Phase 3: Conference meeting');
+    await moveToConference();
+    await wait(4000);
+    
+    // Phase 4: Gym
+    console.log('Phase 4: Gym workout');
+    await moveToGym();
+}
+
+async function moveToKanban() {
+    const agents = window.agents;
+    const standX = POSITIONS.kanban.x;
+    const standZ = POSITIONS.kanban.z;
+    
+    const promises = Object.keys(agents).map((key, i) => {
+        const agent = agents[key];
+        // Spread in front of Kanban
         const targetX = standX + (i - 1.5) * 2;
-        const targetZ = standZ + 3; // 3 units in front of board
-        
+        const targetZ = standZ;
+        return moveAgentTo(agent, targetX, targetZ, 2000);
+    });
+    
+    await Promise.all(promises);
+}
+
+async function moveToDesks() {
+    const agents = window.agents;
+    const agentNames = Object.keys(agents);
+    
+    const promises = agentNames.map((key) => {
+        const agent = agents[key];
+        const deskPos = POSITIONS.desks[key];
+        if (deskPos) {
+            return moveAgentTo(agent, deskPos.x, deskPos.z, 2000);
+        }
+        return Promise.resolve();
+    });
+    
+    await Promise.all(promises);
+}
+
+async function moveToConference() {
+    const agents = window.agents;
+    const confX = POSITIONS.conference.x;
+    const confZ = POSITIONS.conference.z;
+    
+    const promises = Object.keys(agents).map((key, i) => {
+        const agent = agents[key];
+        // Spread around conference table
+        const targetX = confX + (i - 1.5) * 1.5;
+        const targetZ = confZ;
+        return moveAgentTo(agent, targetX, targetZ, 2000);
+    });
+    
+    await Promise.all(promises);
+}
+
+async function moveToGym() {
+    const agents = window.agents;
+    const gymX = POSITIONS.gym.x;
+    const gymZ = POSITIONS.gym.z;
+    
+    const promises = Object.keys(agents).map((key, i) => {
+        const agent = agents[key];
+        // Spread in gym area
+        const targetX = gymX + (i - 1.5) * 2;
+        const targetZ = gymZ;
+        return moveAgentTo(agent, targetX, targetZ, 2000);
+    });
+    
+    await Promise.all(promises);
+}
+
+function moveAgentTo(agent, targetX, targetZ, duration = 2000) {
+    return new Promise(resolve => {
         const startX = agent.position.x;
         const startZ = agent.position.z;
-        let progress = 0;
+        const startTime = Date.now();
         
         function animate() {
-            progress += 0.02;
-            if (progress >= 1) progress = 1;
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
             
             agent.position.x = startX + (targetX - startX) * progress;
             agent.position.z = startZ + (targetZ - startZ) * progress;
             
-            if (progress < 1) requestAnimationFrame(animate);
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                resolve();
+            }
         }
         animate();
     });
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 window.startRoutine = startRoutine;
