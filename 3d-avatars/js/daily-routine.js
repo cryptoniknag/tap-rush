@@ -2,10 +2,10 @@
 const POSITIONS = {
     kanban: { x: 18, z: 19 },
     desks: {
-        groot: { x: -8, z: -5 },
-        fin: { x: -8, z: 0 },
-        betty: { x: -8, z: 5 },
-        smith: { x: -8, z: 10 }
+        groot: { x: -10, z: -8 },    // Match AGENT_CONFIGS
+        fin: { x: 0, z: -12 },       // Match AGENT_CONFIGS
+        betty: { x: 10, z: -8 },     // Match AGENT_CONFIGS
+        smith: { x: 15, z: -5 }      // Match AGENT_CONFIGS
     },
     conference: { x: 0, z: 8 },
     gym: { x: 0, z: 18 }
@@ -18,7 +18,12 @@ async function startRoutine() {
         return;
     }
 
-    // Phase 1: Kanban (already there)
+    // Start at desks
+    console.log('Starting at desks');
+    await moveToDesks();
+    await wait(1000);
+
+    // Phase 1: Kanban Standup
     console.log('Phase 1: Kanban Standup');
     await moveToKanban();
     await wait(3000);
@@ -66,10 +71,10 @@ window.testDeskMovement = function() {
     console.log('Agents:', Object.keys(window.agents || {}));
     
     const deskPositions = {
-        groot: { x: -8, z: -5 },
-        fin: { x: -8, z: 0 },
-        betty: { x: -8, z: 5 },
-        smith: { x: -8, z: 10 }
+        groot: { x: -10, z: -8 },    // Match AGENT_CONFIGS
+        fin: { x: 0, z: -12 },       // Match AGENT_CONFIGS
+        betty: { x: 10, z: -8 },     // Match AGENT_CONFIGS
+        smith: { x: 15, z: -5 }      // Match AGENT_CONFIGS
     };
     
     Object.keys(window.agents || {}).forEach((key, i) => {
@@ -94,10 +99,10 @@ async function moveToDesks() {
     }
     
     const deskPositions = {
-        groot: { x: -8, z: -5 },
-        fin: { x: -8, z: 0 },
-        betty: { x: -8, z: 5 },
-        smith: { x: -8, z: 10 }
+        groot: { x: -10, z: -8 },    // Match AGENT_CONFIGS
+        fin: { x: 0, z: -12 },       // Match AGENT_CONFIGS
+        betty: { x: 10, z: -8 },     // Match AGENT_CONFIGS
+        smith: { x: 15, z: -5 }      // Match AGENT_CONFIGS
     };
     
     console.log('=== MOVING TO DESKS ===');

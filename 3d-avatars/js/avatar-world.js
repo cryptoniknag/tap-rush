@@ -54,7 +54,7 @@ const AGENT_CONFIGS = {
         description: 'The Digital Ent - Rooted in code, growing with knowledge',
         color: 0x5D4037,
         secondaryColor: 0x4CAF50,
-        position: { x: -8, z: -5 },
+        position: { x: -10, z: -8 },
         rot: Math.PI / 2,
         scale: 1.2,
         type: 'tree',
@@ -65,7 +65,7 @@ const AGENT_CONFIGS = {
         description: 'The Strategist - Sharp mind, sharper style',
         color: 0x1E3A8A,
         secondaryColor: 0xFFFFFF,
-        position: { x: -8, z: 0 },
+        position: { x: 0, z: -12 },
         rot: Math.PI / 2,
         scale: 1,
         type: 'professional',
@@ -76,7 +76,7 @@ const AGENT_CONFIGS = {
         description: 'The Creative - Pink pixels and endless imagination',
         color: 0xEC4899,
         secondaryColor: 0xFCD34D,
-        position: { x: -8, z: 5 },
+        position: { x: 10, z: -8 },
         rot: Math.PI / 2,
         scale: 0.9,
         type: 'voxel',
@@ -87,7 +87,7 @@ const AGENT_CONFIGS = {
         description: 'The Coder - Spawns Claude Code, builds the future',
         color: 0x374151,
         secondaryColor: 0x10B981,
-        position: { x: -8, z: 10 },
+        position: { x: 15, z: -5 },
         rot: Math.PI / 2,
         scale: 1.0,
         type: 'tech',
@@ -3236,6 +3236,7 @@ function createAgents() {
     console.log('[AvatarWorld] Creating agents...');
     Object.keys(AGENT_CONFIGS).forEach(key => {
         const config = AGENT_CONFIGS[key];
+        console.log(`Creating ${config.name} at:`, config.position.x, config.position.z);
         const agent = createAgent(config);
         // Position agents sitting at their desks (y: -0.4 for sitting height)
         agent.position.set(config.position.x, -0.4, config.position.z);
