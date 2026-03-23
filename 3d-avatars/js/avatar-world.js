@@ -3238,13 +3238,14 @@ function createAgents() {
         const config = AGENT_CONFIGS[key];
         console.log(`Creating ${config.name} at:`, config.position.x, config.position.z);
         const agent = createAgent(config);
-        // Position agents sitting at their desks (y: -0.4 for sitting height)
-        agent.position.set(config.position.x, -0.4, config.position.z);
+        // Position agents sitting at their desks (y: 0.9 for sitting on chair)
+        agent.position.set(config.position.x, 0.9, config.position.z);
+        console.log(`Agent ${config.name} position:`, agent.position.x, agent.position.y, agent.position.z);
         agent.rotation.y = config.rot;
         agent.userData = {
             id: key,
             config: config,
-            originalY: -0.4,  // Sitting height
+            originalY: 0.9,  // Sitting height on chair
             walkOffset: Math.random() * Math.PI * 2,
             targetPosition: null,
             isWalking: false,
@@ -3633,19 +3634,19 @@ function toggleMeetingMode() {
         
         setTimeout(() => {
             // Groot at head (facing table center)
-            agents.groot.position.set(0, -0.4, 5.5);
+            agents.groot.position.set(0, 0.9, 5.5);
             agents.groot.rotation.y = 0;
             agents.groot.userData.isSitting = true;
             
             // Fin on left side (facing right/across)
-            agents.fin.position.set(-3, -0.4, 8);
+            agents.fin.position.set(-3, 0.9, 8);
             agents.fin.rotation.y = Math.PI / 2;
             agents.fin.userData.isSitting = true;
             
             // Betty on right side, opposite Fin (facing left)
-            agents.betty.position.set(3, -0.4, 8);
+            agents.betty.position.set(3, 0.9, 8);
             agents.betty.rotation.y = -Math.PI / 2;
-            agents.betty.userData.isSitting = true;
+            agents.betty.userData.isSitting = true
             
             Object.values(agents).forEach(agent => {
                 agent.userData.isWalking = false;
@@ -3662,7 +3663,7 @@ function toggleMeetingMode() {
         setTimeout(() => {
             Object.keys(agents).forEach(key => {
                 const config = AGENT_CONFIGS[key];
-                agents[key].position.set(config.position.x, -0.4, config.position.z);
+                agents[key].position.set(config.position.x, 0.9, config.position.z);
                 agents[key].rotation.y = config.rot;
                 agents[key].userData.isWalking = false;
                 agents[key].userData.action = null;
@@ -3734,7 +3735,7 @@ function endStandup() {
     setTimeout(() => {
         Object.keys(agents).forEach(key => {
             const config = AGENT_CONFIGS[key];
-            agents[key].position.set(config.position.x, -0.4, config.position.z);
+            agents[key].position.set(config.position.x, 0.9, config.position.z);
             agents[key].rotation.y = config.rot;
             agents[key].userData.isWalking = false;
             agents[key].userData.action = null;
