@@ -32,6 +32,7 @@ const OFFICE_ZONES = {
     grootChair: { x: 0, y: 0, z: 5.5, rot: 0 },      // Groot at head
     finChair: { x: -3, y: 0, z: 8, rot: Math.PI / 2 },     // Fin on left
     bettyChair: { x: 3, y: 0, z: 8, rot: -Math.PI / 2 },   // Betty on right, opposite Fin
+    smithChair: { x: 0, y: 0, z: 10.5, rot: Math.PI },    // Smith at foot of table
     lounge: { x: -14, y: 0, z: 10, rot: Math.PI / 2 },
     coffeeStation: { x: -28, y: 0, z: 0, rot: Math.PI / 2 },  // EDGE of room (left side)
     waterCooler: { x: 8, y: 0, z: 12, rot: 0 },
@@ -3270,6 +3271,8 @@ function createAgent(config) {
         createGrootAvatar(group, config);
     } else if (config.type === 'voxel') {
         createBettyAvatar(group, config);
+    } else if (config.type === 'tech') {
+        createSmithAvatar(group, config);
     } else {
         createFinAvatar(group, config);
     }
@@ -3584,6 +3587,151 @@ function createBettyAvatar(group, config) {
     group.add(rightShoe);
 }
 
+function createSmithAvatar(group, config) {
+    // Body - sleek tech professional
+    const bodyGeometry = new THREE.BoxGeometry(0.75, 1.1, 0.45);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: config.color });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 1.35;
+    body.castShadow = true;
+    group.add(body);
+
+    // Green accent stripe (secondary color)
+    const stripeGeo = new THREE.BoxGeometry(0.76, 0.1, 0.46);
+    const stripeMat = new THREE.MeshStandardMaterial({ color: config.secondaryColor });
+    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+    stripe.position.y = 1.6;
+    group.add(stripe);
+
+    // Hoodie pocket
+    const pocketGeo = new THREE.BoxGeometry(0.3, 0.25, 0.02);
+    const pocket = new THREE.Mesh(pocketGeo, new THREE.MeshStandardMaterial({ color: 0x4A5568 }));
+    pocket.position.set(0, 1.3, 0.24);
+    group.add(pocket);
+
+    // Head
+    const headGeometry = new THREE.BoxGeometry(0.55, 0.6, 0.55);
+    const headMaterial = new THREE.MeshStandardMaterial({ color: 0xF5D0C5 }); // Skin tone
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 2.25;
+    head.castShadow = true;
+    group.add(head);
+
+    // Hair - dark styled
+    const hairGeometry = new THREE.BoxGeometry(0.58, 0.2, 0.58);
+    const hairMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+    const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+    hair.position.y = 2.55;
+    group.add(hair);
+
+    // Headphones - tech coder essential
+    const headphoneBandGeo = new THREE.TorusGeometry(0.32, 0.03, 8, 16, Math.PI);
+    const headphoneMat = new THREE.MeshStandardMaterial({ color: 0x2d3748 });
+    const headphoneBand = new THREE.Mesh(headphoneBandGeo, headphoneMat);
+    headphoneBand.rotation.y = Math.PI / 2;
+    headphoneBand.position.y = 2.35;
+    group.add(headphoneBand);
+
+    const earCupGeo = new THREE.BoxGeometry(0.12, 0.2, 0.15);
+    const leftEarCup = new THREE.Mesh(earCupGeo, headphoneMat);
+    leftEarCup.position.set(-0.3, 2.3, 0);
+    group.add(leftEarCup);
+
+    const rightEarCup = new THREE.Mesh(earCupGeo, headphoneMat);
+    rightEarCup.position.set(0.3, 2.3, 0);
+    group.add(rightEarCup);
+
+    // LED glow on headphones
+    const ledGeo = new THREE.BoxGeometry(0.08, 0.05, 0.02);
+    const ledMat = new THREE.MeshStandardMaterial({ color: config.secondaryColor, emissive: config.secondaryColor, emissiveIntensity: 0.5 });
+    const leftLed = new THREE.Mesh(ledGeo, ledMat);
+    leftLed.position.set(-0.3, 2.35, 0.08);
+    group.add(leftLed);
+
+    const rightLed = new THREE.Mesh(ledGeo, ledMat);
+    rightLed.position.set(0.3, 2.35, 0.08);
+    group.add(rightLed);
+
+    // Glasses - thick frame tech style
+    const glassesGeometry = new THREE.BoxGeometry(0.58, 0.18, 0.58);
+    const glassesMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+    const glasses = new THREE.Mesh(glassesGeometry, glassesMaterial);
+    glasses.position.y = 2.28;
+    group.add(glasses);
+
+    // Arms
+    const armGeometry = new THREE.BoxGeometry(0.2, 0.95, 0.2);
+    const armMaterial = new THREE.MeshStandardMaterial({ color: config.color });
+    
+    const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+    leftArm.position.set(-0.58, 1.35, 0);
+    leftArm.castShadow = true;
+    group.add(leftArm);
+    group.userData.leftArm = leftArm;
+    
+    const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+    rightArm.position.set(0.58, 1.35, 0);
+    rightArm.castShadow = true;
+    group.add(rightArm);
+    group.userData.rightArm = rightArm;
+
+    // Hands
+    const handGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const handMaterial = new THREE.MeshStandardMaterial({ color: 0xF5D0C5 });
+    
+    const leftHand = new THREE.Mesh(handGeometry, handMaterial);
+    leftHand.position.set(-0.58, 0.9, 0);
+    group.add(leftHand);
+    
+    const rightHand = new THREE.Mesh(handGeometry, handMaterial);
+    rightHand.position.set(0.58, 0.9, 0);
+    group.add(rightHand);
+
+    // Legs
+    const legGeometry = new THREE.BoxGeometry(0.24, 0.85, 0.24);
+    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3748 }); // Dark jeans
+    
+    const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+    leftLeg.position.set(-0.2, 0.425, 0);
+    leftLeg.castShadow = true;
+    group.add(leftLeg);
+    group.userData.leftLeg = leftLeg;
+    
+    const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+    rightLeg.position.set(0.2, 0.425, 0);
+    rightLeg.castShadow = true;
+    group.add(rightLeg);
+    group.userData.rightLeg = rightLeg;
+
+    // Sneakers
+    const shoeGeo = new THREE.BoxGeometry(0.26, 0.12, 0.45);
+    const shoeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+    
+    const leftShoe = new THREE.Mesh(shoeGeo, shoeMat);
+    leftShoe.position.set(-0.2, 0.06, 0.1);
+    group.add(leftShoe);
+    
+    const rightShoe = new THREE.Mesh(shoeGeo, shoeMat);
+    rightShoe.position.set(0.2, 0.06, 0.1);
+    group.add(rightShoe);
+
+    // Laptop/tablet in hand (optional detail)
+    const laptopGeo = new THREE.BoxGeometry(0.3, 0.02, 0.2);
+    const laptopMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const laptop = new THREE.Mesh(laptopGeo, laptopMat);
+    laptop.position.set(0.58, 0.95, 0.15);
+    laptop.rotation.x = -0.3;
+    group.add(laptop);
+
+    // Screen glow
+    const screenGlowGeo = new THREE.PlaneGeometry(0.25, 0.15);
+    const screenGlowMat = new THREE.MeshStandardMaterial({ color: config.secondaryColor, emissive: config.secondaryColor, emissiveIntensity: 0.3 });
+    const screenGlow = new THREE.Mesh(screenGlowGeo, screenGlowMat);
+    screenGlow.position.set(0.58, 1.02, 0.15);
+    screenGlow.rotation.x = -0.3;
+    group.add(screenGlow);
+}
+
 function createNameLabel(group, name) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -3627,10 +3775,11 @@ function toggleMeetingMode() {
     
     if (isMeetingMode) {
         // Move all agents to conference table with sitting positions
-        // Groot at head, Fin and Betty opposite each other
+        // Groot at head, others around the table
         moveAgentToZone('groot', 'grootChair');
         moveAgentToZone('fin', 'finChair');
         moveAgentToZone('betty', 'bettyChair');
+        moveAgentToZone('smith', 'smithChair');
         
         setTimeout(() => {
             // Groot at head (facing table center)
@@ -3646,7 +3795,12 @@ function toggleMeetingMode() {
             // Betty on right side, opposite Fin (facing left)
             agents.betty.position.set(3, 0.9, 8);
             agents.betty.rotation.y = -Math.PI / 2;
-            agents.betty.userData.isSitting = true
+            agents.betty.userData.isSitting = true;
+            
+            // Smith at foot of table (facing Groot)
+            agents.smith.position.set(0, 0.9, 10.5);
+            agents.smith.rotation.y = Math.PI;
+            agents.smith.userData.isSitting = true;
             
             Object.values(agents).forEach(agent => {
                 agent.userData.isWalking = false;
@@ -3871,6 +4025,29 @@ function onWindowResize() {
 function onMouseMove(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    // Check for hover over agents to show cursor
+    if (typeof raycaster !== 'undefined' && typeof agents !== 'undefined') {
+        raycaster.setFromCamera(mouse, camera);
+        
+        const agentMeshes = [];
+        Object.values(agents).forEach(agent => {
+            agent.traverse(child => {
+                if (child.isMesh) agentMeshes.push(child);
+            });
+        });
+        
+        const intersects = raycaster.intersectObjects(agentMeshes, false);
+        const canvas = document.getElementById('canvas-container');
+        
+        if (canvas) {
+            if (intersects.length > 0) {
+                canvas.style.cursor = 'pointer';
+            } else {
+                canvas.style.cursor = 'default';
+            }
+        }
+    }
 }
 
 function onMouseClick(event) {
@@ -3890,7 +4067,13 @@ function onMouseClick(event) {
         }
         
         if (clickedObject.parent && clickedObject.parent.userData.id) {
-            selectAgent(clickedObject.parent.userData.id);
+            const agentId = clickedObject.parent.userData.id;
+            selectAgent(agentId);
+            
+            // Open chat if chat system is available
+            if (typeof openChat === 'function') {
+                openChat(agentId);
+            }
             return;
         }
     }
