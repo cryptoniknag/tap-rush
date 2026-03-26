@@ -3757,6 +3757,35 @@ function createNameLabel(group, name) {
     
     group.add(sprite);
     group.userData.nameLabel = sprite;
+    
+    // Add invisible click hitbox around agent for easier selection
+    const hitboxGeo = new THREE.CylinderGeometry(0.8, 0.8, 2.5, 16);
+    const hitboxMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00FF00, 
+        transparent: true, 
+        opacity: 0.0, // Invisible but raycastable
+        visible: false // Hidden from view but still interactive
+    });
+    const hitbox = new THREE.Mesh(hitboxGeo, hitboxMat);
+    hitbox.position.y = 1.25;
+    hitbox.name = name + '_hitbox';
+    hitbox.userData.isHitbox = true;
+    group.add(hitbox);
+    group.userData.hitbox = hitbox;
+    
+    // Add visible selection ring (hidden by default)
+    const ringGeo = new THREE.RingGeometry(0.9, 1.1, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00FF00, 
+        transparent: true, 
+        opacity: 0,
+        side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.05;
+    group.add(ring);
+    group.userData.selectionRing = ring;
 }
 
 function moveAgentToZone(agentId, zoneName) {
@@ -4051,23 +4080,40 @@ function onMouseMove(event) {
 }
 
 function onMouseClick(event) {
+    console.log('[AvatarWorld] onMouseClick triggered');
+    
     raycaster.setFromCamera(mouse, camera);
     
-    // Check for agent clicks
-    const agentMeshes = Object.values(agents).map(agent => {
-        return agent.children.filter(child => child.type === 'Mesh');
-    }).flat();
+    // Check for agent clicks - collect all meshes recursively
+    const agentMeshes = [];
+    Object.values(agents).forEach(agent => {
+        agent.traverse(child => {
+            if (child.isMesh) {
+                agentMeshes.push(child);
+            }
+        });
+    });
     
-    const intersects = raycaster.intersectObjects(agentMeshes, true);
+    console.log('[AvatarWorld] Total agent meshes for raycast:', agentMeshes.length);
+    
+    const intersects = raycaster.intersectObjects(agentMeshes, false); // false because we already flattened
+    
+    console.log('[AvatarWorld] Raycast intersections:', intersects.length);
     
     if (intersects.length > 0) {
-        let clickedObject = intersects[0].object;
-        while (clickedObject.parent && !clickedObject.parent.userData.id) {
+        const hit = intersects[0];
+        console.log('[AvatarWorld] First hit:', hit.object.name, 'distance:', hit.distance);
+        
+        let clickedObject = hit.object;
+        let depth = 0;
+        while (clickedObject.parent && !clickedObject.parent?.userData?.id && depth < 10) {
             clickedObject = clickedObject.parent;
+            depth++;
         }
         
-        if (clickedObject.parent && clickedObject.parent.userData.id) {
+        if (clickedObject.parent && clickedObject.parent.userData?.id) {
             const agentId = clickedObject.parent.userData.id;
+            console.log('[AvatarWorld] Agent found:', agentId);
             selectAgent(agentId);
             
             // Open chat if chat system is available
@@ -4075,6 +4121,8 @@ function onMouseClick(event) {
                 openChat(agentId);
             }
             return;
+        } else {
+            console.log('[AvatarWorld] Could not find agent with id');
         }
     }
     

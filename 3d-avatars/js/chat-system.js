@@ -199,15 +199,35 @@ function initChatSystem() {
 // Setup click handler for agent selection
 function setupAgentClickHandler() {
     const canvas = document.getElementById('canvas-container');
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('[ChatSystem] Canvas not found!');
+        return;
+    }
+    
+    console.log('[ChatSystem] Setting up click handler on canvas');
     
     canvas.addEventListener('click', function(event) {
+        console.log('[ChatSystem] Click detected on canvas');
+        console.log('[ChatSystem] Event target:', event.target.tagName);
+        
+        // Check if camera and agents are available
+        if (typeof camera === 'undefined') {
+            console.error('[ChatSystem] Camera not available!');
+            return;
+        }
+        if (typeof agents === 'undefined' || Object.keys(agents).length === 0) {
+            console.error('[ChatSystem] Agents not available!');
+            return;
+        }
+        
         // Calculate mouse position
         const rect = canvas.getBoundingClientRect();
-        const mouse = {
-            x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-            y: -((event.clientY - rect.top) / rect.height) * 2 + 1
-        };
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        console.log('[ChatSystem] Click at screen:', event.clientX, event.clientY);
+        console.log('[ChatSystem] Click at NDC:', mouse.x, mouse.y);
         
         // Setup raycaster
         const raycaster = new THREE.Raycaster();
@@ -216,25 +236,48 @@ function setupAgentClickHandler() {
         // Get all agent meshes
         const agentMeshes = [];
         Object.values(agents).forEach(agent => {
+            console.log('[ChatSystem] Checking agent:', agent.userData?.id || 'unknown');
             agent.traverse(child => {
-                if (child.isMesh) agentMeshes.push(child);
+                if (child.isMesh) {
+                    agentMeshes.push(child);
+                    console.log('[ChatSystem] Added mesh:', child.name || 'unnamed');
+                }
             });
         });
         
-        // Check intersections
-        const intersects = raycaster.intersectObjects(agentMeshes, false);
+        console.log('[ChatSystem] Total meshes to check:', agentMeshes.length);
+        
+        // Check intersections - recursive to catch all child meshes
+        const intersects = raycaster.intersectObjects(agentMeshes, true);
+        
+        console.log('[ChatSystem] Intersections found:', intersects.length);
         
         if (intersects.length > 0) {
+            console.log('[ChatSystem] First intersection:', intersects[0].object.name || 'unnamed', 
+                        'distance:', intersects[0].distance,
+                        'point:', intersects[0].point);
+            
             let clickedObj = intersects[0].object;
-            // Traverse up to find agent group
-            while (clickedObj.parent && !clickedObj.parent.userData.id) {
+            // Traverse up to find agent group with userData.id
+            let depth = 0;
+            while (clickedObj.parent && !clickedObj.parent.userData?.id && depth < 10) {
+                console.log('[ChatSystem] Traversing up, current:', clickedObj.name || 'unnamed');
                 clickedObj = clickedObj.parent;
+                depth++;
             }
             
-            if (clickedObj.parent && clickedObj.parent.userData.id) {
+            if (clickedObj.parent && clickedObj.parent.userData?.id) {
                 const agentId = clickedObj.parent.userData.id;
+                console.log('[ChatSystem] Agent clicked:', agentId);
                 openChat(agentId);
+            } else {
+                console.log('[ChatSystem] Could not find agent with id, parent:', clickedObj.parent);
+                if (clickedObj.parent) {
+                    console.log('[ChatSystem] parent.userData:', clickedObj.parent.userData);
+                }
             }
+        } else {
+            console.log('[ChatSystem] No intersections found');
         }
     });
 }
@@ -702,10 +745,17 @@ function highlightAgent(agentId) {
     const agent = agents[agentId];
     if (!agent) return;
     
-    // Add highlight effect (could be emissive material change)
+    // Show selection ring
+    if (agent.userData.selectionRing) {
+        agent.userData.selectionRing.material.opacity = 0.8;
+    }
+    
+    // Add highlight effect (emissive material change)
     agent.traverse(child => {
-        if (child.isMesh && child.material) {
-            child.userData.originalEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0, 0, 0);
+        if (child.isMesh && child.material && !child.userData.isHitbox) {
+            if (!child.userData.originalEmissive) {
+                child.userData.originalEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0, 0, 0);
+            }
             if (child.material.emissive) {
                 child.material.emissive.setHex(0x444444);
             }
@@ -716,6 +766,12 @@ function highlightAgent(agentId) {
 // Clear agent highlight
 function clearAgentHighlight() {
     Object.values(agents).forEach(agent => {
+        // Hide selection ring
+        if (agent.userData.selectionRing) {
+            agent.userData.selectionRing.material.opacity = 0;
+        }
+        
+        // Restore emissive
         agent.traverse(child => {
             if (child.isMesh && child.material && child.userData.originalEmissive) {
                 child.material.emissive.copy(child.userData.originalEmissive);
