@@ -169,22 +169,48 @@ const COMMAND_KEYWORDS = {
     work: ['work', 'code', 'develop', 'program', 'build', 'create']
 };
 
-// Initialize Chat System
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[ChatSystem] Initializing...');
+// Initialize Chat System - handles both DOMContentLoaded and already-loaded cases
+function startChatInitialization() {
+    console.log('[ChatSystem] Starting initialization...');
+    console.log('[ChatSystem] window.agents:', typeof window.agents, window.agents ? Object.keys(window.agents) : 'N/A');
+    console.log('[ChatSystem] global agents:', typeof agents !== 'undefined' ? Object.keys(agents) : 'undefined');
     
     // Wait for agents to be available
     function waitForAgents(attempts = 0) {
-        if (typeof agents !== 'undefined' && Object.keys(agents).length > 0) {
+        console.log(`[ChatSystem] waitForAgents attempt ${attempts}`);
+        
+        // Check both window.agents and global agents
+        const hasWindowAgents = typeof window.agents !== 'undefined' && window.agents && Object.keys(window.agents).length > 0;
+        const hasGlobalAgents = typeof agents !== 'undefined' && Object.keys(agents).length > 0;
+        
+        console.log(`[ChatSystem] hasWindowAgents:`, hasWindowAgents, 'hasGlobalAgents:', hasGlobalAgents);
+        
+        if (hasWindowAgents || hasGlobalAgents) {
             console.log('[ChatSystem] Agents found, initializing...');
+            // Sync window.agents with global agents if needed
+            if (hasGlobalAgents && !hasWindowAgents) {
+                window.agents = agents;
+            }
             initChatSystem();
         } else if (attempts < 100) {
             setTimeout(() => waitForAgents(attempts + 1), 100);
+        } else {
+            console.error('[ChatSystem] Failed to find agents after 100 attempts!');
+            console.error('[ChatSystem] Make sure avatar-world.js loaded and created agents.');
         }
     }
     
     waitForAgents();
-});
+}
+
+// Try to initialize immediately in case DOMContentLoaded already fired
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('[ChatSystem] Document already loaded, initializing immediately...');
+    startChatInitialization();
+} else {
+    console.log('[ChatSystem] Waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', startChatInitialization);
+}
 
 function initChatSystem() {
     console.log('[ChatSystem] Initialized successfully');
@@ -205,10 +231,14 @@ function setupAgentClickHandler() {
     }
     
     console.log('[ChatSystem] Setting up click handler on canvas');
+    console.log('[ChatSystem] Camera available:', typeof camera !== 'undefined');
+    console.log('[ChatSystem] Agents available:', typeof agents !== 'undefined', agents ? Object.keys(agents) : 'N/A');
+    console.log('[ChatSystem] THREE available:', typeof THREE !== 'undefined');
     
     canvas.addEventListener('click', function(event) {
         console.log('[ChatSystem] Click detected on canvas');
         console.log('[ChatSystem] Event target:', event.target.tagName);
+        console.log('[ChatSystem] event.clientX:', event.clientX, 'event.clientY:', event.clientY);
         
         // Check if camera and agents are available
         if (typeof camera === 'undefined') {
